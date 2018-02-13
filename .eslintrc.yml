@@ -1,0 +1,25 @@
+parser: babel-eslint
+
+extends: airbnb
+
+env:
+    browser: true
+    node: true
+    jest: true
+
+rules:
+    brace-style: [error, stroustrup, {allowSingleLine: true}]
+    indent: [error, 4, {SwitchCase: 1}]
+    max-len: [error, 120]
+    comma-dangle: [error, always-multiline]
+    no-underscore-dangle: [error, {allowAfterThis: true, allowAfterSuper: true}]
+    no-plusplus: [error, {allowForLoopAfterthoughts: true}]
+    no-use-before-define: [error, {variables: false}]
+    object-curly-spacing: [error, never]
+    object-curly-newline: off
+    function-paren-newline: off
+    no-console: off
+
+    react/jsx-filename-extension: [warn, {extensions: [.js]}]
+    react/jsx-indent: [error, 4]
+    react/jsx-indent-props: [error, 4]

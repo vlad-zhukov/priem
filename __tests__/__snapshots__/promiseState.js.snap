@@ -1,0 +1,100 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`should create a fulfilled promise state 1`] = `
+Object {
+  "fulfilled": true,
+  "pending": false,
+  "reason": null,
+  "refreshing": false,
+  "rejected": false,
+  "value": null,
+}
+`;
+
+exports[`should create a fulfilled promise state 2`] = `
+Object {
+  "fulfilled": true,
+  "pending": false,
+  "reason": null,
+  "refreshing": false,
+  "rejected": false,
+  "value": "foo",
+}
+`;
+
+exports[`should create a fulfilled promise state 3`] = `
+Object {
+  "fulfilled": true,
+  "pending": false,
+  "reason": null,
+  "refreshing": false,
+  "rejected": false,
+  "value": "foo",
+}
+`;
+
+exports[`should create a pending promise state 1`] = `
+Object {
+  "fulfilled": false,
+  "pending": true,
+  "reason": null,
+  "refreshing": false,
+  "rejected": false,
+  "value": null,
+}
+`;
+
+exports[`should create a refreshing promise state 1`] = `
+Object {
+  "fulfilled": false,
+  "pending": true,
+  "reason": null,
+  "refreshing": true,
+  "rejected": false,
+  "value": null,
+}
+`;
+
+exports[`should create a refreshing promise state 2`] = `
+Object {
+  "fulfilled": true,
+  "pending": false,
+  "reason": null,
+  "refreshing": true,
+  "rejected": false,
+  "value": "foo",
+}
+`;
+
+exports[`should create a rejected promise state 1`] = `
+Object {
+  "fulfilled": false,
+  "pending": false,
+  "reason": null,
+  "refreshing": false,
+  "rejected": true,
+  "value": null,
+}
+`;
+
+exports[`should create a rejected promise state 2`] = `
+Object {
+  "fulfilled": false,
+  "pending": false,
+  "reason": "Test Error!",
+  "refreshing": false,
+  "rejected": true,
+  "value": null,
+}
+`;
+
+exports[`should create a rejected promise state 3`] = `
+Object {
+  "fulfilled": false,
+  "pending": false,
+  "reason": [Error: Test Error!],
+  "refreshing": false,
+  "rejected": true,
+  "value": null,
+}
+`;

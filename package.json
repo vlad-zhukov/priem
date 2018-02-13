@@ -1,0 +1,70 @@
+{
+  "name": "priem",
+  "version": "0.0.0",
+  "description": "A rich asynchronous state management across multiple React components",
+  "author": "Vlad Zhukov (http://github.com/Vlad-Zhukov)",
+  "license": "MIT",
+  "repository": "Vlad-Zhukov/priem",
+  "bugs": {
+    "url": "https://github.com/Vlad-Zhukov/priem/issues"
+  },
+  "main": "./dist/priem.cjs.js",
+  "module": "./dist/priem.esm.js",
+  "scripts": {
+    "build": "rimraf dist/ && cross-env NODE_ENV=production rollup -c",
+    "test": "jest",
+    "lint": "eslint \"**/*.js\"",
+    "prettier": "prettier-eslint \"**/*.js\" --write",
+    "prepublishOnly": "yarn lint && yarn build && yarn test"
+  },
+  "dependencies": {
+    "create-react-context": "^0.1.6",
+    "moize": "^4.0.4",
+    "prop-types": "^15.6.0",
+    "react-shallow-equal": "^0.1.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.0.0-beta.40",
+    "@babel/preset-env": "^7.0.0-beta.40",
+    "@babel/preset-react": "^7.0.0-beta.40",
+    "@babel/preset-stage-2": "^7.0.0-beta.40",
+    "babel-core": "^7.0.0-bridge.0",
+    "babel-eslint": "^8.2.1",
+    "babel-jest": "^22.2.2",
+    "cross-env": "^5.1.3",
+    "eslint": "^4.17.0",
+    "eslint-config-airbnb": "^16.1.0",
+    "eslint-plugin-import": "^2.8.0",
+    "eslint-plugin-jsx-a11y": "^6.0.3",
+    "eslint-plugin-react": "^7.6.1",
+    "jest": "^22.2.2",
+    "prettier-eslint-cli": "^4.7.0",
+    "react": "^16.2.0",
+    "rimraf": "^2.6.2",
+    "rollup": "^0.55.5",
+    "rollup-plugin-babel": "^4.0.0-beta.1"
+  },
+  "peerDependencies": {
+    "react": ">=15.5"
+  },
+  "keywords": [
+    "react",
+    "reactjs",
+    "priem",
+    "state",
+    "state management",
+    "async state"
+  ],
+  "files": [
+    "src",
+    "dist"
+  ],
+  "jest": {
+    "roots": [
+      "<rootDir>/__tests__/"
+    ],
+    "transform": {
+      ".js$": "babel-jest"
+    }
+  }
+}
