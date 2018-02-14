@@ -8,12 +8,9 @@
 - [Usage](#usage)
 - [Examples](#examples)
 - [API](#api)
-  - [`reduxStatus(options)`](#reduxstatusoptions)
+  - [`PriemProvider`](#priemprovider)
+  - [`Priem`](#priem)
   - [`promiseState`](#promiseState)
-  - [`reducer`](#reducer)
-  - [`selectors`](#selectors)
-  - [`actions`](#actions)
-  - [`actionTypes`](#actiontypes)
   - [`propTypes`](#proptypes)
 
 ## Install
@@ -42,88 +39,75 @@ Example apps can be found under the `examples/` directory. They are
 ported from the official [Redux repository](https://github.com/reactjs/redux/tree/master/examples),
 so you can compare both implementations.
 
-- [Counter](https://github.com/Vlad-Zhukov/redux-status/tree/master/examples/counter)
-- [Async](https://github.com/Vlad-Zhukov/redux-status/tree/master/examples/async)
+- [Counter](https://github.com/Vlad-Zhukov/priem/tree/master/examples/counter)
+- [Async](https://github.com/Vlad-Zhukov/priem/tree/master/examples/async)
 
 ## API
 
-### `reduxStatus([options])`
+### `PriemProvider`
 
-A higher-order component decorator that is connected to the Redux store
-using the `connect` function from [`react-redux`](https://github.com/reactjs/react-redux).
-It can store plain data as well as handle async jobs with promises
-(such as data fetching). It uses [`moize`](https://github.com/planttheidea/moize)
+### `Priem`
+
+A component for storing plain data as well as handling async jobs with
+promises (such as data fetching). It uses [`moize`](https://github.com/planttheidea/moize)
 for caching results of promises.
 
-__Arguments__
+__Props__
 
-1. `[options]` _(Object)_: Settings that will be used as `defaultProps`.
-Setting `options` here is optional as React props can be used instead.
-Defaults to `{}`. Available properties:
-    - `[name]` _(String)_: A key where the state will be stored under
-    the `status` reducer. It's an optional property in `options`,
-    but a required one in general. If it wasn't set here, it must
-    be set with React props.
-    - `[initialValues]` _(Object)_: Values which will be used during
-    initialization, they can have any shape. Defaults to `{}`.
-    - `[asyncValues]` _(Function)_: A function that takes React `props`
-    and must return an object. Each key of that object refers to a place
-    in the reducer under which a data will be stored. Each value must be
-    an object with the following properties.
-      - `promise` _(Function)_: A function that takes `args` as
-      arguments (if specified) and returns a promise. The result of that
-      promise will be memoized and stored in the Redux store.
-      - `[args]` _(Array)_: Arguments that will be passed to
-      the `promise` function. They must be immutable (booleans, numbers
-      and strings) otherwise the meimozation will not work.
-      - `[maxAge]` _(Number)_: See [`moize` documentation](https://github.com/planttheidea/moize#advanced-usage).
-      - `[maxArgs]` _(Number)_: See [`moize` documentation](https://github.com/planttheidea/moize#advanced-usage).
-      - `[maxSize]` _(Number)_: See [`moize` documentation](https://github.com/planttheidea/moize#advanced-usage).
-    - `[persist]` _(Boolean)_: If `false`, the state related to that
-    `name` will be removed when the last component using it unmounts.
-    Defaults to `true`.
-    - `[autoRefresh]` _(Boolean)_: An option that defines should async
-    functions be called or not, including initial mounting. Setting it
-    to `false` allows manual refresh handling using the `refresh`
-    method. Defaults to `true`.
-    - `[getStatusState]` _(Function)_: A function that takes the entire
-    Redux state and returns the state slice where the [`reducer`](#reducer)
-    was mounted. Defaults to `state => state.status`.
-
-__Returns__
-
-A function, that accepts a React component, and returns a higher-order
-React component.
+1. `name` _(String)_: A key where the state will be stored under
+the `status` reducer. It's an optional property in `options`,
+but a required one in general. If it wasn't set here, it must
+be set with React props.
+2. `[initialValues]` _(Object)_: Values which will be used during
+initialization, they can have any shape. Defaults to `{}`.
+3. `[asyncValues]` _(Function)_: A function that takes React `props`
+and must return an object. Each key of that object refers to a place
+in the reducer under which a data will be stored. Each value must be
+an object with the following properties.
+  - `promise` _(Function)_: A function that takes `args` as
+  arguments (if specified) and returns a promise. The result of that
+  promise will be memoized and stored in the Redux store.
+  - `[args]` _(Array)_: Arguments that will be passed to
+  the `promise` function. They must be immutable (booleans, numbers
+  and strings) otherwise the meimozation will not work.
+  - `[maxAge]` _(Number)_: See [`moize` documentation](https://github.com/planttheidea/moize#advanced-usage).
+  - `[maxArgs]` _(Number)_: See [`moize` documentation](https://github.com/planttheidea/moize#advanced-usage).
+  - `[maxSize]` _(Number)_: See [`moize` documentation](https://github.com/planttheidea/moize#advanced-usage).
+4. `[persist]` _(Boolean)_: If `false`, the state related to that
+`name` will be removed when the last component using it unmounts.
+Defaults to `true`.
+5. `[autoRefresh]` _(Boolean)_: An option that defines should async
+functions be called or not, including initial mounting. Setting it
+to `false` allows manual refresh handling using the `refresh`
+method. Defaults to `true`.
+6. `[render]` _(Function)_
+7. `[children]` _(React.Component)_
 
 __Passed props__
 
 The following props will be passed down to the wrapped component:
 
-- `status` _(Object)_: A slice of Redux store.
-- `setStatus(nextStatus)` _(Function)_: If the `nextStatus` is a
-function, it takes a current status as an argument and must return an
-object that will be shallow merged with the current `status`. If
-the `nextStatus` is an object, it will be shallow merged directly.
-- `setStatusTo(statusName, nextStatus)` _(Function)_: Similar
-to `setStatus()` but also takes in a `statusName` as the first argument.
-Recommended for setting data to another statuses.
+- `priem` _(Object)_: A slice of store.
+- `setPriem(updater)` _(Function)_: If the `updater` is a
+function, it takes a current `priem` state slice as an argument and must
+return an object that will be shallow merged with the current `priem`.
+If the `updater` is an object, it will be shallow merged directly.
+- `setPriemTo(priemName, updater)` _(Function)_: Similar
+to `setPriem()` but also takes in a `priemName` as the first argument.
+Useful for setting data to another `priem` slices.
 - `refresh()` _(Function)_: Forces the update of async values. Note that
 it will call the memoized function.
-- `initialize(props)` _(Function)_: The internal function that is called
-when the component mounts.
-- `destroy()` _(Function)_: The internal function that is called
-when the component unmounts.
 
 The following props are the ones that have been used during the
 initialization. They are not connected to the store for performance
 reasons, but it might be changed in the future if there will be
 a strong reason to do that.
 
-- `statusName` _(String)_
+- `priemName` _(String)_
 - `persist` _(Boolean)_
-- `[getStatusState(state)]` _(Function)_
+- `autoRefresh` _(Boolean)_
 
-__Instance properties__
+<!-- __Instance properties__
 
 The following properties are public so they can be called from the
 outside.
@@ -169,7 +153,7 @@ class CounterController extends PureComponent {
         );
     }
 }
-```
+```-->
 
 __Async usage__
 
@@ -210,97 +194,6 @@ class Async extends PureComponent {
 
 ---
 
-### `reducer`
-
-A status reducer that should be mounted to the Redux store under the
-`status` key.
-
-If you have to mount it to a key other than `status`, you may provide
-a `getStatusState()` function to the [`reduxStatus()`](#reduxstatusoptions)
-decorator.
-
-__Usage__
-
-```js
-import {combineReducers, createStore} from 'redux';
-import {reducer as statusReducer} from 'redux-status';
-
-const reducers = combineReducers({
-    status: statusReducer,
-    // other reducers
-});
-
-const store = createStore(reducers);
-```
-
----
-
-### `selectors`
-
-An object with Redux selectors.
-
-#### `getStatusValue(statusName, [getStatusState])`
-
-__Arguments__
-
-1. `statusName` _(String)_: The name of the status you are connecting to.
-Must be the same as the `name` you gave to [`reduxStatus()`](#reduxstatusoptions).
-2. `[getStatusState]` _(Function)_: A function that takes the entire
-Redux state and returns the state slice where the `redux-status`
-was mounted. Defaults to `state => state.status`.
-
-#### `getStatusMeta(statusName, [getStatusState])`
-
-__Arguments__
-
-1. `statusName` _(String)_: The name of the status you are connecting to.
-Must be the same as the `name` you gave to [`reduxStatus()`](#reduxstatusoptions).
-2. `[getStatusState]` _(Function)_: A function that takes the entire
-Redux state and returns the state slice where the `redux-status`
-was mounted. Defaults to `state => state.status`.
-
----
-
-### `actions`
-
-An object with all internal action creators. This is an advanced API
-and most of the time shouldn't be used directly. It is recommended that
-you use the actions passed down to the wrapped component,
-as they are already bound to `dispatch()` and `statusName`.
-
-#### `initialize(statusName, props)`
-
-__Arguments__
-
-1. `statusName` _(String)_
-2. `props` _(Object)_: React props.
-
-#### `destroy(statusName)`
-
-__Arguments__
-
-1. `statusName` _(String)_
-
-#### `update(statusName, payload)`
-
-__Arguments__
-
-1. `statusName` _(String)_
-2. `payload` _(Object)_
-
----
-
-### `actionTypes`
-
-An object with Redux action types.
-
-- `INITIALIZE` _(String)_
-- `DESTROY` _(String)_
-- `UPDATE` _(String)_
-- `prefix` _(String)_
-
----
-
 ### `promiseState`
 
 A set of functions that are used internally to represent states of
@@ -318,7 +211,7 @@ async values. These are not intended for public usage.
 
 An object with prop types.
 
-- `status` _(Object)_
+- `priem` _(Object)_
 - `promiseState` _(Object)_
 
 ---
