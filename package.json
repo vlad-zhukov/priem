@@ -1,6 +1,6 @@
 {
   "name": "priem",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "A rich asynchronous state management across multiple React components",
   "author": "Vlad Zhukov (http://github.com/Vlad-Zhukov)",
   "license": "MIT",
