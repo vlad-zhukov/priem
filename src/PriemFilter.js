@@ -49,7 +49,7 @@ export default class PriemFilter extends React.Component {
 
         const {name, initialValues, asyncValues, initialize, destroy, render, children, ...rest} = this.props;
 
-        const props = {...rest, refresh: this.refresh};
+        const props = {...rest, priemName: name, refresh: this.refresh};
 
         if (type(render) === 'function') {
             return render(props);

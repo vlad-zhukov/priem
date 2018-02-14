@@ -89,38 +89,30 @@ export class PriemProvider extends React.Component {
     };
 
     render() {
-        console.log('STATE', this.state)
-
         const value = {priemState: this.state, initialize: this.initialize, destroy: this.destroy, update: this.update};
         return <PriemContext.Provider value={value}>{this.props.children}</PriemContext.Provider>;
     }
 }
 
-export class Priem extends React.Component {
-    static defaultProps = {
-        name: undefined,
-        initialValues: {},
-        asyncValues: undefined,
-        persist: true,
-        autoRefresh: false,
-    };
+export const Priem = props => (
+    <PriemContext.Consumer>
+        {({priemState, initialize, destroy, update}) => (
+            <PriemFilter
+                {...props}
+                priem={priemState.values[props.name]}
+                initialize={initialize}
+                destroy={destroy}
+                setPriem={updater => update(props.name, updater)}
+                setPriemTo={update}
+            />
+        )}
+    </PriemContext.Consumer>
+);
 
-    render() {
-        const {name} = this.props;
-
-        return (
-            <PriemContext.Consumer>
-                {({priemState, initialize, destroy, update}) => (
-                    <PriemFilter
-                        {...this.props}
-                        priem={priemState.values[name]}
-                        initialize={initialize}
-                        destroy={destroy}
-                        setPriem={updater => update(name, updater)}
-                        setPriemTo={update}
-                    />
-                )}
-            </PriemContext.Consumer>
-        );
-    }
-}
+Priem.defaultProps = {
+    name: undefined,
+    initialValues: {},
+    asyncValues: undefined,
+    persist: true,
+    autoRefresh: false,
+};
