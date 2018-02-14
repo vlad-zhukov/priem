@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import createReactContext from 'create-react-context';
 import PriemFilter from './PriemFilter';
 import {extractAsyncValues} from './callPromises';
@@ -9,10 +10,16 @@ const createContext = typeof React.createContext === 'function' ? React.createCo
 const PriemContext = createContext({priem: {values: {}, meta: {}}});
 
 export class PriemProvider extends React.Component {
+    static propTypes = {
+        children: PropTypes.node.isRequired,
+    };
+
+    /* eslint-disable react/no-unused-state */
     state = {
         values: {},
         meta: {},
     };
+    /* eslint-enable react/no-unused-state */
 
     initialize = (props) => {
         this.setState((state) => {
@@ -108,6 +115,11 @@ export const Priem = props => (
         )}
     </PriemContext.Consumer>
 );
+
+Priem.propTypes = {
+    name: PropTypes.string.isRequired,
+    children: PropTypes.node.isRequired,
+};
 
 Priem.defaultProps = {
     name: undefined,

@@ -1,8 +1,27 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {extractAsyncValues, callPromises} from './callPromises';
 import {type} from './helpers';
 
 export default class PriemFilter extends React.Component {
+    static propTypes = {
+        name: PropTypes.string.isRequired,
+        initialValues: PropTypes.any, // eslint-disable-line react/forbid-prop-types
+        asyncValues: PropTypes.func,
+        render: PropTypes.func,
+        children: PropTypes.node,
+        priem: PropTypes.any.isRequired, // eslint-disable-line react/forbid-prop-types
+        initialize: PropTypes.func.isRequired,
+        destroy: PropTypes.func.isRequired,
+    };
+
+    static defaultProps = {
+        initialValues: {},
+        asyncValues: null,
+        render: null,
+        children: null,
+    };
+
     componentWillMount() {
         const fakeProps = {...this.props, priem: this.props.initialValues};
 

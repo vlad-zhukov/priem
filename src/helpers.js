@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/prefer-default-export
 export function type(value) {
     if (value === null) return 'null';
     if (value === undefined) return 'undefined';

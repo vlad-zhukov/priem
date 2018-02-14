@@ -30,11 +30,7 @@ class App extends Component {
 
         return (
             <div>
-                <Picker
-                    value={priem.reddit}
-                    onChange={this.handleChange}
-                    options={['reactjs', 'frontend']}
-                />
+                <Picker value={priem.reddit} onChange={this.handleChange} options={['reactjs', 'frontend']} />
                 <p>
                     {lastUpdated && <span>Last updated at {new Date(lastUpdated).toLocaleTimeString()}. </span>}
                     {!isFetching && <button onClick={refresh}>Refresh</button>}
@@ -58,14 +54,14 @@ class App extends Component {
 export default () => (
     <Priem
         name="Async"
-        autoRefresh={true}
+        autoRefresh
         initialValues={{reddit: 'reactjs'}}
         asyncValues={props => ({
             [props.priem.reddit]: {
                 args: [props.priem.reddit],
                 promise: reddit =>
                     fetch(`https://www.reddit.com/r/${reddit}.json`)
-                    // fetch(`https://localhost:4000/r/${reddit}.json`)
+                        // fetch(`https://localhost:4000/r/${reddit}.json`)
                         .then(res => res.json())
                         .then(res => res.data.children),
                 maxAge: 20000,
