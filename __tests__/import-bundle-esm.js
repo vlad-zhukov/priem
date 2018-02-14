@@ -1,4 +1,4 @@
-import {Priem, PriemProvider, propTypes} from '../dist/redux-status.esm';
+import {Priem, PriemProvider, propTypes} from '../dist/priem.esm';
 
 describe('import-bundle-esm', () => {
     it('should export properly', () => {

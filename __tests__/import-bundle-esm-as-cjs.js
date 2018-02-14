@@ -1,4 +1,4 @@
-const {Priem, PriemProvider, propTypes} = require('../dist/redux-status.esm');
+const {Priem, PriemProvider, propTypes} = require('../dist/priem.esm');
 
 describe('import-bundle-esm-as-cjs', () => {
     it('should export properly', () => {

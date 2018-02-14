@@ -1,6 +1,7 @@
-import * as promiseState from './promiseState';
-import {extractAsyncValues, type} from './helpers';
 import moize from 'moize';
+import {elementsEqual} from 'react-shallow-equal';
+import * as promiseState from './promiseState';
+import {type} from './helpers';
 
 const memoized = {};
 
@@ -25,6 +26,23 @@ function memoizeAsyncValue(key, value, onExpire) {
         maxSize: value.maxSize,
         onExpire,
     });
+}
+
+export function extractAsyncValues(props) {
+    if (type(props.asyncValues) !== 'function') {
+        return {};
+    }
+
+    const values = props.asyncValues(props);
+
+    const typeOfValues = type(values);
+    if (typeOfValues !== 'object') {
+        throw new TypeError(
+            `Priem: property 'asyncValues' must be a function that returns an object, but got: '${typeOfValues}'.`
+        );
+    }
+
+    return values;
 }
 
 function callPromise({props, key, asyncValue, prevArgs, onExpire, isMounting, isForced}) {

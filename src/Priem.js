@@ -1,7 +1,7 @@
 import React from 'react';
 import createReactContext from 'create-react-context';
 import PriemFilter from './PriemFilter';
-import {extractAsyncValues} from './helpers';
+import {extractAsyncValues} from './callPromises';
 import * as promiseState from './promiseState';
 
 const createContext = typeof React.createContext === 'function' ? React.createContext : createReactContext;
@@ -15,8 +15,6 @@ export class PriemProvider extends React.Component {
     };
 
     initialize = (props) => {
-        console.log('initialize');
-
         this.setState((state) => {
             const nextValues = {...state.values};
             const nextMeta = {...state.meta};
@@ -51,8 +49,6 @@ export class PriemProvider extends React.Component {
     };
 
     destroy = (name) => {
-        console.log('destroy');
-
         this.setState((state) => {
             const nextValues = {...state.values};
             const nextMeta = {...state.meta};
@@ -77,15 +73,13 @@ export class PriemProvider extends React.Component {
         });
     };
 
-    update = (name, payload) => {
-        console.log('update');
-
+    update = (name, updater) => {
         this.setState((state) => {
             const nextValues = {...state.values};
             const nextMeta = {...state.meta};
 
-            const payloadResult = typeof payload === 'function' ? payload(nextValues[name]) : payload;
-            nextValues[name] = {...nextValues[name], ...payloadResult};
+            const updaterResult = typeof updater === 'function' ? updater(nextValues[name]) : updater;
+            nextValues[name] = {...nextValues[name], ...updaterResult};
 
             return {
                 values: nextValues,
@@ -95,24 +89,35 @@ export class PriemProvider extends React.Component {
     };
 
     render() {
-        console.log('STATE', this.state);
+        console.log('STATE', this.state)
 
-        const value = {priem: this.state, initialize: this.initialize, destroy: this.destroy, update: this.update};
+        const value = {priemState: this.state, initialize: this.initialize, destroy: this.destroy, update: this.update};
         return <PriemContext.Provider value={value}>{this.props.children}</PriemContext.Provider>;
     }
 }
 
 export class Priem extends React.Component {
+    static defaultProps = {
+        name: undefined,
+        initialValues: {},
+        asyncValues: undefined,
+        persist: true,
+        autoRefresh: false,
+    };
+
     render() {
+        const {name} = this.props;
+
         return (
             <PriemContext.Consumer>
-                {({priem, initialize, destroy, update}) => (
+                {({priemState, initialize, destroy, update}) => (
                     <PriemFilter
                         {...this.props}
-                        value={priem.values[this.props.name]}
+                        priem={priemState.values[name]}
                         initialize={initialize}
                         destroy={destroy}
-                        update={update}
+                        setPriem={updater => update(name, updater)}
+                        setPriemTo={update}
                     />
                 )}
             </PriemContext.Consumer>

@@ -1,4 +1,4 @@
-const {Priem, PriemProvider, propTypes} = require('../dist/redux-status.cjs');
+const {Priem, PriemProvider, propTypes} = require('../dist/priem.cjs');
 
 describe('import-bundle-cjs', () => {
     it('should export properly', () => {

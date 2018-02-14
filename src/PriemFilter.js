@@ -1,6 +1,6 @@
 import React from 'react';
-import {callPromises} from './cache';
-import {extractAsyncValues} from './helpers';
+import {extractAsyncValues, callPromises} from './callPromises';
+import {type} from './helpers';
 
 export default class PriemFilter extends React.Component {
     componentWillMount() {
@@ -37,22 +37,24 @@ export default class PriemFilter extends React.Component {
         this.props.destroy(this.props.name);
     }
 
-    setPriem = (payload) => {
-        this.props.update(this.props.name, payload);
-    };
-
     refresh = () => {
         // Always forces an update
         callPromises({props: this.props, isForced: true});
     };
 
     render() {
-        console.log('PriemFilter props', this.props);
-        return this.props.render({
-            priem: this.props.value,
-            setPriem: this.setPriem,
-            setPriemTo: this.props.update,
-            refresh: this.refresh,
-        });
+        if (this.props.priem === undefined) {
+            return null;
+        }
+
+        const {name, initialValues, asyncValues, initialize, destroy, render, children, ...rest} = this.props;
+
+        const props = {...rest, refresh: this.refresh};
+
+        if (type(render) === 'function') {
+            return render(props);
+        }
+
+        return React.Children.toArray(children).map(Child => React.cloneElement(Child, props));
     }
 }
