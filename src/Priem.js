@@ -124,7 +124,7 @@ Priem.propTypes = {
 Priem.defaultProps = {
     name: undefined,
     initialValues: {},
-    asyncValues: undefined,
+    asyncValues: null,
     persist: true,
     autoRefresh: false,
 };
