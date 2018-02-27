@@ -81,6 +81,8 @@ so you can compare both implementations.
 
 ### `PriemProvider`
 
+A component that provides context for [`Priem`](#preim) component.
+
 ### `Priem`
 
 A component for storing plain data as well as handling async jobs with
@@ -89,14 +91,11 @@ for caching results of promises.
 
 __Props__
 
-1. `name` _(String)_: A key where the state will be stored under
-the `status` reducer. It's an optional property in `options`,
-but a required one in general. If it wasn't set here, it must
-be set with React props.
+1. `name` _(String)_: A key under which the state will be stored.
 2. `[initialValues]` _(Object)_: Values which will be used during
 initialization, they can have any shape. Defaults to `{}`.
-3. `[asyncValues]` _(Function)_: A function that takes React `props`
-and must return an object. Each key of that object refers to a place
+3. `[asyncValues]` _(Function)_: A function that takes `props` and must
+return an object. Each key of that object refers to a place
 in the reducer under which a data will be stored. Each value must be
 an object with the following properties.
   - `promise` _(Function)_: A function that takes `args` as
@@ -115,8 +114,13 @@ Defaults to `true`.
 functions be called or not, including initial mounting. Setting it
 to `false` allows manual refresh handling using the `refresh`
 method. Defaults to `true`.
-6. `[render]` _(Function)_
-7. `[children]` _(React.Component)_
+6. `[render]` _(Function)_: One of three ways to render components.
+Must be a function that takes [props](#passed-props) and returns
+React component(s).
+7. `[component]` _(React.Element)_: A React element that can be
+rendered using `React.createElement` with [props](#passed-props).
+8. `[children]` _(React.Component)_: A React component or an array of
+components, all of which will be rendered with [props](#passed-props).
 
 __Passed props__
 
@@ -142,89 +146,40 @@ a strong reason to do that.
 - `persist` _(Boolean)_
 - `autoRefresh` _(Boolean)_
 
-<!-- __Instance properties__
-
-The following properties are public so they can be called from the
-outside.
-
-- `status` _(getter)_
-- `setStatus(nextStatus)`
-- `setStatusTo(statusName, nextStatus)`
-- `refresh()`
-
-An example that utilizes instance methods based on the example above:
-```jsx
-const Counter = reduxStatus({
-    name: 'Counter',
-    initialValues: {
-        counter: 0,
-    },
-})(({status}) => <p>{status.counter}</p>);
-
-class CounterController extends PureComponent {
-    increment = () => {
-        this.counter.setStatus(prevStatus => ({
-            counter: prevStatus.counter + 1,
-        }));
-    }
-
-    decrement = () => {
-        this.counter.setStatus(prevStatus => ({
-            counter: prevStatus.counter - 1,
-        }));
-    }
-
-    _getRef = (ref) => {
-        this.counter = ref;
-    }
-
-    render() {
-        return (
-            <div>
-                <Counter statusRef={this._getRef} />
-                <button onClick={this.increment}>Increment</button>
-                <button onClick={this.decrement}>Decrement</button>
-            </div>
-        );
-    }
-}
-```-->
-
 __Async usage__
 
 ```jsx
 import React, {PureComponent} from 'react';
-import {reduxStatus} from 'redux-status';
+import {Priem} from 'priem';
 
-@reduxStatus({
-    name: 'Async', // 'name' is required
-    asyncValues: props => ({ // 'values' is required too
-        [props.reddit]: {
-            args: [props.reddit],
-            promise: reddit => fetch(`https://www.reddit.com/r/${reddit}.json`)
-                .then(res => res.json())
-                .then(res => res.data.children),
-        },
-    }),
-})
-class Async extends PureComponent {
-    render() {
-        const {status, reddit} = this.props;
-        const {pending, refreshing, value} = status[reddit];
+export default () => (
+    <Priem
+        name="Async" // 'name' is required
+        asyncVallues={props => ({
+          [props.reddit]: {
+              args: [props.reddit],
+              promise: reddit => fetch(`https://www.reddit.com/r/${reddit}.json`)
+                  .then(res => res.json())
+                  .then(res => res.data.children),
+          },
+        })}
+        render=(({status, reddit}) => {
+            const {pending, refreshing, value} = status[reddit];
 
-        if (!value) {
-            return pending ? <h2>Loading...</h2> : <h2>Empty.</h2>;
-        }
+            if (!value) {
+             return pending ? <h2>Loading...</h2> : <h2>Empty.</h2>;
+            }
 
-        return (
-            <div style={{opacity: pending || refreshing ? 0.5 : 1}}>
-                <ul>
-                    {posts.map((post, i) => <li key={i}>{post.data.title}</li>)}
-                </ul>
-            </div>
-        );
-    }
-}
+            return (
+             <div style={{opacity: pending || refreshing ? 0.5 : 1}}>
+                 <ul>
+                     {posts.map((post, i) => <li key={i}>{post.data.title}</li>)}
+                 </ul>
+             </div>
+            );
+        })
+    />
+);
 ```
 
 ---

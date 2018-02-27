@@ -14,7 +14,7 @@ export default class PriemFilter extends React.Component {
         render: PropTypes.func,
         component: PropTypes.element,
         children: PropTypes.node,
-        priem: PropTypes.any.isRequired, // eslint-disable-line react/forbid-prop-types
+        priem: PropTypes.any, // eslint-disable-line react/forbid-prop-types
         initialize: PropTypes.func.isRequired,
         destroy: PropTypes.func.isRequired,
         setPriem: PropTypes.func.isRequired,
@@ -28,6 +28,7 @@ export default class PriemFilter extends React.Component {
         render: null,
         component: null,
         children: null,
+        priem: undefined,
     };
 
     componentWillMount() {
