@@ -1,9 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {MemoizedPool} from './MemoizedPool';
 import {type} from './helpers';
-
-const memoizePool = new MemoizedPool();
 
 export default class PriemFilter extends React.Component {
     static propTypes = {
@@ -19,6 +16,7 @@ export default class PriemFilter extends React.Component {
         destroy: PropTypes.func.isRequired,
         setPriem: PropTypes.func.isRequired,
         setPriemTo: PropTypes.func.isRequired,
+        memoizedPool: PropTypes.object.isRequired, // eslint-disable-line react/forbid-prop-types
     };
 
     static defaultProps = {
@@ -32,21 +30,23 @@ export default class PriemFilter extends React.Component {
     };
 
     componentWillMount() {
-        const fakeProps = {...this.props, priem: this.props.initialValues};
+        const {initialize, setPriem, memoizedPool, ...rest} = this.props;
+        const fakeProps = {...rest, priem: this.props.initialValues};
 
-        this.props.initialize(fakeProps);
-        memoizePool.runPromises({
+        initialize(fakeProps);
+        memoizedPool.runPromises({
             props: fakeProps,
-            onChange: fakeProps.setPriem,
+            onChange: setPriem,
             onExpire: () => this.forceUpdate(),
             isForced: false,
         });
     }
 
     componentWillUpdate(nextProps) {
-        memoizePool.runPromises({
-            props: nextProps,
-            onChange: nextProps.setPriem,
+        const {setPriem, memoizedPool, ...rest} = nextProps;
+        memoizedPool.runPromises({
+            props: rest,
+            onChange: setPriem,
             onExpire: () => this.forceUpdate(),
             isForced: false,
         });
@@ -56,11 +56,12 @@ export default class PriemFilter extends React.Component {
         this.props.destroy(this.props.name);
     }
 
+    // Always forces an update
     refresh = () => {
-        // Always forces an update
-        memoizePool.runPromises({
-            props: this.props,
-            onChange: this.props.setPriem,
+        const {setPriem, memoizedPool, ...rest} = this.props;
+        memoizedPool.runPromises({
+            props: rest,
+            onChange: setPriem,
             onExpire: () => this.forceUpdate(),
             isForced: true,
         });

@@ -4,12 +4,12 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import createReactContext from 'create-react-context';
 import PriemFilter from './PriemFilter';
-import {extractAsyncValues} from './MemoizedPool';
+import {MemoizedPool, extractAsyncValues} from './MemoizedPool';
 import * as promiseState from './promiseState';
 
 const createContext = typeof React.createContext === 'function' ? React.createContext : createReactContext;
 
-const PriemContext = createContext({priem: {values: {}, meta: {}}});
+const PriemContext = createContext();
 
 export class PriemProvider extends React.Component {
     static propTypes = {
@@ -22,6 +22,8 @@ export class PriemProvider extends React.Component {
         meta: {},
     };
     /* eslint-enable react/no-unused-state */
+
+    memoizedPool = new MemoizedPool();
 
     initialize = (props) => {
         this.setState((state) => {
@@ -98,7 +100,13 @@ export class PriemProvider extends React.Component {
     };
 
     render() {
-        const value = {priemState: this.state, initialize: this.initialize, destroy: this.destroy, update: this.update};
+        const value = {
+            priemState: this.state,
+            initialize: this.initialize,
+            destroy: this.destroy,
+            update: this.update,
+            memoizedPool: this.memoizedPool,
+        };
         return <PriemContext.Provider value={value}>{this.props.children}</PriemContext.Provider>;
     }
 }
@@ -124,7 +132,7 @@ export class Priem extends React.Component {
         children: null,
     };
 
-    renderConsumer = ({priemState, initialize, destroy, update}) => (
+    renderConsumer = ({priemState, initialize, destroy, update, memoizedPool}) => (
         <PriemFilter
             {...this.props}
             priem={priemState.values[this.props.name]}
@@ -132,6 +140,7 @@ export class Priem extends React.Component {
             destroy={destroy}
             setPriem={updater => update(this.props.name, updater)}
             setPriemTo={update}
+            memoizedPool={memoizedPool}
         />
     );
 
