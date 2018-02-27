@@ -53,22 +53,21 @@ class App extends Component {
 
 export default () => (
     <Priem
+        component={App}
         name="Async"
         autoRefresh
         initialValues={{reddit: 'reactjs'}}
         asyncValues={props => ({
             [props.priem.reddit]: {
                 args: [props.priem.reddit],
-                promise: reddit =>
-                    fetch(`https://www.reddit.com/r/${reddit}.json`)
-                        // fetch(`https://localhost:4000/r/${reddit}.json`)
+                promise: reddit => {
+                    return fetch(`https://www.reddit.com/r/${reddit}.json`)
                         .then(res => res.json())
-                        .then(res => res.data.children),
+                        .then(res => res.data.children);
+                },
                 maxAge: 20000,
                 maxArgs: 1,
             },
         })}
-    >
-        <App />
-    </Priem>
+    />
 );

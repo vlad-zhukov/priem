@@ -1,3 +1,5 @@
+/* eslint-disable react/no-multi-comp */
+
 import React from 'react';
 import PropTypes from 'prop-types';
 import createReactContext from 'create-react-context';
@@ -104,17 +106,22 @@ export class PriemProvider extends React.Component {
 export class Priem extends React.Component {
     static propTypes = {
         name: PropTypes.string.isRequired,
+        initialValues: PropTypes.any, // eslint-disable-line react/forbid-prop-types
+        asyncValues: PropTypes.func,
+        autoRefresh: PropTypes.bool,
         render: PropTypes.func,
         component: PropTypes.element,
         children: PropTypes.node,
     };
 
     static defaultProps = {
-        name: undefined,
         initialValues: {},
         asyncValues: null,
         persist: true,
         autoRefresh: false,
+        render: null,
+        component: null,
+        children: null,
     };
 
     renderConsumer = ({priemState, initialize, destroy, update}) => (

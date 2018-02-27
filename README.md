@@ -21,16 +21,51 @@ yarn add priem
 
 ## Usage
 
-__Step 1:__ Wrap your component tree with a `PriemProvider`:
+__Step 1:__ Wrap your component tree with the `PriemProvider`:
 
 ```jsx
+import React from 'react';
+impoer ReactDOM from 'react-dom';
+import {PriemProvider} from 'priem';
+import App from './App';
 
+ReactDOM.render(
+    <PriemProvider>
+        <App />
+    </PriemProvider>,
+    document.getElementById('root')
+);
 ```
 
-__Step 2:__ Connect components with the `reduxStatus` decorator:
+__Step 2:__ Connect components with the `Priem` component:
 
 ```jsx
+import React from 'react';
+import {Priem} from 'priem';
 
+export default () => (
+    <Priem
+        name="Counter"
+        initialValues={{couter: 0}}
+        render={({priem, setPriem}) => {
+            const increment = () => setPriem(state => ({
+                counter: state.counter + 1,
+            }));
+
+            const decrement = () => setPriem(state => ({
+                counter: state.counter - 1,
+            }))
+
+            return (
+                <div>
+                    <p>{priem.counter}</p>
+                    <button onClick={increment}>Increment</button>
+                    <button onClick={decrement}>Decrement</button>
+                </div>
+            );
+        }}
+    />
+);
 ```
 
 ## Examples

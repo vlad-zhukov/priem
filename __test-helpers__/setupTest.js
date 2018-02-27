@@ -1,3 +1,5 @@
+/* eslint-disable import/no-extraneous-dependencies */
+
 import 'raf/polyfill';
 import Enzyme from 'enzyme';
 import React16Adapter from 'enzyme-adapter-react-16';

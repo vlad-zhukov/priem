@@ -5,13 +5,17 @@ import {MemoizedPool} from '../src/MemoizedPool';
 
 function setup(options) {
     class TestComponent extends React.Component {
-        render() {}
+        state = {};
+        render() {
+            return null;
+        }
     }
 
     const component = shallow(<TestComponent />);
     const cache = new MemoizedPool();
     const onChange = jest.fn(updater => component.setState(updater));
     const onExpire = jest.fn(() => {
+        // eslint-disable-next-line no-use-before-define
         runPromises();
     });
     function runPromises() {

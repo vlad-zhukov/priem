@@ -1,11 +1,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {PriemProvider} from 'priem';
-import ConnectedCounter from './components/Counter';
+import Counter from './components/Counter';
 
 ReactDOM.render(
     <PriemProvider>
-        <ConnectedCounter />
+        <Counter />
     </PriemProvider>,
     document.getElementById('root')
 );
