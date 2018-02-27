@@ -141,7 +141,7 @@ export class MemoizedPool {
         for (let i = 0, l = asyncKeys.length; i < l; i++) {
             const key = asyncKeys[i];
             const value = asyncValues[key];
-            this.runPromise({key: `${key}@${name}`, value, publicKey: key, isForced, onChange, onExpire});
+            this.runPromise({key: `${key}@${props.name}`, value, publicKey: key, isForced, onChange, onExpire});
         }
     }
 }

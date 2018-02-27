@@ -71,10 +71,10 @@ it('should run promises if `autoRefresh` is false but `isForced` is true', async
     const {component, cache, onChange, onExpire, runPromises} = setup({props, isForced: true});
 
     runPromises();
-    expect(cache.awaiting).toMatchObject({'testValue@nodejs': [['foo']]});
+    expect(cache.awaiting).toMatchObject({'testValue@Test': [['foo']]});
 
     await delay(250);
-    expect(cache.awaiting).toMatchObject({'testValue@nodejs': []});
+    expect(cache.awaiting).toMatchObject({'testValue@Test': []});
 
     expect(onChange).toHaveBeenCalledTimes(2);
     expect(onExpire).toHaveBeenCalledTimes(0);
@@ -96,16 +96,16 @@ it('should not run promises when awaiting', async () => {
     const {component, cache, onChange, onExpire, runPromises} = setup({props, isForced: false});
 
     runPromises();
-    expect(cache.awaiting).toMatchObject({'testValue@nodejs': [['foo']]});
+    expect(cache.awaiting).toMatchObject({'testValue@Test': [['foo']]});
 
     runPromises();
-    expect(cache.awaiting).toMatchObject({'testValue@nodejs': [['foo']]});
+    expect(cache.awaiting).toMatchObject({'testValue@Test': [['foo']]});
 
     runPromises();
-    expect(cache.awaiting).toMatchObject({'testValue@nodejs': [['foo']]});
+    expect(cache.awaiting).toMatchObject({'testValue@Test': [['foo']]});
 
     await delay(250);
-    expect(cache.awaiting).toMatchObject({'testValue@nodejs': []});
+    expect(cache.awaiting).toMatchObject({'testValue@Test': []});
 
     expect(onChange).toHaveBeenCalledTimes(2);
     expect(onExpire).toHaveBeenCalledTimes(0);
@@ -134,13 +134,13 @@ it('should not rerun promises if previous promise was rejected', async () => {
     const {component, cache, onChange, onExpire, runPromises} = setup({props, isForced: false});
 
     runPromises();
-    expect(cache.awaiting).toMatchObject({'testValue@nodejs': [['foo']]});
+    expect(cache.awaiting).toMatchObject({'testValue@Test': [['foo']]});
 
     await delay(250);
-    expect(cache.awaiting).toMatchObject({'testValue@nodejs': []});
+    expect(cache.awaiting).toMatchObject({'testValue@Test': []});
 
     runPromises();
-    expect(cache.awaiting).toMatchObject({'testValue@nodejs': []});
+    expect(cache.awaiting).toMatchObject({'testValue@Test': []});
 
     expect(onChange).toHaveBeenCalledTimes(2);
     expect(onExpire).toHaveBeenCalledTimes(0);
@@ -169,16 +169,16 @@ it('should rerun promises if previous promise was rejected but `isForced` is tru
     const {component, cache, onChange, onExpire, runPromises} = setup({props, isForced: true});
 
     runPromises();
-    expect(cache.awaiting).toMatchObject({'testValue@nodejs': [['foo']]});
+    expect(cache.awaiting).toMatchObject({'testValue@Test': [['foo']]});
 
     await delay(250);
-    expect(cache.awaiting).toMatchObject({'testValue@nodejs': []});
+    expect(cache.awaiting).toMatchObject({'testValue@Test': []});
 
     runPromises();
-    expect(cache.awaiting).toMatchObject({'testValue@nodejs': [['foo']]});
+    expect(cache.awaiting).toMatchObject({'testValue@Test': [['foo']]});
 
     await delay(250);
-    expect(cache.awaiting).toMatchObject({'testValue@nodejs': []});
+    expect(cache.awaiting).toMatchObject({'testValue@Test': []});
 
     expect(onChange).toHaveBeenCalledTimes(4);
     expect(onExpire).toHaveBeenCalledTimes(0);
@@ -201,10 +201,10 @@ it('should expire if maxAge is set', async () => {
     const {component, cache, onChange, onExpire, runPromises} = setup({props, isForced: false});
 
     runPromises();
-    expect(cache.awaiting).toMatchObject({'testValue@nodejs': [['foo']]});
+    expect(cache.awaiting).toMatchObject({'testValue@Test': [['foo']]});
 
     await delay(1000);
-    expect(cache.awaiting).toMatchObject({'testValue@nodejs': [['foo']]});
+    expect(cache.awaiting).toMatchObject({'testValue@Test': [['foo']]});
 
     expect(onChange).toHaveBeenCalledTimes(7);
     expect(onExpire).toHaveBeenCalledTimes(3);
