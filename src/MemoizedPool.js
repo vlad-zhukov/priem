@@ -114,7 +114,7 @@ export class MemoizedPool {
             });
         }
 
-        this.memoized[key](...args)
+        return this.memoized[key](...args)
             .then((result) => {
                 this.removeAwaiting(key, args);
                 onChange({
@@ -137,11 +137,10 @@ export class MemoizedPool {
         }
 
         const asyncValues = extractAsyncValues(props);
-        const asyncKeys = Object.keys(asyncValues);
-        for (let i = 0, l = asyncKeys.length; i < l; i++) {
-            const key = asyncKeys[i];
+
+        return Object.keys(asyncValues).map((key) => {
             const value = asyncValues[key];
-            this.runPromise({key: `${key}@${props.name}`, value, publicKey: key, isForced, onChange, onExpire});
-        }
+            return this.runPromise({key: `${key}@${props.name}`, value, publicKey: key, isForced, onChange, onExpire});
+        });
     }
 }

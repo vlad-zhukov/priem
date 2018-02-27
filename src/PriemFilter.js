@@ -29,9 +29,9 @@ export default class PriemFilter extends React.Component {
         priem: undefined,
     };
 
-    componentWillMount() {
-        const {initialize, setPriem, memoizedPool, ...rest} = this.props;
-        const fakeProps = {...rest, priem: this.props.initialValues};
+    componentDidMount() {
+        const {initialValues, priem = {}, initialize, setPriem, memoizedPool, ...rest} = this.props;
+        const fakeProps = {...rest, priem: {...initialValues, ...priem}};
 
         initialize(fakeProps);
         memoizedPool.runPromises({

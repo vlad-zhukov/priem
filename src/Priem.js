@@ -13,17 +13,22 @@ const PriemContext = createContext();
 
 export class PriemProvider extends React.Component {
     static propTypes = {
+        initialState: PropTypes.object, // eslint-disable-line react/forbid-prop-types
         children: PropTypes.node.isRequired,
     };
 
-    /* eslint-disable react/no-unused-state */
-    state = {
-        values: {},
-        meta: {},
+    static defaultProps = {
+        initialState: {
+            values: {},
+            meta: {},
+        },
     };
-    /* eslint-enable react/no-unused-state */
 
-    memoizedPool = new MemoizedPool();
+    constructor(props) {
+        super(props);
+        this.state = props.initialState;
+        this.memoizedPool = new MemoizedPool();
+    }
 
     initialize = (props) => {
         this.setState((state) => {
@@ -34,7 +39,7 @@ export class PriemProvider extends React.Component {
                 nextMeta[props.name] = {...nextMeta[props.name], count: (nextMeta[props.name].count += 1)};
             }
             else {
-                const initialValues = {...props.initialValues};
+                const initialValues = {...props.priem};
 
                 if (props.autoRefresh !== false) {
                     const asyncKeys = Object.keys(extractAsyncValues(props));
@@ -116,6 +121,7 @@ export class Priem extends React.Component {
         name: PropTypes.string.isRequired,
         initialValues: PropTypes.any, // eslint-disable-line react/forbid-prop-types
         asyncValues: PropTypes.func,
+        persist: PropTypes.bool,
         autoRefresh: PropTypes.bool,
         render: PropTypes.func,
         component: PropTypes.func,
