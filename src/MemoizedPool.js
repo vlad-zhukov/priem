@@ -83,7 +83,7 @@ export class MemoizedPool {
         }
     }
 
-    runPromise({key, value, isForced, onChange, onExpire}) {
+    runPromise({key, value, publicKey, isForced, onChange, onExpire}) {
         const args = type(value.args) === 'array' ? value.args : [];
 
         if (!this.memoized[key]) {
@@ -105,12 +105,12 @@ export class MemoizedPool {
         if (this.isMemoized(key, args)) {
             // Only set to refreshing when the result is not cached
             onChange(s => ({
-                [key]: promiseState.refreshing(s[key]),
+                [publicKey]: promiseState.refreshing(s[publicKey]),
             }));
         }
         else {
             onChange({
-                [key]: promiseState.pending(),
+                [publicKey]: promiseState.pending(),
             });
         }
 
@@ -118,14 +118,14 @@ export class MemoizedPool {
             .then((result) => {
                 this.removeAwaiting(key, args);
                 onChange({
-                    [key]: promiseState.fulfilled(result),
+                    [publicKey]: promiseState.fulfilled(result),
                 });
             })
             .catch((e) => {
                 this.removeAwaiting(key, args);
                 this.rejected[key] = true;
                 onChange({
-                    [key]: promiseState.rejected(e.message),
+                    [publicKey]: promiseState.rejected(e.message),
                 });
             });
     }
@@ -141,7 +141,7 @@ export class MemoizedPool {
         for (let i = 0, l = asyncKeys.length; i < l; i++) {
             const key = asyncKeys[i];
             const value = asyncValues[key];
-            this.runPromise({key, value, isForced, onChange, onExpire});
+            this.runPromise({key: `${key}@${name}`, value, publicKey: key, isForced, onChange, onExpire});
         }
     }
 }
