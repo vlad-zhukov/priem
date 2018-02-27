@@ -12,7 +12,7 @@ export default class PriemFilter extends React.Component {
         asyncValues: PropTypes.func,
         autoRefresh: PropTypes.bool,
         render: PropTypes.func,
-        component: PropTypes.element,
+        component: PropTypes.func,
         children: PropTypes.node,
         priem: PropTypes.any, // eslint-disable-line react/forbid-prop-types
         initialize: PropTypes.func.isRequired,

@@ -110,7 +110,7 @@ export class Priem extends React.Component {
         asyncValues: PropTypes.func,
         autoRefresh: PropTypes.bool,
         render: PropTypes.func,
-        component: PropTypes.element,
+        component: PropTypes.func,
         children: PropTypes.node,
     };
 

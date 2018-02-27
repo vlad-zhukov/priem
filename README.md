@@ -1,6 +1,6 @@
 # priem · [![npm](https://img.shields.io/npm/v/priem.svg)](https://npm.im/priem)
 
-> A rich asynchronous state management across multiple React components.
+> Rich (a)sync state management across multiple React components
 
 ## Table of Contents
 
@@ -155,7 +155,7 @@ import {Priem} from 'priem';
 export default () => (
     <Priem
         name="Async" // 'name' is required
-        asyncVallues={props => ({
+        asyncValues={props => ({
           [props.reddit]: {
               args: [props.reddit],
               promise: reddit => fetch(`https://www.reddit.com/r/${reddit}.json`)
@@ -163,8 +163,8 @@ export default () => (
                   .then(res => res.data.children),
           },
         })}
-        render=(({status, reddit}) => {
-            const {pending, refreshing, value} = status[reddit];
+        render=(({priem, reddit}) => {
+            const {pending, refreshing, value} = priem[reddit];
 
             if (!value) {
              return pending ? <h2>Loading...</h2> : <h2>Empty.</h2>;
