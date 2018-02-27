@@ -1,6 +1,6 @@
-const env = process.env.NODE_ENV;
+const env = process.env.BABEL_ENV || process.env.NODE_ENV;
 
-const presets = ['@babel/preset-react', '@babel/preset-stage-2'];
+const presets = ['@babel/preset-react', '@babel/preset-stage-3'];
 const plugins = [];
 
 if (env === 'test') {

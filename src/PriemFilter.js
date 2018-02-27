@@ -1,7 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {extractAsyncValues, callPromises} from './callPromises';
+import {MemoizedPool} from './MemoizedPool';
 import {type} from './helpers';
+
+const memoizePool = new MemoizedPool();
 
 export default class PriemFilter extends React.Component {
     static propTypes = {
@@ -28,30 +30,21 @@ export default class PriemFilter extends React.Component {
         const fakeProps = {...this.props, priem: this.props.initialValues};
 
         this.props.initialize(fakeProps);
-        callPromises({props: fakeProps, onExpire: () => this.forceUpdate(), isMounting: true});
-    }
-
-    shouldComponentUpdate(nextProps) {
-        if (nextProps.priem === undefined || nextProps.asyncValues === undefined) return true;
-
-        const asyncValues = extractAsyncValues(nextProps);
-        const asyncKeys = Object.keys(asyncValues);
-        if (asyncKeys.length === 0) return true;
-
-        if (nextProps.autoRefresh !== false) {
-            // If one of async values hasn't been added to the `priem` yet, prevent the update
-            for (let i = 0, l = asyncKeys.length; i < l; i++) {
-                if (nextProps.priem[asyncKeys[i]] === undefined) {
-                    return false;
-                }
-            }
-        }
-
-        return true;
+        memoizePool.runPromises({
+            props: fakeProps,
+            onChange: fakeProps.setPriem,
+            onExpire: () => this.forceUpdate(),
+            isForced: false,
+        });
     }
 
     componentWillUpdate(nextProps) {
-        callPromises({props: nextProps, prevProps: this.props, onExpire: () => this.forceUpdate()});
+        memoizePool.runPromises({
+            props: nextProps,
+            onChange: nextProps.setPriem,
+            onExpire: () => this.forceUpdate(),
+            isForced: false,
+        });
     }
 
     componentWillUnmount() {
@@ -60,20 +53,39 @@ export default class PriemFilter extends React.Component {
 
     refresh = () => {
         // Always forces an update
-        callPromises({props: this.props, isForced: true});
+        memoizePool.runPromises({
+            props: this.props,
+            onChange: this.props.setPriem,
+            onExpire: () => this.forceUpdate(),
+            isForced: true,
+        });
     };
 
     render() {
-        if (this.props.priem === undefined) {
+        if (!this.props.priem) {
             return null;
         }
 
-        const {name, initialValues, asyncValues, initialize, destroy, render, children, ...rest} = this.props;
+        const {
+            name,
+            initialValues,
+            asyncValues,
+            initialize,
+            destroy,
+            render,
+            component,
+            children,
+            ...rest
+        } = this.props;
 
         const props = {...rest, priemName: name, refresh: this.refresh};
 
         if (type(render) === 'function') {
             return render(props);
+        }
+
+        if (component) {
+            return React.createElement(component, props);
         }
 
         return React.Children.toArray(children).map(Child => React.cloneElement(Child, props));

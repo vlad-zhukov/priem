@@ -1,0 +1,68 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`should expire if maxAge is set 1`] = `
+Object {
+  "testValue": Object {
+    "fulfilled": false,
+    "pending": true,
+    "reason": null,
+    "refreshing": false,
+    "rejected": false,
+    "value": null,
+  },
+}
+`;
+
+exports[`should not rerun promises if previous promise was rejected 1`] = `
+Object {
+  "testValue": Object {
+    "fulfilled": false,
+    "pending": false,
+    "reason": "foo",
+    "refreshing": false,
+    "rejected": true,
+    "value": null,
+  },
+}
+`;
+
+exports[`should not run promises if both \`autoRefresh\` and \`isForced\` are false 1`] = `Object {}`;
+
+exports[`should not run promises when awaiting 1`] = `
+Object {
+  "testValue": Object {
+    "fulfilled": true,
+    "pending": false,
+    "reason": null,
+    "refreshing": false,
+    "rejected": false,
+    "value": null,
+  },
+}
+`;
+
+exports[`should rerun promises if previous promise was rejected but \`isForced\` is true 1`] = `
+Object {
+  "testValue": Object {
+    "fulfilled": true,
+    "pending": false,
+    "reason": null,
+    "refreshing": false,
+    "rejected": false,
+    "value": null,
+  },
+}
+`;
+
+exports[`should run promises if \`autoRefresh\` is false but \`isForced\` is true 1`] = `
+Object {
+  "testValue": Object {
+    "fulfilled": true,
+    "pending": false,
+    "reason": null,
+    "refreshing": false,
+    "rejected": false,
+    "value": null,
+  },
+}
+`;

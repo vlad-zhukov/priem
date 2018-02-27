@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import createReactContext from 'create-react-context';
 import PriemFilter from './PriemFilter';
-import {extractAsyncValues} from './callPromises';
+import {extractAsyncValues} from './MemoizedPool';
 import * as promiseState from './promiseState';
 
 const createContext = typeof React.createContext === 'function' ? React.createContext : createReactContext;
@@ -101,30 +101,34 @@ export class PriemProvider extends React.Component {
     }
 }
 
-export const Priem = props => (
-    <PriemContext.Consumer>
-        {({priemState, initialize, destroy, update}) => (
-            <PriemFilter
-                {...props}
-                priem={priemState.values[props.name]}
-                initialize={initialize}
-                destroy={destroy}
-                setPriem={updater => update(props.name, updater)}
-                setPriemTo={update}
-            />
-        )}
-    </PriemContext.Consumer>
-);
+export class Priem extends React.Component {
+    static propTypes = {
+        name: PropTypes.string.isRequired,
+        render: PropTypes.func,
+        component: PropTypes.element,
+        children: PropTypes.node,
+    };
 
-Priem.propTypes = {
-    name: PropTypes.string.isRequired,
-    children: PropTypes.node.isRequired,
-};
+    static defaultProps = {
+        name: undefined,
+        initialValues: {},
+        asyncValues: null,
+        persist: true,
+        autoRefresh: false,
+    };
 
-Priem.defaultProps = {
-    name: undefined,
-    initialValues: {},
-    asyncValues: null,
-    persist: true,
-    autoRefresh: false,
-};
+    renderConsumer = ({priemState, initialize, destroy, update}) => (
+        <PriemFilter
+            {...this.props}
+            priem={priemState.values[this.props.name]}
+            initialize={initialize}
+            destroy={destroy}
+            setPriem={updater => update(this.props.name, updater)}
+            setPriemTo={update}
+        />
+    );
+
+    render() {
+        return <PriemContext.Consumer>{this.renderConsumer}</PriemContext.Consumer>;
+    }
+}
