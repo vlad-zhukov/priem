@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`should fetch data from a simple component 1`] = `
+exports[`should fetch and render to string with data 1`] = `
 Object {
   "meta": Object {
     "Test": Object {
