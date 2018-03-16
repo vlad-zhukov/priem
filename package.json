@@ -15,7 +15,7 @@
     "test": "jest",
     "lint": "eslint \"**/*.js\"",
     "prettier": "prettier-eslint \"**/*.js\" --write",
-    "prepublishOnly": "yarn lint && yarn build && yarn test"
+    "prepublishOnly": "yarn build && yarn lint && yarn test"
   },
   "dependencies": {
     "create-react-context": "^0.2.1",
