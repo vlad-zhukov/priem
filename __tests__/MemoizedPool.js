@@ -1,4 +1,3 @@
-import React from 'react';
 import delay from 'delay';
 import {MemoizedPool} from '../src/MemoizedPool';
 import {FakeProviderStore} from '../src/store';

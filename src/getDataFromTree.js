@@ -36,7 +36,6 @@ export function walkTree(element, visitor) {
             let child;
 
             // Are we are a react class?
-            //   https://github.com/facebook/react/blob/master/src/renderers/shared/stack/reconciler/ReactCompositeComponent.js#L66
             if (isComponentClass(Comp)) {
                 const instance = new Comp(props);
                 // In case the user doesn't pass these to super in the constructor
@@ -50,13 +49,13 @@ export function walkTree(element, visitor) {
                 //   componentWillMount, which happens *before* render).
                 instance.setState = (newState) => {
                     if (type(newState) === 'function') {
+                        // eslint-disable-next-line no-param-reassign
                         newState = newState(instance.state, instance.props);
                     }
                     instance.state = Object.assign({}, instance.state, newState);
                 };
 
                 // this is a poor man's version of
-                //   https://github.com/facebook/react/blob/master/src/renderers/shared/stack/reconciler/ReactCompositeComponent.js#L181
                 if (instance.componentWillMount) {
                     instance.componentWillMount();
                 }
@@ -131,7 +130,7 @@ function getQueriesFromTree(rootElement, fetchRoot) {
 
             // Tell walkTree to not recurse inside this component;  we will
             // wait for the query to execute before attempting it.
-            return false;
+            return false; // eslint-disable-line consistent-return
         }
     });
 

@@ -20,6 +20,7 @@ export function createInitializeFunction(component, isFake = false) {
                     const m = component.meta[props.name];
 
                     if (s && m) {
+                        // eslint-disable-next-line no-param-reassign
                         component.meta[props.name] = {...m, [consts.COUNT]: (m[consts.COUNT] += countStep)};
                         return null;
                     }
@@ -35,6 +36,7 @@ export function createInitializeFunction(component, isFake = false) {
                         }
                     }
 
+                    // eslint-disable-next-line no-param-reassign
                     component.meta[props.name] = {
                         [consts.NAME]: props.name,
                         [consts.INITIAL_VALUES]: props.initialValues,
@@ -64,10 +66,12 @@ export function createDestroyFunction(component, isFake = false) {
                     const s = state[name];
                     const m = component.meta[name];
                     if (s && m && m[consts.COUNT] > 0 && m[consts.PERSIST] === true) {
+                        // eslint-disable-next-line no-param-reassign
                         component.meta[name] = {...m, [consts.COUNT]: m[consts.COUNT] - 1};
                         return null;
                     }
 
+                    // eslint-disable-next-line no-param-reassign
                     component.meta[name] = undefined;
                     return {[name]: undefined};
                 },
@@ -87,7 +91,8 @@ export function createUpdateFunction(component) {
 
                     const updaterResult = type(updater) === 'function' ? updater(s, m) : updater;
 
-                    if (updaterResult != null) {
+                    if (updaterResult == null) {
+                        // eslint-disable-next-line no-param-reassign
                         component.meta[name] = {...m, ...updaterResult.meta};
 
                         if (updaterResult.data) {
@@ -97,6 +102,8 @@ export function createUpdateFunction(component) {
                             };
                         }
                     }
+
+                    return null;
                 },
                 () => resolve(didUpdate ? component.state[name] : undefined)
             );

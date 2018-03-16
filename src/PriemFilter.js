@@ -55,17 +55,6 @@ export default class PriemFilter extends React.Component {
         this.props.destroy(this.props.name);
     }
 
-    // Always forces an update
-    refresh = () => {
-        const {memoizedPool, update, ...rest} = this.props;
-        memoizedPool.runPromises({
-            props: rest,
-            update: updater => update(rest.name, updater),
-            onExpire: () => this.forceUpdate(),
-            isForced: true,
-        });
-    };
-
     setPriem = (updater) => {
         this.setPriemTo(this.props.name, updater);
     };
@@ -77,6 +66,18 @@ export default class PriemFilter extends React.Component {
             if (nextState != null) {
                 return {data: nextState};
             }
+            return null;
+        });
+    };
+
+    // Always forces an update
+    refresh = () => {
+        const {memoizedPool, update, ...rest} = this.props;
+        memoizedPool.runPromises({
+            props: rest,
+            update: updater => update(rest.name, updater),
+            onExpire: () => this.forceUpdate(),
+            isForced: true,
         });
     };
 

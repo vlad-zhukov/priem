@@ -1,3 +1,5 @@
+/* eslint-disable import/no-extraneous-dependencies, react/prop-types */
+
 import React from 'react';
 import delay from 'delay';
 import {PriemProvider, Priem} from '../src/Priem';

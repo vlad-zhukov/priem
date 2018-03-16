@@ -99,18 +99,20 @@ export class MemoizedPool {
             return;
         }
 
+        // eslint-disable-next-line consistent-return
         return update((s, m) => {
             const hasData = !!s?.[publicKey]?.value;
-            const isSsr = !!(hasData && m?.[publicKey]?.ssr);
+            const isSsr = !!(hasData && m?.[publicKey]?.ssr); // eslint-disable-line no-undef
 
             if (this.isMemoized(key, args)) {
                 // Do not recall memoized promises unless forced
                 if (hasData && !isForced) {
-                    return;
+                    return null;
                 }
             }
             else if (isSsr) {
                 this.memoized[key].add(args, Promise.resolve(s[publicKey].value));
+                // eslint-disable-next-line consistent-return
                 return {
                     meta: {[publicKey]: {ssr: false}},
                 };
@@ -133,24 +135,26 @@ export class MemoizedPool {
                 },
             };
         }).then((s) => {
-            if (s) {
-                return this.memoized[key](...args)
-                    .then((result) => {
-                        this.removeAwaiting(key, args);
-                        return update({
-                            data: {[publicKey]: promiseState.fulfilled(result)},
-                            meta: {[publicKey]: {ssr: !isBrowser}},
-                        });
-                    })
-                    .catch((e) => {
-                        this.removeAwaiting(key, args);
-                        this.rejected[key] = true;
-                        return update({
-                            data: {[publicKey]: promiseState.rejected(e.message)},
-                            meta: {[publicKey]: {ssr: !isBrowser}},
-                        });
-                    });
+            if (!s) {
+                return null;
             }
+
+            return this.memoized[key](...args)
+                .then((result) => {
+                    this.removeAwaiting(key, args);
+                    return update({
+                        data: {[publicKey]: promiseState.fulfilled(result)},
+                        meta: {[publicKey]: {ssr: !isBrowser}},
+                    });
+                })
+                .catch((e) => {
+                    this.removeAwaiting(key, args);
+                    this.rejected[key] = true;
+                    return update({
+                        data: {[publicKey]: promiseState.rejected(e.message)},
+                        meta: {[publicKey]: {ssr: !isBrowser}},
+                    });
+                });
         });
     }
 
@@ -173,6 +177,7 @@ export class MemoizedPool {
             })
         );
 
+        // eslint-disable-next-line consistent-return
         return Promise.all(values);
     }
 }

@@ -6,7 +6,6 @@ import createReactContext from 'create-react-context';
 import PriemFilter from './PriemFilter';
 import {createInitializeFunction, createDestroyFunction, createUpdateFunction} from './store';
 import {MemoizedPool} from './MemoizedPool';
-import {priem} from './propTypes';
 
 const PriemContext = createReactContext();
 
