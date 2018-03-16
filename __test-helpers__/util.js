@@ -1,6 +1,8 @@
 import React from 'react';
 import delay from 'delay';
 import {PriemProvider, Priem} from '../src/Priem';
+import {consts} from '../src/store';
+import * as promiseState from '../src/promiseState';
 
 export const TestComponentSimple = ({initialState}) => (
     <PriemProvider initialState={initialState}>
@@ -17,6 +19,25 @@ export const TestComponentSimple = ({initialState}) => (
         />
     </PriemProvider>
 );
+
+export const initialStateTestComponentSimple = {
+    state: {
+        Test: {
+            testValue: promiseState.fulfilled('baz'),
+        },
+    },
+    meta: {
+        Test: {
+            [consts.NAME]: 'Test',
+            [consts.INITIAL_VALUES]: {},
+            [consts.PERSIST]: false,
+            [consts.COUNT]: 0,
+            testValue: {
+                ssr: true,
+            },
+        },
+    },
+};
 
 export const TestComponentNested = ({initialState}) => (
     <PriemProvider initialState={initialState}>
