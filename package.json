@@ -15,27 +15,28 @@
     "test": "jest",
     "lint": "eslint \"**/*.js\"",
     "prettier": "prettier-eslint \"**/*.js\" --write",
-    "prepublishOnly": "yarn lint && yarn build && yarn test"
+    "prepublishOnly": "yarn build && yarn lint && yarn test"
   },
   "dependencies": {
-    "create-react-context": "^0.2.0",
-    "moize": "^4.0.4",
+    "create-react-context": "^0.2.1",
+    "moize": "^5.1.2",
     "prop-types": "^15.6.1",
     "react-shallow-equal": "^0.1.1"
   },
   "devDependencies": {
-    "@babel/core": "^7.0.0-beta.40",
-    "@babel/preset-env": "^7.0.0-beta.40",
-    "@babel/preset-react": "^7.0.0-beta.40",
-    "@babel/preset-stage-3": "^7.0.0-beta.40",
+    "@babel/core": "^7.0.0-beta.42",
+    "@babel/preset-env": "^7.0.0-beta.42",
+    "@babel/preset-react": "^7.0.0-beta.42",
+    "@babel/preset-stage-1": "^7.0.0-beta.42",
     "babel-core": "^7.0.0-bridge.0",
     "babel-eslint": "^8.2.2",
     "babel-jest": "^22.4.1",
-    "cross-env": "^5.1.3",
+    "cross-env": "^5.1.4",
     "delay": "^2.0.0",
     "enzyme": "^3.3.0",
     "enzyme-adapter-react-16": "^1.1.1",
-    "eslint": "^4.18.1",
+    "enzyme-to-json": "^3.3.1",
+    "eslint": "^4.18.2",
     "eslint-config-airbnb": "^16.1.0",
     "eslint-plugin-import": "^2.9.0",
     "eslint-plugin-jsx-a11y": "^6.0.3",
@@ -46,11 +47,12 @@
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
     "rimraf": "^2.6.2",
-    "rollup": "^0.56.3",
+    "rollup": "^0.57.0",
     "rollup-plugin-babel": "^4.0.0-beta.2"
   },
   "peerDependencies": {
-    "react": ">=15.5"
+    "react": ">=15.5",
+    "react-dom": ">=15.5"
   },
   "keywords": [
     "react",

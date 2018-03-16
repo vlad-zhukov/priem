@@ -8,9 +8,6 @@ export const priem = {
     setPriem: func.isRequired,
     setPriemTo: func.isRequired,
     refresh: func.isRequired,
-    // initialize: func.isRequired,
-    // destroy: func.isRequired,
-    // dispatch: func.isRequired,
 
     /* Initial config */
     priemName: string.isRequired,

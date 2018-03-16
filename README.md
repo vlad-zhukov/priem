@@ -1,11 +1,11 @@
-# priem · [![npm](https://img.shields.io/npm/v/priem.svg)](https://npm.im/priem)
+# priem · [![npm](https://img.shields.io/npm/v/priem.svg)](https://npm.im/priem) [![Build Status](https://travis-ci.org/vlad-zhukov/priem.svg?branch=master)](https://travis-ci.org/vlad-zhukov/priem)
 
 > Rich (a)sync state management across multiple React components
 
 ## Table of Contents
 
 - [Install](#install)
-- [Usage](#usage)
+- [Getting Started](#gettingstarted)
 - [Examples](#examples)
 - [API](#api)
   - [`PriemProvider`](#priemprovider)
@@ -19,13 +19,13 @@
 yarn add priem
 ```
 
-## Usage
+## Getting Started
 
 __Step 1:__ Wrap your component tree with the `PriemProvider`:
 
 ```jsx
 import React from 'react';
-impoer ReactDOM from 'react-dom';
+import ReactDOM from 'react-dom';
 import {PriemProvider} from 'priem';
 import App from './App';
 
@@ -77,11 +77,94 @@ so you can compare both implementations.
 - [Counter](https://github.com/Vlad-Zhukov/priem/tree/master/examples/counter)
 - [Async](https://github.com/Vlad-Zhukov/priem/tree/master/examples/async)
 
+__Async usage__
+
+```jsx
+import React from 'react';
+import {Priem} from 'priem';
+
+export default () => (
+    <Priem
+        name="Async" // 'name' is required
+        asyncValues={props => ({
+          [props.reddit]: {
+              args: [props.reddit],
+              promise: reddit => fetch(`https://www.reddit.com/r/${reddit}.json`)
+                  .then(res => res.json())
+                  .then(res => res.data.children),
+          },
+        })}
+        render=(({priem, reddit}) => {
+            const {pending, refreshing, value} = priem[reddit];
+
+            if (!value) {
+                return pending ? <h2>Loading...</h2> : <h2>Empty.</h2>;
+            }
+
+            return (
+             <div style={{opacity: pending || refreshing ? 0.5 : 1}}>
+                 <ul>
+                     {posts.map((post, i) => <li key={i}>{post.data.title}</li>)}
+                 </ul>
+             </div>
+            );
+        })
+    />
+);
+```
+
+__Server-side rendering__
+
+Server:
+```jsx
+import React from 'react';
+import ReactDOM from 'react-dom/server';
+import {getDataFromTree} from 'priem';
+import App from './App';
+
+app.get(async (req, res) => {
+    const store = await getDataFromTree(<App />);
+    const content = ReactDOM.renderToString(<App initialStore={store} />);
+
+    // We suggest to use a specific library instead of JSON.stringify
+    // for example `devalue` or `serialize-javascript`.
+    const storeJson = JSON.stringify(storeManager.store.getState()).replace(/</g, '\\u003c');
+
+    res.send(`
+        <!doctype html>
+        ${ReactDOM.renderToStaticMarkup(<Html content={content} />)}
+        <script id="preloaded-state">
+            window.__PRIEM_STORE__ = ${storeJson};
+        </script>
+    `);
+});
+```
+
+Client:
+```jsx
+import React from 'react';
+import ReactDOM from 'react-dom';
+import App from './App';
+
+const store = JSON.parse(window.__PRIEM_STORE__);
+delete window.__PRIEM_STORE__;
+
+ReactDOM.hydrate(
+    <App initialStore={store} />,
+    document.getElementById('root')
+);
+```
+
 ## API
 
 ### `PriemProvider`
 
-A component that provides context for [`Priem`](#preim) component.
+A component that provides context for [`Priem`](#priem) component.
+
+__Props__
+
+1. `[initialStore]` _(Object)_: A server rendered store. See
+SSR example on how to use it.
 
 ### `Priem`
 
@@ -132,7 +215,7 @@ function, it takes a current `priem` state slice as an argument and must
 return an object that will be shallow merged with the current `priem`.
 If the `updater` is an object, it will be shallow merged directly.
 - `setPriemTo(priemName, updater)` _(Function)_: Similar
-to `setPriem()` but also takes in a `priemName` as the first argument.
+to `setPriem()` but also takes a `priemName` as the first argument.
 Useful for setting data to another `priem` slices.
 - `refresh()` _(Function)_: Forces the update of async values. Note that
 it will call the memoized function.
@@ -146,48 +229,12 @@ a strong reason to do that.
 - `persist` _(Boolean)_
 - `autoRefresh` _(Boolean)_
 
-__Async usage__
-
-```jsx
-import React, {PureComponent} from 'react';
-import {Priem} from 'priem';
-
-export default () => (
-    <Priem
-        name="Async" // 'name' is required
-        asyncValues={props => ({
-          [props.reddit]: {
-              args: [props.reddit],
-              promise: reddit => fetch(`https://www.reddit.com/r/${reddit}.json`)
-                  .then(res => res.json())
-                  .then(res => res.data.children),
-          },
-        })}
-        render=(({priem, reddit}) => {
-            const {pending, refreshing, value} = priem[reddit];
-
-            if (!value) {
-             return pending ? <h2>Loading...</h2> : <h2>Empty.</h2>;
-            }
-
-            return (
-             <div style={{opacity: pending || refreshing ? 0.5 : 1}}>
-                 <ul>
-                     {posts.map((post, i) => <li key={i}>{post.data.title}</li>)}
-                 </ul>
-             </div>
-            );
-        })
-    />
-);
-```
-
 ---
 
 ### `promiseState`
 
 A set of functions that are used internally to represent states of
-async values. These are not intended for public usage.
+async values. Most of these are not intended for public usage.
 
 - `pending(): PromiseStates`
 - `refreshing(previous?: PromiseState): PromiseState`

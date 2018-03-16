@@ -1,0 +1,57 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`should fetch and render to string with data 1`] = `
+Object {
+  "meta": Object {
+    "Test": Object {
+      "@@count": 0,
+      "@@initialValues": Object {},
+      "@@name": "Test",
+      "@@persist": true,
+      "testValue": Object {
+        "ssr": true,
+      },
+    },
+  },
+  "state": Object {
+    "Test": Object {
+      "testValue": Object {
+        "fulfilled": true,
+        "pending": false,
+        "reason": null,
+        "refreshing": false,
+        "rejected": false,
+        "value": "foo",
+      },
+    },
+  },
+}
+`;
+
+exports[`should not fetch data from a nested component 1`] = `
+Object {
+  "meta": Object {
+    "Test1": Object {
+      "@@count": 0,
+      "@@initialValues": Object {},
+      "@@name": "Test1",
+      "@@persist": true,
+      "testValue": Object {
+        "ssr": true,
+      },
+    },
+  },
+  "state": Object {
+    "Test1": Object {
+      "testValue": Object {
+        "fulfilled": true,
+        "pending": false,
+        "reason": null,
+        "refreshing": false,
+        "rejected": false,
+        "value": "foo",
+      },
+    },
+  },
+}
+`;

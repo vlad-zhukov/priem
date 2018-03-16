@@ -28,6 +28,8 @@ class App extends Component {
         const {pending, refreshing, value, lastUpdated} = priem[priem.reddit] || {};
         const isFetching = pending || refreshing;
 
+        console.log(priem)
+
         return (
             <div>
                 <Picker value={priem.reddit} onChange={this.handleChange} options={['reactjs', 'frontend']} />

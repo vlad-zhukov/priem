@@ -1,0 +1,19 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`should rehydrate ssr data 1`] = `
+<div>
+  baz
+</div>
+`;
+
+exports[`should render nested component 1`] = `
+<div>
+  foobar
+</div>
+`;
+
+exports[`should render simple component 1`] = `
+<div>
+  foo
+</div>
+`;

@@ -4,105 +4,38 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import createReactContext from 'create-react-context';
 import PriemFilter from './PriemFilter';
-import {MemoizedPool, extractAsyncValues} from './MemoizedPool';
-import * as promiseState from './promiseState';
+import {createInitializeFunction, createDestroyFunction, createUpdateFunction} from './store';
+import {MemoizedPool} from './MemoizedPool';
 
-const createContext = typeof React.createContext === 'function' ? React.createContext : createReactContext;
-
-const PriemContext = createContext();
+const PriemContext = createReactContext();
 
 export class PriemProvider extends React.Component {
     static propTypes = {
-        initialState: PropTypes.object, // eslint-disable-line react/forbid-prop-types
+        initialStore: PropTypes.shape({
+            state: PropTypes.object.isRequired, // eslint-disable-line react/forbid-prop-types
+            meta: PropTypes.object.isRequired, // eslint-disable-line react/forbid-prop-types
+        }),
         children: PropTypes.node.isRequired,
     };
 
     static defaultProps = {
-        initialState: {
-            values: {},
+        initialStore: {
+            state: {},
             meta: {},
         },
     };
 
     constructor(props) {
         super(props);
-        this.state = props.initialState;
+        this.state = props.initialStore.state;
+        this.meta = props.initialStore.meta;
+
         this.memoizedPool = new MemoizedPool();
+
+        this.initialize = createInitializeFunction(this);
+        this.destroy = createDestroyFunction(this);
+        this.update = createUpdateFunction(this);
     }
-
-    initialize = (props) => {
-        this.setState((state) => {
-            const nextValues = {...state.values};
-            const nextMeta = {...state.meta};
-
-            if (nextValues[props.name] !== undefined && nextMeta[props.name] !== undefined) {
-                nextMeta[props.name] = {...nextMeta[props.name], count: (nextMeta[props.name].count += 1)};
-            }
-            else {
-                const initialValues = {...props.priem};
-
-                if (props.autoRefresh !== false) {
-                    const asyncKeys = Object.keys(extractAsyncValues(props));
-                    for (let i = 0, l = asyncKeys.length; i < l; i++) {
-                        initialValues[asyncKeys[i]] = promiseState.pending();
-                    }
-                }
-
-                nextValues[props.name] = initialValues;
-                nextMeta[props.name] = {
-                    name: props.name,
-                    initialValues: props.initialValues,
-                    persist: props.persist,
-                    count: 1,
-                };
-            }
-
-            return {
-                values: nextValues,
-                meta: nextMeta,
-            };
-        });
-    };
-
-    destroy = (name) => {
-        this.setState((state) => {
-            const nextValues = {...state.values};
-            const nextMeta = {...state.meta};
-
-            if (
-                nextValues[name] !== undefined &&
-                nextMeta[name] !== undefined &&
-                nextMeta[name].count > 0 &&
-                nextMeta[name].persist === true
-            ) {
-                nextMeta[name].count -= 1;
-            }
-            else {
-                nextValues[name] = undefined;
-                nextMeta[name] = undefined;
-            }
-
-            return {
-                values: nextValues,
-                meta: nextMeta,
-            };
-        });
-    };
-
-    update = (name, updater) => {
-        this.setState((state) => {
-            const nextValues = {...state.values};
-            const nextMeta = {...state.meta};
-
-            const updaterResult = typeof updater === 'function' ? updater(nextValues[name]) : updater;
-            nextValues[name] = {...nextValues[name], ...updaterResult};
-
-            return {
-                values: nextValues,
-                meta: nextMeta,
-            };
-        });
-    };
 
     render() {
         const value = {
@@ -141,11 +74,10 @@ export class Priem extends React.Component {
     renderConsumer = ({priemState, initialize, destroy, update, memoizedPool}) => (
         <PriemFilter
             {...this.props}
-            priem={priemState.values[this.props.name]}
+            priem={priemState?.[this.props.name]}
             initialize={initialize}
             destroy={destroy}
-            setPriem={updater => update(this.props.name, updater)}
-            setPriemTo={update}
+            update={update}
             memoizedPool={memoizedPool}
         />
     );

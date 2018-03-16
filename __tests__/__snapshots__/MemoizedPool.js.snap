@@ -1,68 +1,313 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`should expire if maxAge is set 1`] = `
-Object {
-  "testValue": Object {
-    "fulfilled": false,
-    "pending": true,
-    "reason": null,
-    "refreshing": false,
-    "rejected": false,
-    "value": null,
+Array [
+  Object {
+    "Test": Object {
+      "testValue": Object {
+        "fulfilled": true,
+        "pending": false,
+        "reason": null,
+        "refreshing": false,
+        "rejected": false,
+        "value": Object {
+          "value": "foo",
+        },
+      },
+    },
   },
-}
+  Object {
+    "Test": Object {
+      "@@count": 0,
+      "@@initialValues": undefined,
+      "@@name": "Test",
+      "@@persist": undefined,
+      "testValue": Object {
+        "ssr": false,
+      },
+    },
+  },
+]
+`;
+
+exports[`should expire if maxAge is set 2`] = `
+Array [
+  Object {
+    "Test": Object {
+      "testValue": Object {
+        "fulfilled": true,
+        "pending": false,
+        "reason": null,
+        "refreshing": true,
+        "rejected": false,
+        "value": Object {
+          "value": "foo",
+        },
+      },
+    },
+  },
+  Object {
+    "Test": Object {
+      "@@count": 0,
+      "@@initialValues": undefined,
+      "@@name": "Test",
+      "@@persist": undefined,
+      "testValue": Object {
+        "ssr": false,
+      },
+    },
+  },
+]
+`;
+
+exports[`should expire if maxAge is set 3`] = `
+Array [
+  Object {
+    "Test": Object {
+      "testValue": Object {
+        "fulfilled": true,
+        "pending": false,
+        "reason": null,
+        "refreshing": true,
+        "rejected": false,
+        "value": Object {
+          "value": "foo",
+        },
+      },
+    },
+  },
+  Object {
+    "Test": Object {
+      "@@count": 0,
+      "@@initialValues": undefined,
+      "@@name": "Test",
+      "@@persist": undefined,
+      "testValue": Object {
+        "ssr": false,
+      },
+    },
+  },
+]
 `;
 
 exports[`should not rerun promises if previous promise was rejected 1`] = `
-Object {
-  "testValue": Object {
-    "fulfilled": false,
-    "pending": false,
-    "reason": "foo",
-    "refreshing": false,
-    "rejected": true,
-    "value": null,
+Array [
+  Object {
+    "Test": Object {
+      "testValue": Object {
+        "fulfilled": false,
+        "pending": false,
+        "reason": "foo",
+        "refreshing": false,
+        "rejected": true,
+        "value": null,
+      },
+    },
   },
-}
+  Object {
+    "Test": Object {
+      "@@count": 0,
+      "@@initialValues": undefined,
+      "@@name": "Test",
+      "@@persist": undefined,
+      "testValue": Object {
+        "ssr": false,
+      },
+    },
+  },
+]
 `;
 
-exports[`should not run promises if both \`autoRefresh\` and \`isForced\` are false 1`] = `Object {}`;
+exports[`should not run promises if both \`autoRefresh\` and \`isForced\` are false 1`] = `
+Array [
+  Object {
+    "Test": Object {},
+  },
+  Object {
+    "Test": Object {
+      "@@count": 0,
+      "@@initialValues": undefined,
+      "@@name": "Test",
+      "@@persist": undefined,
+    },
+  },
+]
+`;
 
 exports[`should not run promises when awaiting 1`] = `
-Object {
-  "testValue": Object {
-    "fulfilled": true,
-    "pending": false,
-    "reason": null,
-    "refreshing": false,
-    "rejected": false,
-    "value": null,
+Array [
+  Object {
+    "Test": Object {
+      "testValue": Object {
+        "fulfilled": true,
+        "pending": false,
+        "reason": null,
+        "refreshing": false,
+        "rejected": false,
+        "value": Object {
+          "value": "foo",
+        },
+      },
+    },
   },
-}
+  Object {
+    "Test": Object {
+      "@@count": 0,
+      "@@initialValues": undefined,
+      "@@name": "Test",
+      "@@persist": undefined,
+      "testValue": Object {
+        "ssr": false,
+      },
+    },
+  },
+]
+`;
+
+exports[`should refresh promise if forced 1`] = `
+Array [
+  Object {
+    "Test": Object {
+      "testValue": Object {
+        "fulfilled": true,
+        "pending": false,
+        "reason": null,
+        "refreshing": false,
+        "rejected": false,
+        "value": Object {
+          "value": "foo",
+        },
+      },
+    },
+  },
+  Object {
+    "Test": Object {
+      "@@count": 0,
+      "@@initialValues": undefined,
+      "@@name": "Test",
+      "@@persist": undefined,
+      "testValue": Object {
+        "ssr": false,
+      },
+    },
+  },
+]
+`;
+
+exports[`should refresh promise if forced 2`] = `
+Array [
+  Object {
+    "Test": Object {
+      "testValue": Object {
+        "fulfilled": true,
+        "pending": false,
+        "reason": null,
+        "refreshing": true,
+        "rejected": false,
+        "value": Object {
+          "value": "foo",
+        },
+      },
+    },
+  },
+  Object {
+    "Test": Object {
+      "@@count": 0,
+      "@@initialValues": undefined,
+      "@@name": "Test",
+      "@@persist": undefined,
+      "testValue": Object {
+        "ssr": false,
+      },
+    },
+  },
+]
+`;
+
+exports[`should rehydrate ssr data 1`] = `
+Array [
+  Object {
+    "Test": Object {
+      "testValue": Object {
+        "fulfilled": true,
+        "pending": false,
+        "reason": null,
+        "refreshing": false,
+        "rejected": false,
+        "value": "foo",
+      },
+    },
+  },
+  Object {
+    "Test": Object {
+      "@@count": 0,
+      "@@initialValues": undefined,
+      "@@name": "Test",
+      "@@persist": undefined,
+      "testValue": Object {
+        "ssr": false,
+      },
+    },
+  },
+]
 `;
 
 exports[`should rerun promises if previous promise was rejected but \`isForced\` is true 1`] = `
-Object {
-  "testValue": Object {
-    "fulfilled": true,
-    "pending": false,
-    "reason": null,
-    "refreshing": false,
-    "rejected": false,
-    "value": null,
+Array [
+  Object {
+    "Test": Object {
+      "testValue": Object {
+        "fulfilled": true,
+        "pending": false,
+        "reason": null,
+        "refreshing": false,
+        "rejected": false,
+        "value": Object {
+          "value": "foo",
+        },
+      },
+    },
   },
-}
+  Object {
+    "Test": Object {
+      "@@count": 0,
+      "@@initialValues": undefined,
+      "@@name": "Test",
+      "@@persist": undefined,
+      "testValue": Object {
+        "ssr": false,
+      },
+    },
+  },
+]
 `;
 
 exports[`should run promises if \`autoRefresh\` is false but \`isForced\` is true 1`] = `
-Object {
-  "testValue": Object {
-    "fulfilled": true,
-    "pending": false,
-    "reason": null,
-    "refreshing": false,
-    "rejected": false,
-    "value": null,
+Array [
+  Object {
+    "Test": Object {
+      "testValue": Object {
+        "fulfilled": true,
+        "pending": false,
+        "reason": null,
+        "refreshing": false,
+        "rejected": false,
+        "value": Object {
+          "value": "foo",
+        },
+      },
+    },
   },
-}
+  Object {
+    "Test": Object {
+      "@@count": 0,
+      "@@initialValues": undefined,
+      "@@name": "Test",
+      "@@persist": undefined,
+      "testValue": Object {
+        "ssr": false,
+      },
+    },
+  },
+]
 `;

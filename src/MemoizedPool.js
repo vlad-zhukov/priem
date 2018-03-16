@@ -1,7 +1,7 @@
 import moize from 'moize';
 import {elementsEqual} from 'react-shallow-equal';
 import * as promiseState from './promiseState';
-import {type} from './helpers';
+import {type, isBrowser} from './helpers';
 
 export function extractAsyncValues(props) {
     if (type(props.asyncValues) !== 'function') {
@@ -83,7 +83,7 @@ export class MemoizedPool {
         }
     }
 
-    runPromise({key, value, publicKey, isForced, onChange, onExpire}) {
+    runPromise({key, value, publicKey, isForced, update, onExpire}) {
         const args = type(value.args) === 'array' ? value.args : [];
 
         if (!this.memoized[key]) {
@@ -95,42 +95,70 @@ export class MemoizedPool {
             return;
         }
 
-        if (this.memoized[key].has(args) || this.isAwaiting(key, args)) {
+        if (this.isAwaiting(key, args)) {
             return;
         }
 
-        this.awaiting[key].unshift(args);
-        this.rejected[key] = false;
+        // eslint-disable-next-line consistent-return
+        return update((s, m) => {
+            const hasData = !!s?.[publicKey]?.value;
+            const isSsr = !!(hasData && m?.[publicKey]?.ssr); // eslint-disable-line no-undef
 
-        if (this.isMemoized(key, args)) {
-            // Only set to refreshing when the result is not cached
-            onChange(s => ({
-                [publicKey]: promiseState.refreshing(s[publicKey]),
-            }));
-        }
-        else {
-            onChange({
-                [publicKey]: promiseState.pending(),
-            });
-        }
+            if (this.isMemoized(key, args)) {
+                // Do not recall memoized promises unless forced
+                if (hasData && !isForced) {
+                    return null;
+                }
+            }
+            else if (isSsr) {
+                this.memoized[key].add(args, Promise.resolve(s[publicKey].value));
+                // eslint-disable-next-line consistent-return
+                return {
+                    meta: {[publicKey]: {ssr: false}},
+                };
+            }
 
-        return this.memoized[key](...args)
-            .then((result) => {
-                this.removeAwaiting(key, args);
-                onChange({
-                    [publicKey]: promiseState.fulfilled(result),
+            this.awaiting[key].unshift(args);
+            this.rejected[key] = false;
+
+            if (hasData) {
+                return {
+                    data: {
+                        [publicKey]: promiseState.refreshing(s[publicKey]),
+                    },
+                };
+            }
+
+            return {
+                data: {
+                    [publicKey]: promiseState.pending(),
+                },
+            };
+        }).then((s) => {
+            if (!s) {
+                return null;
+            }
+
+            return this.memoized[key](...args)
+                .then((result) => {
+                    this.removeAwaiting(key, args);
+                    return update({
+                        data: {[publicKey]: promiseState.fulfilled(result)},
+                        meta: {[publicKey]: {ssr: !isBrowser}},
+                    });
+                })
+                .catch((e) => {
+                    this.removeAwaiting(key, args);
+                    this.rejected[key] = true;
+                    return update({
+                        data: {[publicKey]: promiseState.rejected(e.message)},
+                        meta: {[publicKey]: {ssr: !isBrowser}},
+                    });
                 });
-            })
-            .catch((e) => {
-                this.removeAwaiting(key, args);
-                this.rejected[key] = true;
-                onChange({
-                    [publicKey]: promiseState.rejected(e.message),
-                });
-            });
+        });
     }
 
-    runPromises({props, isForced, onChange, onExpire}) {
+    runPromises({props, isForced, update, onExpire}) {
         // Stop auto-refreshing
         if (!props.autoRefresh && !isForced) {
             return;
@@ -138,9 +166,18 @@ export class MemoizedPool {
 
         const asyncValues = extractAsyncValues(props);
 
-        return Object.keys(asyncValues).map((key) => {
-            const value = asyncValues[key];
-            return this.runPromise({key: `${key}@${props.name}`, value, publicKey: key, isForced, onChange, onExpire});
-        });
+        const values = Object.keys(asyncValues).map(key =>
+            this.runPromise({
+                key: `${key}@${props.name}`,
+                value: asyncValues[key],
+                publicKey: key,
+                isForced,
+                update,
+                onExpire,
+            })
+        );
+
+        // eslint-disable-next-line consistent-return
+        return Promise.all(values);
     }
 }

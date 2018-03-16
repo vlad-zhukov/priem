@@ -14,8 +14,7 @@ export default class PriemFilter extends React.Component {
         priem: PropTypes.any, // eslint-disable-line react/forbid-prop-types
         initialize: PropTypes.func.isRequired,
         destroy: PropTypes.func.isRequired,
-        setPriem: PropTypes.func.isRequired,
-        setPriemTo: PropTypes.func.isRequired,
+        update: PropTypes.func.isRequired,
         memoizedPool: PropTypes.object.isRequired, // eslint-disable-line react/forbid-prop-types
     };
 
@@ -30,23 +29,23 @@ export default class PriemFilter extends React.Component {
     };
 
     componentDidMount() {
-        const {initialValues, priem = {}, initialize, setPriem, memoizedPool, ...rest} = this.props;
+        const {initialValues, priem = {}, initialize, destroy, update, memoizedPool, ...rest} = this.props;
         const fakeProps = {...rest, priem: {...initialValues, ...priem}};
 
         initialize(fakeProps);
         memoizedPool.runPromises({
             props: fakeProps,
-            onChange: setPriem,
+            update: updater => update(rest.name, updater),
             onExpire: () => this.forceUpdate(),
             isForced: false,
         });
     }
 
     componentWillUpdate(nextProps) {
-        const {setPriem, memoizedPool, ...rest} = nextProps;
+        const {memoizedPool, update, ...rest} = nextProps;
         memoizedPool.runPromises({
             props: rest,
-            onChange: setPriem,
+            update: updater => update(rest.name, updater),
             onExpire: () => this.forceUpdate(),
             isForced: false,
         });
@@ -56,12 +55,27 @@ export default class PriemFilter extends React.Component {
         this.props.destroy(this.props.name);
     }
 
+    setPriem = (updater) => {
+        this.setPriemTo(this.props.name, updater);
+    };
+
+    setPriemTo = (name, updater) => {
+        this.props.update(name, (s) => {
+            // console.log(s)
+            const nextState = type(updater) === 'function' ? updater(s) : updater;
+            if (nextState != null) {
+                return {data: nextState};
+            }
+            return null;
+        });
+    };
+
     // Always forces an update
     refresh = () => {
-        const {setPriem, memoizedPool, ...rest} = this.props;
+        const {memoizedPool, update, ...rest} = this.props;
         memoizedPool.runPromises({
             props: rest,
-            onChange: setPriem,
+            update: updater => update(rest.name, updater),
             onExpire: () => this.forceUpdate(),
             isForced: true,
         });
@@ -78,13 +92,20 @@ export default class PriemFilter extends React.Component {
             asyncValues,
             initialize,
             destroy,
+            update,
             render,
             component,
             children,
             ...rest
         } = this.props;
 
-        const props = {...rest, priemName: name, refresh: this.refresh};
+        const props = {
+            ...rest,
+            priemName: name,
+            setPriem: this.setPriem,
+            setPriemTo: this.setPriemTo,
+            refresh: this.refresh,
+        };
 
         if (type(render) === 'function') {
             return render(props);

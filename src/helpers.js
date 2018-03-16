@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/prefer-default-export
 export function type(value) {
     if (value === null) return 'null';
     if (value === undefined) return 'undefined';
@@ -7,3 +6,5 @@ export function type(value) {
     if (Array.isArray(value) === true) return 'array';
     return 'object';
 }
+
+export const isBrowser = typeof window === 'object' && typeof document === 'object' && document.nodeType === 9;
