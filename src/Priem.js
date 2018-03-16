@@ -11,7 +11,7 @@ const PriemContext = createReactContext();
 
 export class PriemProvider extends React.Component {
     static propTypes = {
-        initialState: PropTypes.shape({
+        initialStore: PropTypes.shape({
             state: PropTypes.object.isRequired, // eslint-disable-line react/forbid-prop-types
             meta: PropTypes.object.isRequired, // eslint-disable-line react/forbid-prop-types
         }),
@@ -19,7 +19,7 @@ export class PriemProvider extends React.Component {
     };
 
     static defaultProps = {
-        initialState: {
+        initialStore: {
             state: {},
             meta: {},
         },
@@ -27,8 +27,8 @@ export class PriemProvider extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = props.initialState.state;
-        this.meta = props.initialState.meta;
+        this.state = props.initialStore.state;
+        this.meta = props.initialStore.meta;
 
         this.memoizedPool = new MemoizedPool();
 

@@ -91,7 +91,7 @@ export function createUpdateFunction(component) {
 
                     const updaterResult = type(updater) === 'function' ? updater(s, m) : updater;
 
-                    if (updaterResult == null) {
+                    if (updaterResult != null) {
                         // eslint-disable-next-line no-param-reassign
                         component.meta[name] = {...m, ...updaterResult.meta};
 

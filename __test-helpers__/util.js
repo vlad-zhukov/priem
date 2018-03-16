@@ -6,8 +6,8 @@ import {PriemProvider, Priem} from '../src/Priem';
 import {consts} from '../src/store';
 import * as promiseState from '../src/promiseState';
 
-export const TestComponentSimple = ({initialState}) => (
-    <PriemProvider initialState={initialState}>
+export const TestComponentSimple = ({initialStore}) => (
+    <PriemProvider initialStore={initialStore}>
         <Priem
             name="Test"
             autoRefresh
@@ -22,7 +22,7 @@ export const TestComponentSimple = ({initialState}) => (
     </PriemProvider>
 );
 
-export const initialStateTestComponentSimple = {
+export const initialStoreTestComponentSimple = {
     state: {
         Test: {
             testValue: promiseState.fulfilled('baz'),
@@ -41,8 +41,8 @@ export const initialStateTestComponentSimple = {
     },
 };
 
-export const TestComponentNested = ({initialState}) => (
-    <PriemProvider initialState={initialState}>
+export const TestComponentNested = ({initialStore}) => (
+    <PriemProvider initialStore={initialStore}>
         <Priem
             name="Test1"
             autoRefresh
