@@ -1,0 +1,13 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`should render nested decorated component 1`] = `
+<div>
+  foobar
+</div>
+`;
+
+exports[`should render simple decorated component 1`] = `
+<div>
+  foo
+</div>
+`;

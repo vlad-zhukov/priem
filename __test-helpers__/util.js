@@ -3,6 +3,7 @@
 import React from 'react';
 import delay from 'delay';
 import {PriemProvider, Priem} from '../src/Priem';
+import withPriem from '../src/withPriem';
 import {consts} from '../src/store';
 import * as promiseState from '../src/promiseState';
 
@@ -21,6 +22,25 @@ export const TestComponentSimple = ({initialStore}) => (
         />
     </PriemProvider>
 );
+
+export const TestComponentSimpleDecorated = ({initialStore}) => {
+    const renderPriem = withPriem({
+        name: 'Test',
+        autoRefresh: true,
+        asyncValues: () => ({
+            testValue: {
+                args: ['foo'],
+                promise: value => delay(100, value),
+            },
+        }),
+    });
+
+    return (
+        <PriemProvider initialStore={initialStore}>
+            {renderPriem(({priem}) => <div>{priem.testValue.value}</div>)}
+        </PriemProvider>
+    );
+};
 
 export const initialStoreTestComponentSimple = {
     state: {
@@ -74,3 +94,37 @@ export const TestComponentNested = ({initialStore}) => (
         />
     </PriemProvider>
 );
+
+export const TestComponentNestedDecorated = ({initialStore}) => {
+    const renderPriem = withPriem({
+        name: 'Test1',
+        autoRefresh: true,
+        asyncValues: () => ({
+            testValue: {
+                args: ['foo'],
+                promise: value => delay(100, value),
+            },
+        }),
+    });
+
+    return (
+        <PriemProvider initialStore={initialStore}>
+            {renderPriem((props) => {
+                if (!props.priem.testValue.value) {
+                    return null;
+                }
+
+                return withPriem({
+                    name: 'Test2',
+                    autoRefresh: true,
+                    asyncValues: () => ({
+                        testValue: {
+                            args: ['bar'],
+                            promise: value => delay(100, props.priem.testValue.value + value),
+                        },
+                    }),
+                })(({priem}) => <div>{priem.testValue.value}</div>);
+            })}
+        </PriemProvider>
+    );
+};

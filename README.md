@@ -5,12 +5,14 @@
 ## Table of Contents
 
 - [Install](#install)
-- [Getting Started](#gettingstarted)
+- [Getting Started](#getting-started)
 - [Examples](#examples)
 - [API](#api)
   - [`PriemProvider`](#priemprovider)
   - [`Priem`](#priem)
-  - [`promiseState`](#promiseState)
+  - [`withPriem`](#withpriemprops)
+  - [`getDataFromTree`](#getdatafromtreecomponent)
+  - [`promiseState`](#promisestate)
   - [`propTypes`](#proptypes)
 
 ## Install
@@ -86,13 +88,14 @@ import {Priem} from 'priem';
 export default () => (
     <Priem
         name="Async" // 'name' is required
+        autoRefresh
         asyncValues={props => ({
-          [props.reddit]: {
+            [props.reddit]: {
               args: [props.reddit],
               promise: reddit => fetch(`https://www.reddit.com/r/${reddit}.json`)
                   .then(res => res.json())
                   .then(res => res.data.children),
-          },
+            },
         })}
         render=(({priem, reddit}) => {
             const {pending, refreshing, value} = priem[reddit];
@@ -116,6 +119,7 @@ export default () => (
 __Server-side rendering__
 
 Server:
+
 ```jsx
 import React from 'react';
 import ReactDOM from 'react-dom/server';
@@ -141,6 +145,7 @@ app.get(async (req, res) => {
 ```
 
 Client:
+
 ```jsx
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -155,6 +160,46 @@ ReactDOM.hydrate(
 );
 ```
 
+__withPriem__
+
+The above async example would look like this:
+
+```jsx
+import React from 'react';
+import {withPriem} from 'priem';
+
+@withPriem({
+    name: 'Async',
+    autoRefresh: true,
+    asyncValues: props => ({
+        [props.reddit]: {
+          args: [props.reddit],
+          promise: reddit => fetch(`https://www.reddit.com/r/${reddit}.json`)
+              .then(res => res.json())
+              .then(res => res.data.children),
+        },
+    }),
+})
+class RedditPosts extends React.Component {
+    render() {
+        const {priem, reddit} = this.props;
+        const {pending, refreshing, value} = priem[reddit];
+
+        if (!value) {
+            return pending ? <h2>Loading...</h2> : <h2>Empty.</h2>;
+        }
+
+        return (
+            <div style={{opacity: pending || refreshing ? 0.5 : 1}}>
+                <ul>
+                    {posts.map((post, i) => <li key={i}>{post.data.title}</li>)}
+                </ul>
+            </div>
+        );
+    }
+}
+```
+
 ## API
 
 ### `PriemProvider`
@@ -165,6 +210,8 @@ __Props__
 
 1. `[initialStore]` _(Object)_: A server rendered store. See
 SSR example on how to use it.
+
+---
 
 ### `Priem`
 
@@ -228,6 +275,21 @@ a strong reason to do that.
 - `priemName` _(String)_
 - `persist` _(Boolean)_
 - `autoRefresh` _(Boolean)_
+
+---
+
+### `withPriem(props)`
+
+A simple decorator to create a [`Priem`](#priem) instance. It the same
+as `Priem` with a single exception that 'render', 'component' and
+'children' props are not supported, use decorator syntax instead.
+
+---
+
+### `getDataFromTree(component)`
+
+A function that walks the component tree and fetches async values.
+Returns a promise that resolves into a Priem store.
 
 ---
 
