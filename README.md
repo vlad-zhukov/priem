@@ -5,14 +5,14 @@
 ## Table of Contents
 
 - [Install](#install)
-- [Getting Started](#gettingstarted)
+- [Getting Started](#getting-started)
 - [Examples](#examples)
 - [API](#api)
   - [`PriemProvider`](#priemprovider)
   - [`Priem`](#priem)
-  - [`withPriem`](#withpriem)
-  - [`getDataFromTree`](#getdatafromtree)
-  - [`promiseState`](#promiseState)
+  - [`withPriem`](#withpriemprops)
+  - [`getDataFromTree`](#getdatafromtreecomponent)
+  - [`promiseState`](#promisestate)
   - [`propTypes`](#proptypes)
 
 ## Install
@@ -286,7 +286,7 @@ as `Priem` with a single exception that 'render', 'component' and
 
 ---
 
-# `getDataFromTree(component)`
+### `getDataFromTree(component)`
 
 A function that walks the component tree and fetches async values.
 Returns a promise that resolves into a Priem store.
