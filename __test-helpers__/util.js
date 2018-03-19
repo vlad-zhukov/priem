@@ -1,4 +1,4 @@
-/* eslint-disable import/no-extraneous-dependencies, react/prop-types */
+/* eslint-disable import/no-extraneous-dependencies, react/no-multi-comp, react/prop-types */
 
 import React from 'react';
 import delay from 'delay';
@@ -24,7 +24,7 @@ export const TestComponentSimple = ({initialStore}) => (
 );
 
 export const TestComponentSimpleDecorated = ({initialStore}) => {
-    const renderPriem = withPriem({
+    const TestComponent = withPriem({
         name: 'Test',
         autoRefresh: true,
         asyncValues: () => ({
@@ -33,11 +33,11 @@ export const TestComponentSimpleDecorated = ({initialStore}) => {
                 promise: value => delay(100, value),
             },
         }),
-    });
+    })(({priem}) => <div>{priem.testValue.value}</div>);
 
     return (
         <PriemProvider initialStore={initialStore}>
-            {renderPriem(({priem}) => <div>{priem.testValue.value}</div>)}
+            <TestComponent />
         </PriemProvider>
     );
 };
@@ -96,7 +96,7 @@ export const TestComponentNested = ({initialStore}) => (
 );
 
 export const TestComponentNestedDecorated = ({initialStore}) => {
-    const renderPriem = withPriem({
+    @withPriem({
         name: 'Test1',
         autoRefresh: true,
         asyncValues: () => ({
@@ -105,26 +105,40 @@ export const TestComponentNestedDecorated = ({initialStore}) => {
                 promise: value => delay(100, value),
             },
         }),
-    });
+    })
+    class TestComponent1 extends React.Component {
+        render() {
+            const {priem} = this.props;
+
+            if (!priem.testValue.value) {
+                return null;
+            }
+
+            return <TestComponent2 testValue1={priem.testValue.value} />;
+        }
+    }
+
+    @withPriem({
+        name: 'Test2',
+        autoRefresh: true,
+        asyncValues: ({testValue1}) => ({
+            testValue: {
+                args: ['bar'],
+                promise: value => delay(100, testValue1 + value),
+            },
+        }),
+    })
+    class TestComponent2 extends React.Component {
+        render() {
+            const {priem} = this.props;
+
+            return <div>{priem.testValue.value}</div>;
+        }
+    }
 
     return (
         <PriemProvider initialStore={initialStore}>
-            {renderPriem((props) => {
-                if (!props.priem.testValue.value) {
-                    return null;
-                }
-
-                return withPriem({
-                    name: 'Test2',
-                    autoRefresh: true,
-                    asyncValues: () => ({
-                        testValue: {
-                            args: ['bar'],
-                            promise: value => delay(100, props.priem.testValue.value + value),
-                        },
-                    }),
-                })(({priem}) => <div>{priem.testValue.value}</div>);
-            })}
+            <TestComponent1 />
         </PriemProvider>
     );
 };
