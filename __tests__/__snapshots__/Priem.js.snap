@@ -6,13 +6,13 @@ exports[`should rehydrate ssr data 1`] = `
 </div>
 `;
 
-exports[`should render nested component 1`] = `
+exports[`should render a nested component 1`] = `
 <div>
   foobar
 </div>
 `;
 
-exports[`should render simple component 1`] = `
+exports[`should render a simple component 1`] = `
 <div>
   foo
 </div>

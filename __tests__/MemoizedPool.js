@@ -206,6 +206,34 @@ it('should rerun promises if previous promise was rejected but `isForced` is tru
     expect([store.state, store.meta]).toMatchSnapshot();
 });
 
+it('should not try to rerun fulfilled promises if `value` is null', async () => {
+    const props = {
+        name: 'Test',
+        autoRefresh: true,
+        asyncValues: () => ({
+            testValue: {
+                args: [null],
+                promise: value => delay(100, value),
+            },
+        }),
+    };
+
+    const {store, pool, update, onExpire, runPromises} = setup({props, isForced: false});
+
+    runPromises();
+    expect(pool.awaiting).toMatchObject({'testValue@Test': [[null]]});
+
+    await delay(150);
+    expect(pool.awaiting).toMatchObject({'testValue@Test': []});
+
+    runPromises();
+    expect(pool.awaiting).toMatchObject({'testValue@Test': []});
+
+    expect(update).toHaveBeenCalledTimes(3);
+    expect(onExpire).toHaveBeenCalledTimes(0);
+    expect([store.state, store.meta]).toMatchSnapshot();
+});
+
 it('should expire if maxAge is set', async () => {
     const props = {
         name: 'Test',

@@ -164,6 +164,34 @@ Array [
 ]
 `;
 
+exports[`should not try to rerun fulfilled promises if \`value\` is null 1`] = `
+Array [
+  Object {
+    "Test": Object {
+      "testValue": Object {
+        "fulfilled": true,
+        "pending": false,
+        "reason": null,
+        "refreshing": false,
+        "rejected": false,
+        "value": null,
+      },
+    },
+  },
+  Object {
+    "Test": Object {
+      "@@count": 0,
+      "@@initialValues": undefined,
+      "@@name": "Test",
+      "@@persist": undefined,
+      "testValue": Object {
+        "ssr": false,
+      },
+    },
+  },
+]
+`;
+
 exports[`should refresh promise if forced 1`] = `
 Array [
   Object {

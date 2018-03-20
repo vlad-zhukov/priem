@@ -101,12 +101,12 @@ export class MemoizedPool {
 
         // eslint-disable-next-line consistent-return
         return update((s, m) => {
-            const hasData = !!s?.[publicKey]?.value;
-            const isSsr = !!(hasData && m?.[publicKey]?.ssr); // eslint-disable-line no-undef
+            const isFulfilled = !!s?.[publicKey]?.fulfilled; // eslint-disable-line no-undef
+            const isSsr = !!(isFulfilled && m?.[publicKey]?.ssr); // eslint-disable-line no-undef
 
             if (this.isMemoized(key, args)) {
                 // Do not recall memoized promises unless forced
-                if (hasData && !isForced) {
+                if (isFulfilled && !isForced) {
                     return null;
                 }
             }
@@ -121,7 +121,7 @@ export class MemoizedPool {
             this.awaiting[key].unshift(args);
             this.rejected[key] = false;
 
-            if (hasData) {
+            if (isFulfilled) {
                 return {
                     data: {
                         [publicKey]: promiseState.refreshing(s[publicKey]),

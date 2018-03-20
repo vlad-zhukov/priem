@@ -6,14 +6,14 @@ import {TestComponentSimple, TestComponentNested, initialStoreTestComponentSimpl
 
 expect.addSnapshotSerializer(createSerializer({mode: 'deep'}));
 
-it('should render simple component', async () => {
+it('should render a simple component', async () => {
     const wrapper = mount(<TestComponentSimple />);
     await delay(150);
     wrapper.update();
     expect(wrapper).toMatchSnapshot();
 });
 
-it('should render nested component', async () => {
+it('should render a nested component', async () => {
     const wrapper = mount(<TestComponentNested />);
     await delay(300);
     wrapper.update();

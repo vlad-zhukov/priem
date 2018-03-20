@@ -6,14 +6,14 @@ import {TestComponentSimpleDecorated, TestComponentNestedDecorated} from '../__t
 
 expect.addSnapshotSerializer(createSerializer({mode: 'deep'}));
 
-it('should render simple decorated component', async () => {
+it('should render a simple decorated component', async () => {
     const wrapper = mount(<TestComponentSimpleDecorated />);
     await delay(150);
     wrapper.update();
     expect(wrapper).toMatchSnapshot();
 });
 
-it('should render nested decorated component', async () => {
+it('should render a nested decorated component', async () => {
     const wrapper = mount(<TestComponentNestedDecorated />);
     await delay(300);
     wrapper.update();
