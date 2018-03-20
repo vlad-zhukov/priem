@@ -49,7 +49,7 @@ export class MemoizedPool {
             isPromise: true,
             maxAge: value.maxAge,
             maxArgs: value.maxArgs,
-            maxSize: value.maxSize,
+            maxSize: value.maxSize || Infinity,
             onExpire,
         });
     }

@@ -297,3 +297,29 @@ it('should rehydrate ssr data', async () => {
     expect(update).toHaveBeenCalledTimes(1);
     expect(onExpire).toHaveBeenCalledTimes(0);
 });
+
+it('should add values to cache when `args` change', async () => {
+    let id = 0;
+    const props = {
+        name: 'Test',
+        autoRefresh: true,
+        asyncValues: () => ({
+            testValue: {
+                args: [`foo${id}`, `bar${id}`],
+                promise: value => {
+                    id += 1;
+                    return delay(200, {value});
+                },
+            },
+        }),
+    };
+
+    const {pool, update, runPromises} = setup({props, isForced: false});
+
+    await runPromises();
+    await runPromises();
+
+    expect(await pool.memoized['testValue@Test'].keys()).toEqual([['foo1', 'bar1'], ['foo0', 'bar0']]);
+
+    expect(update).toHaveBeenCalledTimes(4);
+});
