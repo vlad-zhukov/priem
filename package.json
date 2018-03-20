@@ -1,6 +1,6 @@
 {
   "name": "priem",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "Rich (a)sync state management across multiple React components",
   "author": "Vlad Zhukov (http://github.com/Vlad-Zhukov)",
   "license": "MIT",

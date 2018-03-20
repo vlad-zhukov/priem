@@ -306,7 +306,7 @@ it('should add values to cache when `args` change', async () => {
         asyncValues: () => ({
             testValue: {
                 args: [`foo${id}`, `bar${id}`],
-                promise: value => {
+                promise: (value) => {
                     id += 1;
                     return delay(200, {value});
                 },
