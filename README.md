@@ -88,7 +88,6 @@ import {Priem} from 'priem';
 export default () => (
     <Priem
         name="Async" // 'name' is required
-        autoRefresh
         asyncValues={props => ({
             [props.reddit]: {
               args: [props.reddit],
@@ -170,7 +169,6 @@ import {withPriem} from 'priem';
 
 @withPriem({
     name: 'Async',
-    autoRefresh: true,
     asyncValues: props => ({
         [props.reddit]: {
           args: [props.reddit],
@@ -234,16 +232,16 @@ an object with the following properties.
   - `[args]` _(Array)_: Arguments that will be passed to
   the `promise` function. They must be immutable (booleans, numbers
   and strings) otherwise the meimozation will not work.
+  - `[autoRefresh]` _(Boolean)_: An option that defines if this async
+  function should be called or not on initial mounting and when props
+  change. Setting it to `false` only leaves manual refreshes using
+  the `refresh` method. Defaults to `true`.
   - `[maxAge]` _(Number)_: See [`moize` documentation](https://github.com/planttheidea/moize#advanced-usage).
   - `[maxArgs]` _(Number)_: See [`moize` documentation](https://github.com/planttheidea/moize#advanced-usage).
   - `[maxSize]` _(Number)_: See [`moize` documentation](https://github.com/planttheidea/moize#advanced-usage).
 4. `[persist]` _(Boolean)_: If `false`, the state related to that
 `name` will be removed when the last component using it unmounts.
 Defaults to `true`.
-5. `[autoRefresh]` _(Boolean)_: An option that defines should async
-functions be called or not, including initial mounting. Setting it
-to `false` allows manual refresh handling using the `refresh`
-method. Defaults to `true`.
 6. `[render]` _(Function)_: One of three ways to render components.
 Must be a function that takes [props](#passed-props) and returns
 React component(s).
@@ -274,7 +272,6 @@ a strong reason to do that.
 
 - `priemName` _(String)_
 - `persist` _(Boolean)_
-- `autoRefresh` _(Boolean)_
 
 ---
 

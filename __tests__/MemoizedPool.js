@@ -85,7 +85,6 @@ it('should not run promises when awaiting', async () => {
             testValue: {
                 args: ['foo'],
                 promise: value => delay(200, {value}),
-                autoRefresh: true,
             },
         }),
     };
@@ -116,7 +115,6 @@ it('should refresh promise if forced', async () => {
             testValue: {
                 args: ['foo'],
                 promise: value => delay(200, {value}),
-                autoRefresh: true,
             },
         }),
     };
@@ -147,7 +145,6 @@ it('should not rerun promises if previous promise was rejected', async () => {
                     }
                     return delay(200, {value});
                 },
-                autoRefresh: true,
             },
         }),
     };
@@ -182,7 +179,6 @@ it('should rerun promises if previous promise was rejected but `isForced` is tru
                     }
                     return delay(200, {value});
                 },
-                autoRefresh: true,
             },
         }),
     };
@@ -213,7 +209,6 @@ it('should not try to rerun fulfilled promises if `value` is null', async () => 
             testValue: {
                 args: [null],
                 promise: value => delay(100, value),
-                autoRefresh: true,
             },
         }),
     };
@@ -241,7 +236,6 @@ it('should expire if maxAge is set', async () => {
             testValue: {
                 args: ['foo'],
                 promise: value => delay(200, {value}),
-                autoRefresh: true,
                 maxAge: 300,
             },
         }),
@@ -275,7 +269,6 @@ it('should rehydrate ssr data', async () => {
             testValue: {
                 args: ['foo'],
                 promise: promiseFn,
-                autoRefresh: true,
             },
         }),
     };
@@ -305,11 +298,10 @@ it('should add values to cache when `args` change', async () => {
         asyncValues: () => ({
             testValue: {
                 args: [`foo${id}`, `bar${id}`],
-                promise: (value) => {
+                promise(value) {
                     id += 1;
                     return delay(200, {value});
                 },
-                autoRefresh: true,
             },
         }),
     };

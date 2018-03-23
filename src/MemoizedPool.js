@@ -3,6 +3,8 @@ import {elementsEqual} from 'react-shallow-equal';
 import * as promiseState from './promiseState';
 import {type, isBrowser} from './helpers';
 
+export const defaultAsyncValueOptions = {autoRefresh: true, maxSize: Infinity};
+
 export function extractAsyncValues(props) {
     if (type(props.asyncValues) !== 'function') {
         return {};
@@ -49,7 +51,7 @@ export class MemoizedPool {
             isPromise: true,
             maxAge: value.maxAge,
             maxArgs: value.maxArgs,
-            maxSize: value.maxSize || Infinity,
+            maxSize: value.maxSize,
             onExpire,
         });
     }
@@ -162,7 +164,7 @@ export class MemoizedPool {
         const asyncValues = extractAsyncValues(props);
 
         const values = Object.keys(asyncValues).map((key) => {
-            const asyncValue = asyncValues[key];
+            const asyncValue = {...defaultAsyncValueOptions, ...asyncValues[key]};
 
             // Stop auto-refreshing
             if (!asyncValue.autoRefresh && !isForced) {

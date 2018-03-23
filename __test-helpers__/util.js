@@ -15,7 +15,6 @@ export const TestComponentSimple = ({initialStore}) => (
                 testValue: {
                     args: ['foo'],
                     promise: value => delay(100, value),
-                    autoRefresh: true,
                 },
             })}
             render={({priem}) => <div>{priem.testValue.value}</div>}
@@ -30,7 +29,6 @@ export const TestComponentSimpleDecorated = ({initialStore}) => {
             testValue: {
                 args: ['foo'],
                 promise: value => delay(100, value),
-                autoRefresh: true,
             },
         }),
     })(({priem}) => <div>{priem.testValue.value}</div>);
@@ -70,7 +68,6 @@ export const TestComponentNested = ({initialStore}) => (
                 testValue: {
                     args: ['foo'],
                     promise: value => delay(100, value),
-                    autoRefresh: true,
                 },
             })}
             render={(props) => {
@@ -85,7 +82,6 @@ export const TestComponentNested = ({initialStore}) => (
                             testValue: {
                                 args: ['bar'],
                                 promise: value => delay(100, props.priem.testValue.value + value),
-                                autoRefresh: true,
                             },
                         })}
                         render={({priem}) => <div>{priem.testValue.value}</div>}
@@ -103,7 +99,6 @@ export const TestComponentNestedDecorated = ({initialStore}) => {
             testValue: {
                 args: ['foo'],
                 promise: value => delay(100, value),
-                autoRefresh: true,
             },
         }),
     })
@@ -125,7 +120,6 @@ export const TestComponentNestedDecorated = ({initialStore}) => {
             testValue: {
                 args: ['bar'],
                 promise: value => delay(100, testValue1 + value),
-                autoRefresh: true,
             },
         }),
     })

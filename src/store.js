@@ -1,5 +1,5 @@
 import * as promiseState from './promiseState';
-import {extractAsyncValues} from './MemoizedPool';
+import {extractAsyncValues, defaultAsyncValueOptions} from './MemoizedPool';
 import {type, isBrowser} from './helpers';
 
 export const consts = {
@@ -32,7 +32,8 @@ export function createInitializeFunction(component, isFake = false) {
                     const asyncKeys = Object.keys(asyncValues);
                     for (let i = 0, l = asyncKeys.length; i < l; i++) {
                         const key = asyncKeys[i];
-                        if (asyncValues[key].autoRefresh) {
+                        const asyncValue = {...defaultAsyncValueOptions, ...asyncValues[key]};
+                        if (asyncValue.autoRefresh) {
                             initialValues[key] = promiseState.pending();
                             meta[key] = {ssr: !isBrowser, autoRefresh: true};
                         }
