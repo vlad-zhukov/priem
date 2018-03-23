@@ -3,7 +3,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import createReactContext from 'create-react-context';
-import PriemFilter from './PriemFilter';
+import PriemContainer from './PriemContainer';
 import {createInitializeFunction, createDestroyFunction, createUpdateFunction} from './store';
 import {MemoizedPool} from './MemoizedPool';
 
@@ -72,7 +72,7 @@ export class Priem extends React.Component {
     };
 
     renderConsumer = ({priemState, initialize, destroy, update, memoizedPool}) => (
-        <PriemFilter
+        <PriemContainer
             {...this.props}
             priem={priemState?.[this.props.name]}
             initialize={initialize}
