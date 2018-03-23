@@ -226,19 +226,19 @@ initialization, they can have any shape. Defaults to `{}`.
 return an object. Each key of that object refers to a place
 in the reducer under which a data will be stored. Each value must be
 an object with the following properties.
-  - `promise` _(Function)_: A function that takes `args` as
-  arguments (if specified) and returns a promise. The result of that
-  promise will be memoized and stored in the Redux store.
-  - `[args]` _(Array)_: Arguments that will be passed to
-  the `promise` function. They must be immutable (booleans, numbers
-  and strings) otherwise the meimozation will not work.
-  - `[autoRefresh]` _(Boolean)_: An option that defines if this async
-  function should be called or not on initial mounting and when props
-  change. Setting it to `false` only leaves manual refreshes using
-  the `refresh` method. Defaults to `true`.
-  - `[maxAge]` _(Number)_: See [`moize` documentation](https://github.com/planttheidea/moize#advanced-usage).
-  - `[maxArgs]` _(Number)_: See [`moize` documentation](https://github.com/planttheidea/moize#advanced-usage).
-  - `[maxSize]` _(Number)_: See [`moize` documentation](https://github.com/planttheidea/moize#advanced-usage).
+    * `promise` _(Function)_: A function that takes `args` as
+    arguments (if specified) and returns a promise. The result of that
+    promise will be memoized and stored in the store.
+    * `[args]` _(Array)_: Arguments that will be passed to
+    the `promise` function. They must be immutable (booleans, numbers
+    and strings) otherwise the meimozation will not work.
+    * `[autoRefresh]` _(Boolean)_: An option that defines if this async
+    function should be called or not on initial mounting and when props
+    change. Setting it to `false` only leaves manual refreshes using
+    the `refresh` method. Defaults to `true`.
+    * `[maxAge]` _(Number)_: See [`moize` documentation](https://github.com/planttheidea/moize#advanced-usage).
+    * `[maxArgs]` _(Number)_: See [`moize` documentation](https://github.com/planttheidea/moize#advanced-usage).
+    * `[maxSize]` _(Number)_: See [`moize` documentation](https://github.com/planttheidea/moize#advanced-usage).
 4. `[persist]` _(Boolean)_: If `false`, the state related to that
 `name` will be removed when the last component using it unmounts.
 Defaults to `true`.
