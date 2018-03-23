@@ -159,23 +159,25 @@ export class MemoizedPool {
     }
 
     runPromises({props, isForced, update, onExpire}) {
-        // Stop auto-refreshing
-        if (!props.autoRefresh && !isForced) {
-            return;
-        }
-
         const asyncValues = extractAsyncValues(props);
 
-        const values = Object.keys(asyncValues).map(key =>
-            this.runPromise({
+        const values = Object.keys(asyncValues).map((key) => {
+            const asyncValue = asyncValues[key];
+
+            // Stop auto-refreshing
+            if (!asyncValue.autoRefresh && !isForced) {
+                return null;
+            }
+
+            return this.runPromise({
                 key: `${key}@${props.name}`,
-                value: asyncValues[key],
+                value: asyncValue,
                 publicKey: key,
                 isForced,
                 update,
                 onExpire,
-            })
-        );
+            });
+        });
 
         // eslint-disable-next-line consistent-return
         return Promise.all(values);

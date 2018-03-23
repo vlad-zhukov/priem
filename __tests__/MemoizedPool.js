@@ -31,11 +31,11 @@ function setup(options) {
 it('should not run promises if both `autoRefresh` and `isForced` are false', async () => {
     const props = {
         name: 'Test',
-        autoRefresh: false,
         asyncValues: () => ({
             testValue: {
                 args: ['foo'],
                 promise: value => delay(200, {value}),
+                autoRefresh: false,
             },
         }),
     };
@@ -56,11 +56,11 @@ it('should not run promises if both `autoRefresh` and `isForced` are false', asy
 it('should run promises if `autoRefresh` is false but `isForced` is true', async () => {
     const props = {
         name: 'Test',
-        autoRefresh: false,
         asyncValues: () => ({
             testValue: {
                 args: ['foo'],
                 promise: value => delay(200, {value}),
+                autoRefresh: false,
             },
         }),
     };
@@ -81,11 +81,11 @@ it('should run promises if `autoRefresh` is false but `isForced` is true', async
 it('should not run promises when awaiting', async () => {
     const props = {
         name: 'Test',
-        autoRefresh: true,
         asyncValues: () => ({
             testValue: {
                 args: ['foo'],
                 promise: value => delay(200, {value}),
+                autoRefresh: true,
             },
         }),
     };
@@ -112,11 +112,11 @@ it('should not run promises when awaiting', async () => {
 it('should refresh promise if forced', async () => {
     const props = {
         name: 'Test',
-        autoRefresh: true,
         asyncValues: () => ({
             testValue: {
                 args: ['foo'],
                 promise: value => delay(200, {value}),
+                autoRefresh: true,
             },
         }),
     };
@@ -137,7 +137,6 @@ it('should not rerun promises if previous promise was rejected', async () => {
     let called = false;
     const props = {
         name: 'Test',
-        autoRefresh: true,
         asyncValues: () => ({
             testValue: {
                 args: ['foo'],
@@ -148,6 +147,7 @@ it('should not rerun promises if previous promise was rejected', async () => {
                     }
                     return delay(200, {value});
                 },
+                autoRefresh: true,
             },
         }),
     };
@@ -172,7 +172,6 @@ it('should rerun promises if previous promise was rejected but `isForced` is tru
     let called = false;
     const props = {
         name: 'Test',
-        autoRefresh: true,
         asyncValues: () => ({
             testValue: {
                 args: ['foo'],
@@ -183,6 +182,7 @@ it('should rerun promises if previous promise was rejected but `isForced` is tru
                     }
                     return delay(200, {value});
                 },
+                autoRefresh: true,
             },
         }),
     };
@@ -209,11 +209,11 @@ it('should rerun promises if previous promise was rejected but `isForced` is tru
 it('should not try to rerun fulfilled promises if `value` is null', async () => {
     const props = {
         name: 'Test',
-        autoRefresh: true,
         asyncValues: () => ({
             testValue: {
                 args: [null],
                 promise: value => delay(100, value),
+                autoRefresh: true,
             },
         }),
     };
@@ -237,11 +237,11 @@ it('should not try to rerun fulfilled promises if `value` is null', async () => 
 it('should expire if maxAge is set', async () => {
     const props = {
         name: 'Test',
-        autoRefresh: true,
         asyncValues: () => ({
             testValue: {
                 args: ['foo'],
                 promise: value => delay(200, {value}),
+                autoRefresh: true,
                 maxAge: 300,
             },
         }),
@@ -271,11 +271,11 @@ it('should rehydrate ssr data', async () => {
 
     const props = {
         name: 'Test',
-        autoRefresh: true,
         asyncValues: () => ({
             testValue: {
                 args: ['foo'],
                 promise: promiseFn,
+                autoRefresh: true,
             },
         }),
     };
@@ -302,7 +302,6 @@ it('should add values to cache when `args` change', async () => {
     let id = 0;
     const props = {
         name: 'Test',
-        autoRefresh: true,
         asyncValues: () => ({
             testValue: {
                 args: [`foo${id}`, `bar${id}`],
@@ -310,6 +309,7 @@ it('should add values to cache when `args` change', async () => {
                     id += 1;
                     return delay(200, {value});
                 },
+                autoRefresh: true,
             },
         }),
     };

@@ -55,7 +55,6 @@ export class Priem extends React.Component {
         initialValues: PropTypes.any, // eslint-disable-line react/forbid-prop-types
         asyncValues: PropTypes.func,
         persist: PropTypes.bool,
-        autoRefresh: PropTypes.bool,
         render: PropTypes.func,
         component: PropTypes.func,
         children: PropTypes.node,
@@ -65,7 +64,6 @@ export class Priem extends React.Component {
         initialValues: {},
         asyncValues: null,
         persist: true,
-        autoRefresh: false,
         render: null,
         component: null,
         children: null,

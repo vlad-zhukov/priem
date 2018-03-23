@@ -11,11 +11,11 @@ export const TestComponentSimple = ({initialStore}) => (
     <PriemProvider initialStore={initialStore}>
         <Priem
             name="Test"
-            autoRefresh
             asyncValues={() => ({
                 testValue: {
                     args: ['foo'],
                     promise: value => delay(100, value),
+                    autoRefresh: true,
                 },
             })}
             render={({priem}) => <div>{priem.testValue.value}</div>}
@@ -26,11 +26,11 @@ export const TestComponentSimple = ({initialStore}) => (
 export const TestComponentSimpleDecorated = ({initialStore}) => {
     const TestComponent = withPriem({
         name: 'Test',
-        autoRefresh: true,
         asyncValues: () => ({
             testValue: {
                 args: ['foo'],
                 promise: value => delay(100, value),
+                autoRefresh: true,
             },
         }),
     })(({priem}) => <div>{priem.testValue.value}</div>);
@@ -56,6 +56,7 @@ export const initialStoreTestComponentSimple = {
             [consts.COUNT]: 0,
             testValue: {
                 ssr: true,
+                autoRefresh: true,
             },
         },
     },
@@ -65,11 +66,11 @@ export const TestComponentNested = ({initialStore}) => (
     <PriemProvider initialStore={initialStore}>
         <Priem
             name="Test1"
-            autoRefresh
             asyncValues={() => ({
                 testValue: {
                     args: ['foo'],
                     promise: value => delay(100, value),
+                    autoRefresh: true,
                 },
             })}
             render={(props) => {
@@ -80,11 +81,11 @@ export const TestComponentNested = ({initialStore}) => (
                 return (
                     <Priem
                         name="Test2"
-                        autoRefresh
                         asyncValues={() => ({
                             testValue: {
                                 args: ['bar'],
                                 promise: value => delay(100, props.priem.testValue.value + value),
+                                autoRefresh: true,
                             },
                         })}
                         render={({priem}) => <div>{priem.testValue.value}</div>}
@@ -98,11 +99,11 @@ export const TestComponentNested = ({initialStore}) => (
 export const TestComponentNestedDecorated = ({initialStore}) => {
     @withPriem({
         name: 'Test1',
-        autoRefresh: true,
         asyncValues: () => ({
             testValue: {
                 args: ['foo'],
                 promise: value => delay(100, value),
+                autoRefresh: true,
             },
         }),
     })
@@ -120,18 +121,17 @@ export const TestComponentNestedDecorated = ({initialStore}) => {
 
     @withPriem({
         name: 'Test2',
-        autoRefresh: true,
         asyncValues: ({testValue1}) => ({
             testValue: {
                 args: ['bar'],
                 promise: value => delay(100, testValue1 + value),
+                autoRefresh: true,
             },
         }),
     })
     class TestComponent2 extends React.Component {
         render() {
             const {priem} = this.props;
-
             return <div>{priem.testValue.value}</div>;
         }
     }

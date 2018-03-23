@@ -28,11 +28,13 @@ export function createInitializeFunction(component, isFake = false) {
                     const initialValues = {...props.priem};
                     const meta = {};
 
-                    if (props.autoRefresh !== false) {
-                        const asyncKeys = Object.keys(extractAsyncValues(props));
-                        for (let i = 0, l = asyncKeys.length; i < l; i++) {
-                            initialValues[asyncKeys[i]] = promiseState.pending();
-                            meta[asyncKeys[i]] = {ssr: !isBrowser};
+                    const asyncValues = extractAsyncValues(props);
+                    const asyncKeys = Object.keys(asyncValues);
+                    for (let i = 0, l = asyncKeys.length; i < l; i++) {
+                        const key = asyncKeys[i];
+                        if (asyncValues[key].autoRefresh) {
+                            initialValues[key] = promiseState.pending();
+                            meta[key] = {ssr: !isBrowser, autoRefresh: true};
                         }
                     }
 

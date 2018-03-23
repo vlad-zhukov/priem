@@ -12,7 +12,6 @@ export const priem = {
     /* Initial config */
     priemName: string.isRequired,
     persist: bool.isRequired,
-    autoRefresh: bool.isRequired,
 };
 
 export const promiseState = {

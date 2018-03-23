@@ -107,13 +107,8 @@ export function walkTree(element, visitor) {
 }
 
 function isPriemAsyncComponent(instance) {
-    const {name, asyncValues, persist, autoRefresh} = instance.props;
-    return (
-        type(name) === 'string' &&
-        type(asyncValues) === 'function' &&
-        type(persist) === 'boolean' &&
-        type(autoRefresh) === 'boolean'
-    );
+    const {name, asyncValues, persist} = instance.props;
+    return type(name) === 'string' && type(asyncValues) === 'function' && type(persist) === 'boolean';
 }
 
 function getQueriesFromTree(rootElement, fetchRoot) {

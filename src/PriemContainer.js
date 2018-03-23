@@ -2,12 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {type} from './helpers';
 
-export default class PriemFilter extends React.Component {
+export default class PriemContainer extends React.Component {
     static propTypes = {
         name: PropTypes.string.isRequired,
         initialValues: PropTypes.any, // eslint-disable-line react/forbid-prop-types
         asyncValues: PropTypes.func,
-        autoRefresh: PropTypes.bool,
         render: PropTypes.func,
         component: PropTypes.func,
         children: PropTypes.node,
@@ -21,7 +20,6 @@ export default class PriemFilter extends React.Component {
     static defaultProps = {
         initialValues: {},
         asyncValues: null,
-        autoRefresh: false,
         render: null,
         component: null,
         children: null,
