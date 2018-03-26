@@ -27,7 +27,7 @@ export default class PriemContainer extends React.Component {
     };
 
     componentDidMount() {
-        const {initialValues, priem = {}, initialize, destroy, update, memoizedPool, ...rest} = this.props;
+        const {initialValues, priem = {}, memoizedPool, initialize, destroy, update, ...rest} = this.props;
         const fakeProps = {...rest, priem: {...initialValues, ...priem}};
 
         initialize(fakeProps);
@@ -40,7 +40,7 @@ export default class PriemContainer extends React.Component {
     }
 
     componentWillUpdate(nextProps) {
-        const {initialize, destroy, update, memoizedPool, ...rest} = nextProps;
+        const {memoizedPool, initialize, destroy, update, ...rest} = nextProps;
 
         initialize(rest);
         memoizedPool.runPromises({
@@ -71,10 +71,10 @@ export default class PriemContainer extends React.Component {
     };
 
     // Always forces an update
-    refresh = () => {
+    refresh = (props) => {
         const {memoizedPool, update, ...rest} = this.props;
         memoizedPool.runPromises({
-            props: rest,
+            props: {...rest, ...props},
             update: updater => update(rest.name, updater),
             onExpire: () => this.forceUpdate(),
             isForced: true,
