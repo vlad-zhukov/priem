@@ -154,6 +154,10 @@ export class MemoizedPool {
                 return null;
             }
 
+            if (isForced) {
+                this.memoized[key].remove(args);
+            }
+
             return this.memoized[key](...args)
                 .then((result) => {
                     this.removeAwaiting(key, args);

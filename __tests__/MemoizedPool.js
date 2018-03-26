@@ -108,13 +108,17 @@ it('should not run promises when awaiting', async () => {
     expect([store.state, store.meta]).toMatchSnapshot();
 });
 
-it('should refresh promise if forced', async () => {
+it('should refresh a promise if forced', async () => {
+    let counter = 0;
     const props = {
         name: 'Test',
         asyncValues: () => ({
             testValue: {
                 args: ['foo'],
-                promise: value => delay(200, {value}),
+                promise: value => {
+                    counter += 1;
+                    return delay(200, value + counter);
+                },
             },
         }),
     };
@@ -127,6 +131,8 @@ it('should refresh promise if forced', async () => {
     runPromises({isForced: true});
     expect([store.state, store.meta]).toMatchSnapshot();
     await delay(250);
+
+    expect([store.state, store.meta]).toMatchSnapshot();
 
     expect(update).toHaveBeenCalledTimes(4);
 });

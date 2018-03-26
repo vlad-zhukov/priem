@@ -208,7 +208,7 @@ Array [
 ]
 `;
 
-exports[`should refresh promise if forced 1`] = `
+exports[`should refresh a promise if forced 1`] = `
 Array [
   Object {
     "Test": Object {
@@ -218,9 +218,7 @@ Array [
         "reason": null,
         "refreshing": false,
         "rejected": false,
-        "value": Object {
-          "value": "foo",
-        },
+        "value": "foo1",
       },
     },
   },
@@ -241,7 +239,7 @@ Array [
 ]
 `;
 
-exports[`should refresh promise if forced 2`] = `
+exports[`should refresh a promise if forced 2`] = `
 Array [
   Object {
     "Test": Object {
@@ -251,9 +249,38 @@ Array [
         "reason": null,
         "refreshing": true,
         "rejected": false,
-        "value": Object {
-          "value": "foo",
-        },
+        "value": "foo1",
+      },
+    },
+  },
+  Object {
+    "Test": Object {
+      "@@count": 0,
+      "@@initialValues": undefined,
+      "@@name": "Test",
+      "@@persist": undefined,
+      "testValue": Object {
+        "args": Array [
+          "foo",
+        ],
+        "ssr": false,
+      },
+    },
+  },
+]
+`;
+
+exports[`should refresh a promise if forced 3`] = `
+Array [
+  Object {
+    "Test": Object {
+      "testValue": Object {
+        "fulfilled": true,
+        "pending": false,
+        "reason": null,
+        "refreshing": false,
+        "rejected": false,
+        "value": "foo2",
       },
     },
   },
