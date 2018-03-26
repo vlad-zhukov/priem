@@ -341,5 +341,4 @@ it('should return cached values when `args` change', async () => {
 
     await runPromises();
     expect([store.state, store.meta]).toMatchSnapshot(); // foo-false
-
 });
