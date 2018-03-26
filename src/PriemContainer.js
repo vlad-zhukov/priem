@@ -40,7 +40,9 @@ export default class PriemContainer extends React.Component {
     }
 
     componentWillUpdate(nextProps) {
-        const {memoizedPool, update, ...rest} = nextProps;
+        const {initialize, destroy, update, memoizedPool, ...rest} = nextProps;
+
+        initialize(rest);
         memoizedPool.runPromises({
             props: rest,
             update: updater => update(rest.name, updater),

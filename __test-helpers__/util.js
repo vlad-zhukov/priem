@@ -64,6 +64,7 @@ export const TestComponentNested = ({initialStore}) => (
     <PriemProvider initialStore={initialStore}>
         <Priem
             name="Test1"
+            initialValues={{counter: 2}}
             asyncValues={() => ({
                 testValue: {
                     args: ['foo'],
@@ -75,16 +76,22 @@ export const TestComponentNested = ({initialStore}) => (
                     return null;
                 }
 
+                const onClick = () => props.setPriem(s => ({counter: s.counter + 1}));
+
                 return (
                     <Priem
-                        name="Test2"
+                        name={`Test${props.priem.counter}`}
                         asyncValues={() => ({
                             testValue: {
                                 args: ['bar'],
                                 promise: value => delay(100, props.priem.testValue.value + value),
                             },
                         })}
-                        render={({priem}) => <div>{priem.testValue.value}</div>}
+                        render={({priem}) => (
+                            <div>
+                                {priem.testValue.value} <button onClick={onClick} />
+                            </div>
+                        )}
                     />
                 );
             }}

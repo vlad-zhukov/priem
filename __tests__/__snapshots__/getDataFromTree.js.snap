@@ -33,7 +33,9 @@ Object {
   "meta": Object {
     "Test1": Object {
       "@@count": 0,
-      "@@initialValues": Object {},
+      "@@initialValues": Object {
+        "counter": 2,
+      },
       "@@name": "Test1",
       "@@persist": true,
       "testValue": Object {

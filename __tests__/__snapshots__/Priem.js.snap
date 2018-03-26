@@ -1,5 +1,67 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`should initialize if \`name\` has changed 1`] = `
+Object {
+  "Test1": Object {
+    "counter": 2,
+    "testValue": Object {
+      "fulfilled": true,
+      "pending": false,
+      "reason": null,
+      "refreshing": false,
+      "rejected": false,
+      "value": "foo",
+    },
+  },
+  "Test2": Object {
+    "testValue": Object {
+      "fulfilled": true,
+      "pending": false,
+      "reason": null,
+      "refreshing": false,
+      "rejected": false,
+      "value": "foobar",
+    },
+  },
+}
+`;
+
+exports[`should initialize if \`name\` has changed 2`] = `
+Object {
+  "Test1": Object {
+    "counter": 3,
+    "testValue": Object {
+      "fulfilled": true,
+      "pending": false,
+      "reason": null,
+      "refreshing": false,
+      "rejected": false,
+      "value": "foo",
+    },
+  },
+  "Test2": Object {
+    "testValue": Object {
+      "fulfilled": true,
+      "pending": false,
+      "reason": null,
+      "refreshing": false,
+      "rejected": false,
+      "value": "foobar",
+    },
+  },
+  "Test3": Object {
+    "testValue": Object {
+      "fulfilled": false,
+      "pending": true,
+      "reason": null,
+      "refreshing": false,
+      "rejected": false,
+      "value": null,
+    },
+  },
+}
+`;
+
 exports[`should rehydrate ssr data 1`] = `
 <div>
   baz
@@ -9,6 +71,10 @@ exports[`should rehydrate ssr data 1`] = `
 exports[`should render a nested component 1`] = `
 <div>
   foobar
+   
+  <button
+    onClick={[Function]}
+  />
 </div>
 `;
 

@@ -26,3 +26,18 @@ it('should rehydrate ssr data', async () => {
     wrapper.update();
     expect(wrapper).toMatchSnapshot();
 });
+
+it('should initialize if `name` has changed', async () => {
+    const wrapper = mount(<TestComponentNested />);
+    await delay(300);
+    wrapper.update();
+
+    const provider = wrapper.children().instance();
+
+    expect(provider.state).toMatchSnapshot();
+
+    wrapper.find('button').simulate('click');
+    wrapper.update();
+
+    expect(provider.state).toMatchSnapshot();
+});
