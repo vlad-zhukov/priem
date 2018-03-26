@@ -9,6 +9,9 @@ Object {
       "@@name": "Test",
       "@@persist": true,
       "testValue": Object {
+        "args": Array [
+          "foo",
+        ],
         "ssr": true,
       },
     },
@@ -39,6 +42,9 @@ Object {
       "@@name": "Test1",
       "@@persist": true,
       "testValue": Object {
+        "args": Array [
+          "foo",
+        ],
         "ssr": true,
       },
     },

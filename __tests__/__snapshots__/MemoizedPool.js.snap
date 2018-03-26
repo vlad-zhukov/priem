@@ -23,6 +23,9 @@ Array [
       "@@name": "Test",
       "@@persist": undefined,
       "testValue": Object {
+        "args": Array [
+          "foo",
+        ],
         "ssr": false,
       },
     },
@@ -53,6 +56,9 @@ Array [
       "@@name": "Test",
       "@@persist": undefined,
       "testValue": Object {
+        "args": Array [
+          "foo",
+        ],
         "ssr": false,
       },
     },
@@ -83,6 +89,9 @@ Array [
       "@@name": "Test",
       "@@persist": undefined,
       "testValue": Object {
+        "args": Array [
+          "foo",
+        ],
         "ssr": false,
       },
     },
@@ -111,6 +120,7 @@ Array [
       "@@name": "Test",
       "@@persist": undefined,
       "testValue": Object {
+        "args": null,
         "ssr": false,
       },
     },
@@ -157,6 +167,9 @@ Array [
       "@@name": "Test",
       "@@persist": undefined,
       "testValue": Object {
+        "args": Array [
+          "foo",
+        ],
         "ssr": false,
       },
     },
@@ -185,6 +198,9 @@ Array [
       "@@name": "Test",
       "@@persist": undefined,
       "testValue": Object {
+        "args": Array [
+          null,
+        ],
         "ssr": false,
       },
     },
@@ -215,6 +231,9 @@ Array [
       "@@name": "Test",
       "@@persist": undefined,
       "testValue": Object {
+        "args": Array [
+          "foo",
+        ],
         "ssr": false,
       },
     },
@@ -245,6 +264,9 @@ Array [
       "@@name": "Test",
       "@@persist": undefined,
       "testValue": Object {
+        "args": Array [
+          "foo",
+        ],
         "ssr": false,
       },
     },
@@ -303,6 +325,108 @@ Array [
       "@@name": "Test",
       "@@persist": undefined,
       "testValue": Object {
+        "args": Array [
+          "foo",
+        ],
+        "ssr": false,
+      },
+    },
+  },
+]
+`;
+
+exports[`should return cached values when \`args\` change 1`] = `
+Array [
+  Object {
+    "Test": Object {
+      "testValue": Object {
+        "fulfilled": true,
+        "pending": false,
+        "reason": null,
+        "refreshing": false,
+        "rejected": false,
+        "value": Object {
+          "value": "foo-false",
+        },
+      },
+    },
+  },
+  Object {
+    "Test": Object {
+      "@@count": 0,
+      "@@initialValues": undefined,
+      "@@name": "Test",
+      "@@persist": undefined,
+      "testValue": Object {
+        "args": Array [
+          "foo-false",
+        ],
+        "ssr": false,
+      },
+    },
+  },
+]
+`;
+
+exports[`should return cached values when \`args\` change 2`] = `
+Array [
+  Object {
+    "Test": Object {
+      "testValue": Object {
+        "fulfilled": true,
+        "pending": false,
+        "reason": null,
+        "refreshing": false,
+        "rejected": false,
+        "value": Object {
+          "value": "foo-true",
+        },
+      },
+    },
+  },
+  Object {
+    "Test": Object {
+      "@@count": 0,
+      "@@initialValues": undefined,
+      "@@name": "Test",
+      "@@persist": undefined,
+      "testValue": Object {
+        "args": Array [
+          "foo-true",
+        ],
+        "ssr": false,
+      },
+    },
+  },
+]
+`;
+
+exports[`should return cached values when \`args\` change 3`] = `
+Array [
+  Object {
+    "Test": Object {
+      "testValue": Object {
+        "fulfilled": true,
+        "pending": false,
+        "reason": null,
+        "refreshing": false,
+        "rejected": false,
+        "value": Object {
+          "value": "foo-false",
+        },
+      },
+    },
+  },
+  Object {
+    "Test": Object {
+      "@@count": 0,
+      "@@initialValues": undefined,
+      "@@name": "Test",
+      "@@persist": undefined,
+      "testValue": Object {
+        "args": Array [
+          "foo-false",
+        ],
         "ssr": false,
       },
     },
@@ -333,6 +457,9 @@ Array [
       "@@name": "Test",
       "@@persist": undefined,
       "testValue": Object {
+        "args": Array [
+          "foo",
+        ],
         "ssr": false,
       },
     },

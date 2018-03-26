@@ -298,9 +298,9 @@ it('should add values to cache when `args` change', async () => {
         asyncValues: () => ({
             testValue: {
                 args: [`foo${id}`, `bar${id}`],
-                promise(value) {
+                promise(foo, bar) {
                     id += 1;
-                    return delay(200, {value});
+                    return delay(200, {foo, bar});
                 },
             },
         }),
@@ -314,4 +314,32 @@ it('should add values to cache when `args` change', async () => {
     expect(await pool.memoized['testValue@Test'].keys()).toEqual([['foo1', 'bar1'], ['foo0', 'bar0']]);
 
     expect(update).toHaveBeenCalledTimes(4);
+});
+
+it('should return cached values when `args` change', async () => {
+    let check = false;
+    const props = {
+        name: 'Test',
+        asyncValues: () => ({
+            testValue: {
+                args: [`foo-${check}`],
+                promise(value) {
+                    check = !check;
+                    return delay(200, {value});
+                },
+            },
+        }),
+    };
+
+    const {store, runPromises} = setup({props, isForced: false});
+
+    await runPromises();
+    expect([store.state, store.meta]).toMatchSnapshot(); // foo-false
+
+    await runPromises();
+    expect([store.state, store.meta]).toMatchSnapshot(); // foo-true
+
+    await runPromises();
+    expect([store.state, store.meta]).toMatchSnapshot(); // foo-false
+
 });

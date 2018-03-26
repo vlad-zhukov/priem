@@ -3,6 +3,19 @@ import {elementsEqual} from 'react-shallow-equal';
 import * as promiseState from './promiseState';
 import {type, isBrowser} from './helpers';
 
+function arrayElementsEqual(a, b) {
+    if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) {
+        return false;
+    }
+    for (let i = 0; i < a.length; i++) {
+        if ((a[i] !== b[i])) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 export const defaultAsyncValueOptions = {autoRefresh: true, maxSize: Infinity};
 
 export function extractAsyncValues(props) {
@@ -108,7 +121,7 @@ export class MemoizedPool {
 
             if (this.isMemoized(key, args)) {
                 // Do not recall memoized promises unless forced
-                if (isFulfilled && !isForced) {
+                if (isFulfilled && !isForced && arrayElementsEqual(args, m?.[publicKey]?.args)) {
                     return null;
                 }
             }
@@ -146,7 +159,7 @@ export class MemoizedPool {
                     this.removeAwaiting(key, args);
                     return update({
                         data: {[publicKey]: promiseState.fulfilled(result)},
-                        meta: {[publicKey]: {ssr: !isBrowser}},
+                        meta: {[publicKey]: {ssr: !isBrowser, args}},
                     });
                 })
                 .catch((e) => {
@@ -154,7 +167,7 @@ export class MemoizedPool {
                     this.rejected[key] = true;
                     return update({
                         data: {[publicKey]: promiseState.rejected(e.message)},
-                        meta: {[publicKey]: {ssr: !isBrowser}},
+                        meta: {[publicKey]: {ssr: !isBrowser, args: null}},
                     });
                 });
         });
