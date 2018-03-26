@@ -115,7 +115,7 @@ it('should refresh a promise if forced', async () => {
         asyncValues: () => ({
             testValue: {
                 args: ['foo'],
-                promise: value => {
+                promise(value) {
                     counter += 1;
                     return delay(200, value + counter);
                 },
