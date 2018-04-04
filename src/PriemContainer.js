@@ -26,15 +26,20 @@ export default class PriemContainer extends React.Component {
         priem: undefined,
     };
 
+    // eslint-disable-next-line react/sort-comp
+    _isMounted = false;
+
     componentDidMount() {
         const {initialValues, priem = {}, memoizedPool, initialize, destroy, update, ...rest} = this.props;
         const fakeProps = {...rest, priem: {...initialValues, ...priem}};
+
+        this._isMounted = true;
 
         initialize(fakeProps);
         memoizedPool.runPromises({
             props: fakeProps,
             update: updater => update(rest.name, updater),
-            onExpire: () => this.forceUpdate(),
+            onExpire: this._onExpire,
             isForced: false,
         });
     }
@@ -46,14 +51,21 @@ export default class PriemContainer extends React.Component {
         memoizedPool.runPromises({
             props: rest,
             update: updater => update(rest.name, updater),
-            onExpire: () => this.forceUpdate(),
+            onExpire: this._onExpire,
             isForced: false,
         });
     }
 
     componentWillUnmount() {
         this.props.destroy(this.props.name);
+        this._isMounted = false;
     }
+
+    _onExpire = () => {
+        if (this._isMounted) {
+            this.forceUpdate();
+        }
+    };
 
     setPriem = (updater) => {
         this.setPriemTo(this.props.name, updater);
@@ -76,7 +88,7 @@ export default class PriemContainer extends React.Component {
         memoizedPool.runPromises({
             props: {...rest, ...props},
             update: updater => update(rest.name, updater),
-            onExpire: () => this.forceUpdate(),
+            onExpire: this._onExpire,
             isForced: true,
         });
     };

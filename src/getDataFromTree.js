@@ -56,8 +56,8 @@ export function walkTree(element, visitor) {
                 };
 
                 // this is a poor man's version of
-                if (instance.componentWillMount) {
-                    instance.componentWillMount();
+                if (instance.componentDidMount) {
+                    instance.componentDidMount();
                 }
 
                 if (visitor(element, instance) === false) {
