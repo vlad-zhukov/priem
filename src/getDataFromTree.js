@@ -1,4 +1,4 @@
-import {Children} from 'react';
+import React from 'react';
 import {MemoizedPool} from './MemoizedPool';
 import {type} from './helpers';
 import {FakeProviderStore} from './store';
@@ -91,7 +91,7 @@ export function walkTree(element, visitor) {
             }
 
             if (element.props && element.props.children) {
-                Children.forEach(element.props.children, (child) => {
+                React.Children.forEach(element.props.children, (child) => {
                     if (child) {
                         walkTree(child, visitor);
                     }
