@@ -1,38 +1,46 @@
-import React, {Component} from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
-import {Priem, propTypes} from 'priem';
+import {Priem, Container, AsyncContainer, propTypes} from 'priem';
 import Picker from '../components/Picker';
 import Posts from '../components/Posts';
 
-class App extends Component {
+const redditPicker = new Container({reddit: 'reactjs'});
+
+const reddit = new AsyncContainer(props => ({
+    args: [props.redditPicker.reddit],
+    promise: reddit => {
+        return fetch(`https://www.reddit.com/r/${reddit}.json`)
+            .then(res => res.json())
+            .then(res => res.data.children);
+    },
+    maxAge: 20000,
+    maxArgs: 1,
+}));
+
+class App extends React.Component {
     static propTypes = {
-        priem: PropTypes.shape({
-            reddit: PropTypes.string,
-            reactjs: PropTypes.shape(propTypes.promiseState),
-            frontend: PropTypes.shape(propTypes.promiseState),
-        }).isRequired,
-        setPriem: PropTypes.func.isRequired,
-        refresh: PropTypes.func.isRequired,
+        redditPicker: PropTypes.shape({reddit: PropTypes.string}).isRequired,
+        reddit: PropTypes.shape(propTypes.promiseState).isRequired,
+        // setPriem: PropTypes.func.isRequired,
+        // refresh: PropTypes.func.isRequired,
     };
 
     constructor(props, context) {
         super(props, context);
 
         this.handleChange = (nextReddit) => {
-            this.props.setPriem({reddit: nextReddit});
+            redditPicker.setState({reddit: nextReddit});
         };
     }
 
     render() {
-        const {priem, refresh} = this.props;
-        const {pending, refreshing, value, lastUpdated} = priem[priem.reddit] || {};
-        const isFetching = pending || refreshing;
-
-        console.log(priem)
+        const {redditPicker, reddit, refresh} = this.props;
+        const {value, lastUpdated} = reddit;
+        const isFetching = reddit.pending || reddit.refreshing;
 
         return (
             <div>
-                <Picker value={priem.reddit} onChange={this.handleChange} options={['reactjs', 'frontend']} />
+                <Picker value={redditPicker.reddit} onChange={this.handleChange} options={['reactjs', 'frontend']} />
                 <p>
                     {lastUpdated && <span>Last updated at {new Date(lastUpdated).toLocaleTimeString()}. </span>}
                     {!isFetching && <button onClick={refresh}>Refresh</button>}
@@ -53,23 +61,4 @@ class App extends Component {
     }
 }
 
-export default () => (
-    <Priem
-        component={App}
-        name="Async"
-        autoRefresh
-        initialValues={{reddit: 'reactjs'}}
-        asyncValues={props => ({
-            [props.priem.reddit]: {
-                args: [props.priem.reddit],
-                promise: reddit => {
-                    return fetch(`https://www.reddit.com/r/${reddit}.json`)
-                        .then(res => res.json())
-                        .then(res => res.data.children);
-                },
-                maxAge: 20000,
-                maxArgs: 1,
-            },
-        })}
-    />
-);
+export default () => <Priem sources={{redditPicker, reddit}} component={App}/>;
