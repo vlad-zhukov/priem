@@ -30,7 +30,7 @@ export class AsyncContainer extends Container {
         super();
 
         this.getAsyncValue = getAsyncValue;
-        this.state = initialState?.state || promiseState.pending();
+        this.state = initialState?.state || promiseState.empty();
         this.meta = initialState?.meta || {ssr: !isBrowser};
         this.cache = new Cache();
     }

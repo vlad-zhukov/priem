@@ -84,7 +84,7 @@ exports[`should not run promises if both \`autoRefresh\` and \`isForced\` are fa
 Array [
   Object {
     "fulfilled": false,
-    "pending": true,
+    "pending": false,
     "reason": null,
     "refreshing": false,
     "rejected": false,

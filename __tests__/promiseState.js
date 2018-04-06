@@ -1,4 +1,8 @@
-import {pending, refreshing, fulfilled, rejected, isPromiseState} from '../src/promiseState';
+import {empty, pending, refreshing, fulfilled, rejected, isPromiseState} from '../src/promiseState';
+
+it('should create an empty promise state', () => {
+    expect(empty()).toMatchSnapshot();
+});
 
 it('should create a pending promise state', () => {
     expect(pending()).toMatchSnapshot();

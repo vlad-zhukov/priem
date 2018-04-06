@@ -43,6 +43,14 @@ export function isPromiseState(maybePromiseState) {
 }
 
 /**
+ * Creates an empty promiseState
+ * @returns {Object}
+ */
+export function empty() {
+    return create({});
+}
+
+/**
  * Creates a new promiseState that is pending.
  * @returns {Object}
  */
