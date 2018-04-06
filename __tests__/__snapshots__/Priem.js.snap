@@ -1,67 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`should initialize if \`name\` has changed 1`] = `
-Object {
-  "Test1": Object {
-    "counter": 2,
-    "testValue": Object {
-      "fulfilled": true,
-      "pending": false,
-      "reason": null,
-      "refreshing": false,
-      "rejected": false,
-      "value": "foo",
-    },
-  },
-  "Test2": Object {
-    "testValue": Object {
-      "fulfilled": true,
-      "pending": false,
-      "reason": null,
-      "refreshing": false,
-      "rejected": false,
-      "value": "foobar",
-    },
-  },
-}
-`;
-
-exports[`should initialize if \`name\` has changed 2`] = `
-Object {
-  "Test1": Object {
-    "counter": 3,
-    "testValue": Object {
-      "fulfilled": true,
-      "pending": false,
-      "reason": null,
-      "refreshing": false,
-      "rejected": false,
-      "value": "foo",
-    },
-  },
-  "Test2": Object {
-    "testValue": Object {
-      "fulfilled": true,
-      "pending": false,
-      "reason": null,
-      "refreshing": false,
-      "rejected": false,
-      "value": "foobar",
-    },
-  },
-  "Test3": Object {
-    "testValue": Object {
-      "fulfilled": false,
-      "pending": true,
-      "reason": null,
-      "refreshing": false,
-      "rejected": false,
-      "value": null,
-    },
-  },
-}
-`;
-
 exports[`should rehydrate ssr data 1`] = `
 <div>
   baz
@@ -70,12 +8,76 @@ exports[`should rehydrate ssr data 1`] = `
 
 exports[`should render a nested component 1`] = `
 <div>
-  foobar
-   
+  2-foobar
   <button
     onClick={[Function]}
   />
 </div>
+`;
+
+exports[`should render a nested component 2`] = `
+Object {
+  "container1": Object {
+    "meta": Object {
+      "args": Array [
+        2,
+        "foo",
+      ],
+      "ssr": false,
+    },
+    "state": Object {
+      "fulfilled": true,
+      "pending": false,
+      "reason": null,
+      "refreshing": false,
+      "rejected": false,
+      "value": "2-foo",
+    },
+  },
+  "syncContainer": Object {
+    "meta": undefined,
+    "state": Object {
+      "counter": 2,
+    },
+  },
+}
+`;
+
+exports[`should render a nested component 3`] = `
+<div>
+  2-foobar
+  <button
+    onClick={[Function]}
+  />
+</div>
+`;
+
+exports[`should render a nested component 4`] = `
+Object {
+  "container1": Object {
+    "meta": Object {
+      "args": Array [
+        2,
+        "foo",
+      ],
+      "ssr": false,
+    },
+    "state": Object {
+      "fulfilled": true,
+      "pending": false,
+      "reason": null,
+      "refreshing": true,
+      "rejected": false,
+      "value": "2-foo",
+    },
+  },
+  "syncContainer": Object {
+    "meta": undefined,
+    "state": Object {
+      "counter": 3,
+    },
+  },
+}
 `;
 
 exports[`should render a simple component 1`] = `

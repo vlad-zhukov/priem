@@ -21,6 +21,7 @@ export default class Priem extends React.Component {
     constructor(props) {
         super(props);
 
+        this._isPriemComponent = true;
         this._isMounted = false;
         this._sources = props.sources;
     }

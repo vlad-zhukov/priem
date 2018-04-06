@@ -5,39 +5,37 @@ import * as promiseState from './promiseState';
 export class Container {
     constructor(initialState = {}) {
         this.state = initialState;
-        this.listeners = [];
+        this._listeners = [];
     }
 
     setState(updater) {
-        console.log('setState');
         const nextState = type(updater) === 'function' ? updater(this.state) : updater;
         if (nextState != null) {
             this.state = {...this.state, ...nextState};
-            this.listeners.forEach(fn => fn());
+            this._listeners.forEach(fn => fn());
         }
     }
 
     subscribe(fn) {
-        this.listeners.push(fn);
+        this._listeners.push(fn);
     }
 
     unsubscribe(fn) {
-        this.listeners = this.listeners.filter(f => f !== fn);
+        this._listeners = this._listeners.filter(f => f !== fn);
     }
 }
 
 export class AsyncContainer extends Container {
-    constructor(getAsyncValue) {
+    constructor(getAsyncValue, initialState) {
         super();
 
         this.getAsyncValue = getAsyncValue;
-        this.state = promiseState.pending();
-        this.meta = {ssr: !isBrowser};
+        this.state = initialState?.state || promiseState.pending();
+        this.meta = initialState?.meta || {ssr: !isBrowser};
         this.cache = new Cache();
     }
 
     update = (updater) => {
-        let didUpdateData = false;
         this.setState((state) => {
             const updaterResult = type(updater) === 'function' ? updater(state, this.meta) : updater;
 
@@ -46,7 +44,6 @@ export class AsyncContainer extends Container {
                 this.meta = {...this.meta, ...updaterResult.meta};
 
                 if (updaterResult.data) {
-                    didUpdateData = true;
                     return {...state, ...updaterResult.data};
                 }
             }
@@ -55,16 +52,15 @@ export class AsyncContainer extends Container {
         });
     };
 
-    runAsync = ({props, isForced}) => {
+    runAsync = ({props, isForced}) =>
         this.cache.run({
             asyncValue: this.getAsyncValue(props),
             isForced,
             update: this.update,
             onExpire: () => {
-                if (this.listeners.length > 0) {
+                if (this._listeners.length > 0) {
                     this.runAsync({props, isForced: true, update: this.update});
                 }
             },
         });
-    }
 }

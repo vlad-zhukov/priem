@@ -145,7 +145,7 @@ export default class Cache {
             this.memoized.remove(args);
         }
 
-        this.memoized(...args)
+        return this.memoized(...args)
             .then((result) => {
                 this.removeAwaiting(args);
                 update({

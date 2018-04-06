@@ -1,7 +1,5 @@
 import React from 'react';
-import {MemoizedPool} from './MemoizedPool';
 import {type} from './helpers';
-import {FakeProviderStore} from './store';
 
 function getProps(element) {
     return element.props || element.attributes;
@@ -56,9 +54,13 @@ export function walkTree(element, visitor) {
                 };
 
                 // this is a poor man's version of
-                if (instance.componentDidMount) {
-                    instance.componentDidMount();
-                }
+                // if (instance.componentDidMount) {
+                //     instance.componentDidMount();
+                // }
+                //
+                // if (instance.componentDidUpdate) {
+                //     instance.componentDidUpdate();
+                // }
 
                 if (visitor(element, instance) === false) {
                     return;
@@ -106,9 +108,8 @@ export function walkTree(element, visitor) {
     // TODO: Portals?
 }
 
-function isPriemAsyncComponent(instance) {
-    const {name, asyncValues, persist} = instance.props;
-    return type(name) === 'string' && type(asyncValues) === 'function' && type(persist) === 'boolean';
+function isPriemComponent(instance) {
+    return instance._isPriemComponent === true;
 }
 
 function getQueriesFromTree(rootElement, fetchRoot) {
@@ -120,8 +121,8 @@ function getQueriesFromTree(rootElement, fetchRoot) {
             return;
         }
 
-        if (instance && isReactElement(element) && isPriemAsyncComponent(instance)) {
-            queries.push({props: instance.props, element});
+        if (instance && isReactElement(element) && isPriemComponent(instance)) {
+            queries.push({props: instance.props, element, instance});
 
             // Tell walkTree to not recurse inside this component;  we will
             // wait for the query to execute before attempting it.
@@ -141,24 +142,26 @@ export default function getDataFromTree(rootElement, fetchRoot = true) {
         return Promise.resolve();
     }
 
-    const memoizedPool = new MemoizedPool();
-    const fakeStore = new FakeProviderStore();
-
     // wait on each query that we found, re-rendering the subtree when it's done
-    const mappedQueries = queries.reduce((acc, {props}) => {
-        fakeStore.initialize(props);
-
-        const promise = memoizedPool.runPromises({
-            props,
-            isForced: false,
-            update: updater => fakeStore.update(props.name, updater),
+    const mappedQueries = queries.reduce((acc, {props, instance}) => {
+        const promises = Object.keys(props.sources).map((key) => {
+            const source = props.sources[key];
+            if (type(source.runAsync) === 'function') {
+                const opts = {props: instance._createProps(), isForced: false};
+                return Promise.resolve()
+                    .then(() => source.runAsync(opts))
+                    .then(() => source);
+            }
+            return source;
         });
 
         // const d = promise.then(() => getDataFromTree(element, false));
 
         // we've just grabbed the query for element, so don't try and get it again
-        return acc.concat(promise);
+        return acc.concat(promises);
     }, []);
 
-    return Promise.all(mappedQueries).then(() => ({state: fakeStore.state, meta: fakeStore.meta}));
+    return Promise.all(mappedQueries).then(sources =>
+        sources.map(source => ({state: source.state, meta: source.meta}))
+    );
 }
