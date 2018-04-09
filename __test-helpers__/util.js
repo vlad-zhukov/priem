@@ -9,7 +9,7 @@ import * as promiseState from '../src/promiseState';
 
 export function removeObjectProps(obj) {
     Object.keys(obj).forEach((key) => {
-        delete obj[key];
+        delete obj[key]; // eslint-disable-line no-param-reassign
     });
 }
 
@@ -34,7 +34,7 @@ export function TestComponentSimpleDecorated(props) {
         props
     );
 
-    const TestComponent = withPriem({sources: {container}})(({container}) => <div>{container.value}</div>);
+    const TestComponent = withPriem({sources: {container}})(p => <div>{p.container.value}</div>);
 
     return <TestComponent />;
 }
@@ -51,8 +51,8 @@ export function TestComponentNested({syncContainerProps, container1Props, contai
     const syncContainer = new Container({counter: 2}, syncContainerProps);
 
     const container1 = new AsyncContainer(
-        ({syncContainer}) => ({
-            args: [syncContainer.counter, 'foo'],
+        ({syncContainer: sC}) => ({
+            args: [sC.counter, 'foo'],
             promise: (counter, value) => delay(100, `${counter}-${value}`),
         }),
         container1Props
@@ -99,7 +99,7 @@ export function TestComponentNested({syncContainerProps, container1Props, contai
     );
 }
 
-export function TestComponentNestedDecorated({options}) {
+export function TestComponentNestedDecorated() {
     const container1 = new AsyncContainer(() => ({
         args: ['foo'],
         promise: value => delay(100, value),

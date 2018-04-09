@@ -37,7 +37,8 @@ export default class Cache {
         const typeOfValuePromise = type(value.promise);
         if (typeOfValuePromise !== 'function') {
             throw new TypeError(
-                `Priem: 'getAsyncValue' must return an object with a property 'promise', but got: '${typeOfValuePromise}'.`
+                "Priem: 'getAsyncValue' must return an object with a property 'promise'," +
+                    `but got: '${typeOfValuePromise}'.`
             );
         }
 
@@ -141,13 +142,14 @@ export default class Cache {
         });
 
         if (!shouldUpdateState) {
-            return null;
+            return;
         }
 
         if (isForced) {
             this.memoized.remove(args);
         }
 
+        // eslint-disable-next-line consistent-return
         return this.memoized(...args)
             .then((result) => {
                 this.removeAwaiting(args);

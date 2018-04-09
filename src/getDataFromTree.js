@@ -1,5 +1,4 @@
 import React from 'react';
-import {getContainerMap} from './Container';
 import {type} from './helpers';
 
 function getProps(element) {
@@ -160,7 +159,7 @@ export default function getDataFromTree(rootElement, fetchRoot = true) {
 
     // wait on each query that we found, re-rendering the subtree when it's done
     const mappedQueries = queries.reduce(
-        (result, {promise, instance}) =>
+        (result, {promise}) =>
             // const d = promise.then(() => getDataFromTree(element, false));
 
             // we've just grabbed the query for element, so don't try and get it again
@@ -171,6 +170,7 @@ export default function getDataFromTree(rootElement, fetchRoot = true) {
     return Promise.all(mappedQueries).then(sources =>
         sources.reduce((result, {state, _meta}) => {
             if (_meta.ssrKey) {
+                // eslint-disable-next-line no-param-reassign
                 result[_meta.ssrKey] = {state, meta: _meta};
             }
             return result;

@@ -1,12 +1,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {Container} from './Container';
 import {type} from './helpers';
 
 const DUMMY_STATE = {};
 
 export default class Priem extends React.Component {
     static propTypes = {
-        sources: PropTypes.object.isRequired,
+        sources: PropTypes.objectOf(PropTypes.instanceOf(Container)).isRequired,
         render: PropTypes.func,
         component: PropTypes.func,
         children: PropTypes.node,
@@ -24,6 +25,11 @@ export default class Priem extends React.Component {
         this._isPriemComponent = true;
         this._isMounted = false;
         this._sources = props.sources;
+    }
+
+    componentDidMount() {
+        this._isMounted = true;
+        this._updateSubscriptions({instancesToSub: this._sources});
     }
 
     componentDidUpdate() {
@@ -47,30 +53,9 @@ export default class Priem extends React.Component {
         this._updateSubscriptions({instancesToSub, instancesToUnsub});
     }
 
-    componentDidMount() {
-        this._isMounted = true;
-        this._updateSubscriptions({instancesToSub: this._sources});
-    }
-
     componentWillUnmount() {
         this._isMounted = false;
         this._updateSubscriptions({instancesToUnsub: this._sources});
-    }
-
-    render() {
-        const {render, component, children} = this.props;
-
-        const props = this._getProps();
-
-        if (type(render) === 'function') {
-            return render(props);
-        }
-
-        if (component) {
-            return React.createElement(component, props);
-        }
-
-        return React.Children.toArray(children).map(child => React.cloneElement(child, props));
     }
 
     _updateSubscriptions({instancesToSub = {}, instancesToUnsub = {}, isForced = false}) {
@@ -110,4 +95,20 @@ export default class Priem extends React.Component {
             this.setState(DUMMY_STATE);
         }
     };
+
+    render() {
+        const {render, component, children} = this.props;
+
+        const props = this._getProps();
+
+        if (type(render) === 'function') {
+            return render(props);
+        }
+
+        if (component) {
+            return React.createElement(component, props);
+        }
+
+        return React.Children.toArray(children).map(child => React.cloneElement(child, props));
+    }
 }

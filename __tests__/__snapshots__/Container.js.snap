@@ -180,6 +180,7 @@ Array [
   },
   Object {
     "ssr": false,
+    "ssrKey": "unique-key-1",
   },
 ]
 `;

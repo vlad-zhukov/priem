@@ -3,14 +3,13 @@ import delay from 'delay';
 import {mount} from 'enzyme';
 import {createSerializer} from 'enzyme-to-json';
 import {TestComponentSimple, TestComponentNested, propsForTestComponentSimple} from '../__test-helpers__/util';
-import {getContainerMap} from '../src/Container';
 
 expect.addSnapshotSerializer(createSerializer({mode: 'deep'}));
 
 function getStateFromSources(sources) {
     return Object.keys(sources).reduce((result, key) => {
-        const source = sources[key];
-        result[key] = {state: source.state, meta: source._meta};
+        const {state, _meta} = sources[key];
+        result[key] = {state, meta: _meta}; // eslint-disable-line no-param-reassign
         return result;
     }, {});
 }
