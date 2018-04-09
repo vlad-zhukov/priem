@@ -7,25 +7,25 @@ import {Container, AsyncContainer} from '../src/Container';
 import withPriem from '../src/withPriem';
 import * as promiseState from '../src/promiseState';
 
-export function TestComponentSimple({initialState}) {
+export function TestComponentSimple({options}) {
     const container = new AsyncContainer(
         () => ({
             args: ['foo'],
             promise: value => delay(100, value),
         }),
-        initialState
+        options,
     );
 
     return <Priem sources={{container}} render={({container}) => <div>{container.value}</div>} />;
 }
 
-export function TestComponentSimpleDecorated({initialState}) {
+export function TestComponentSimpleDecorated({options}) {
     const container = new AsyncContainer(
         () => ({
             args: ['foo'],
             promise: value => delay(100, value),
         }),
-        initialState
+        options
     );
 
     const TestComponent = withPriem({sources: {container}})(({container}) => <div>{container.value}</div>);
@@ -33,7 +33,7 @@ export function TestComponentSimpleDecorated({initialState}) {
     return <TestComponent />;
 }
 
-export const initialStoreTestComponentSimple = {
+export const initialStateForTestComponentSimple = {
     state: promiseState.fulfilled('baz'),
     meta: {
         ssr: true,
@@ -41,13 +41,15 @@ export const initialStoreTestComponentSimple = {
     },
 };
 
-export function TestComponentNested({initialState}) {
+export function TestComponentNested({options}) {
     const syncContainer = new Container({counter: 2});
 
-    const container1 = new AsyncContainer(({syncContainer}) => ({
-        args: [syncContainer.counter, 'foo'],
-        promise: (counter, value) => delay(100, `${counter}-${value}`),
-    }));
+    const container1 = new AsyncContainer(({syncContainer}) => {
+        return ({
+            args: [syncContainer.counter, 'foo'],
+            promise: (counter, value) => delay(100, `${counter}-${value}`),
+        });
+    });
 
     const container2 = new AsyncContainer(({container1value}) => ({
         args: [container1value, 'bar'],
@@ -81,7 +83,7 @@ export function TestComponentNested({initialState}) {
     );
 }
 
-export function TestComponentNestedDecorated({initialState}) {
+export function TestComponentNestedDecorated({options}) {
     const container1 = new AsyncContainer(() => ({
         args: ['foo'],
         promise: value => delay(100, value),

@@ -33,14 +33,14 @@ it('should not run promises if both `autoRefresh` and `isForced` are false', asy
     const {container, updateSpy, runAsyncSpy, runAsync} = setup({getAsyncValue, isForced: false});
 
     runAsync();
-    expect(container.cache.awaiting).toMatchObject([]);
+    expect(container._cache.awaiting).toMatchObject([]);
 
     await delay(250);
-    expect(container.cache.awaiting).toMatchObject([]);
+    expect(container._cache.awaiting).toMatchObject([]);
 
     expect(updateSpy).toHaveBeenCalledTimes(0);
     expect(runAsyncSpy).toHaveBeenCalledTimes(1);
-    expect([container.state, container.meta]).toMatchSnapshot();
+    expect([container.state, container._meta]).toMatchSnapshot();
 });
 
 it('should run promises if `autoRefresh` is false but `isForced` is true', async () => {
@@ -53,14 +53,14 @@ it('should run promises if `autoRefresh` is false but `isForced` is true', async
     const {container, updateSpy, runAsyncSpy, runAsync} = setup({getAsyncValue, isForced: true});
 
     runAsync();
-    expect(container.cache.awaiting).toMatchObject([['foo']]);
+    expect(container._cache.awaiting).toMatchObject([['foo']]);
 
     await delay(250);
-    expect(container.cache.awaiting).toMatchObject([]);
+    expect(container._cache.awaiting).toMatchObject([]);
 
     expect(updateSpy).toHaveBeenCalledTimes(2);
     expect(runAsyncSpy).toHaveBeenCalledTimes(1);
-    expect([container.state, container.meta]).toMatchSnapshot();
+    expect([container.state, container._meta]).toMatchSnapshot();
 });
 
 it('should not run promises when awaiting', async () => {
@@ -72,20 +72,20 @@ it('should not run promises when awaiting', async () => {
     const {container, updateSpy, runAsyncSpy, runAsync} = setup({getAsyncValue, isForced: false});
 
     runAsync();
-    expect(container.cache.awaiting).toMatchObject([['foo']]);
+    expect(container._cache.awaiting).toMatchObject([['foo']]);
 
     runAsync();
-    expect(container.cache.awaiting).toMatchObject([['foo']]);
+    expect(container._cache.awaiting).toMatchObject([['foo']]);
 
     runAsync();
-    expect(container.cache.awaiting).toMatchObject([['foo']]);
+    expect(container._cache.awaiting).toMatchObject([['foo']]);
 
     await delay(250);
-    expect(container.cache.awaiting).toMatchObject([]);
+    expect(container._cache.awaiting).toMatchObject([]);
 
     expect(updateSpy).toHaveBeenCalledTimes(2);
     expect(runAsyncSpy).toHaveBeenCalledTimes(3);
-    expect([container.state, container.meta]).toMatchSnapshot();
+    expect([container.state, container._meta]).toMatchSnapshot();
 });
 
 it('should refresh a promise if forced', async () => {
@@ -101,13 +101,13 @@ it('should refresh a promise if forced', async () => {
     const {container, updateSpy, runAsync} = setup({getAsyncValue, isForced: false});
 
     await runAsync();
-    expect([container.state, container.meta]).toMatchSnapshot();
+    expect([container.state, container._meta]).toMatchSnapshot();
 
     runAsync({isForced: true});
-    expect([container.state, container.meta]).toMatchSnapshot();
+    expect([container.state, container._meta]).toMatchSnapshot();
     await delay(250);
 
-    expect([container.state, container.meta]).toMatchSnapshot();
+    expect([container.state, container._meta]).toMatchSnapshot();
 
     expect(updateSpy).toHaveBeenCalledTimes(4);
 });
@@ -128,17 +128,17 @@ it('should not rerun promises if previous promise was rejected', async () => {
     const {container, updateSpy, runAsyncSpy, runAsync} = setup({getAsyncValue, isForced: false});
 
     runAsync();
-    expect(container.cache.awaiting).toMatchObject([['foo']]);
+    expect(container._cache.awaiting).toMatchObject([['foo']]);
 
     await delay(250);
-    expect(container.cache.awaiting).toMatchObject([]);
+    expect(container._cache.awaiting).toMatchObject([]);
 
     runAsync();
-    expect(container.cache.awaiting).toMatchObject([]);
+    expect(container._cache.awaiting).toMatchObject([]);
 
     expect(updateSpy).toHaveBeenCalledTimes(2);
     expect(runAsyncSpy).toHaveBeenCalledTimes(2);
-    expect([container.state, container.meta]).toMatchSnapshot();
+    expect([container.state, container._meta]).toMatchSnapshot();
 });
 
 it('should rerun promises if previous promise was rejected but `isForced` is true', async () => {
@@ -157,20 +157,20 @@ it('should rerun promises if previous promise was rejected but `isForced` is tru
     const {container, updateSpy, runAsyncSpy, runAsync} = setup({getAsyncValue, isForced: true});
 
     runAsync();
-    expect(container.cache.awaiting).toMatchObject([['foo']]);
+    expect(container._cache.awaiting).toMatchObject([['foo']]);
 
     await delay(250);
-    expect(container.cache.awaiting).toMatchObject([]);
+    expect(container._cache.awaiting).toMatchObject([]);
 
     runAsync();
-    expect(container.cache.awaiting).toMatchObject([['foo']]);
+    expect(container._cache.awaiting).toMatchObject([['foo']]);
 
     await delay(250);
-    expect(container.cache.awaiting).toMatchObject([]);
+    expect(container._cache.awaiting).toMatchObject([]);
 
     expect(updateSpy).toHaveBeenCalledTimes(4);
     expect(runAsyncSpy).toHaveBeenCalledTimes(2);
-    expect([container.state, container.meta]).toMatchSnapshot();
+    expect([container.state, container._meta]).toMatchSnapshot();
 });
 
 it('should not try to rerun fulfilled promises if `value` is null', async () => {
@@ -182,17 +182,17 @@ it('should not try to rerun fulfilled promises if `value` is null', async () => 
     const {container, updateSpy, runAsyncSpy, runAsync} = setup({getAsyncValue, isForced: false});
 
     runAsync();
-    expect(container.cache.awaiting).toMatchObject([[null]]);
+    expect(container._cache.awaiting).toMatchObject([[null]]);
 
     await delay(150);
-    expect(container.cache.awaiting).toMatchObject([]);
+    expect(container._cache.awaiting).toMatchObject([]);
 
     runAsync();
-    expect(container.cache.awaiting).toMatchObject([]);
+    expect(container._cache.awaiting).toMatchObject([]);
 
     expect(updateSpy).toHaveBeenCalledTimes(3);
     expect(runAsyncSpy).toHaveBeenCalledTimes(2);
-    expect([container.state, container.meta]).toMatchSnapshot();
+    expect([container.state, container._meta]).toMatchSnapshot();
 });
 
 it('should expire if maxAge is set', async () => {
@@ -205,17 +205,17 @@ it('should expire if maxAge is set', async () => {
     const {container, updateSpy, runAsyncSpy, runAsync} = setup({getAsyncValue, isForced: false});
 
     runAsync();
-    expect(container.cache.awaiting).toMatchObject([['foo']]);
+    expect(container._cache.awaiting).toMatchObject([['foo']]);
 
     await delay(250);
-    expect([container.state, container.meta]).toMatchSnapshot(); // fulfilled
+    expect([container.state, container._meta]).toMatchSnapshot(); // fulfilled
 
     await delay(100);
-    expect([container.state, container.meta]).toMatchSnapshot(); // refreshing
+    expect([container.state, container._meta]).toMatchSnapshot(); // refreshing
 
     await delay(650);
-    expect([container.state, container.meta]).toMatchSnapshot(); // refreshing
-    expect(container.cache.awaiting).toMatchObject([['foo']]);
+    expect([container.state, container._meta]).toMatchSnapshot(); // refreshing
+    expect(container._cache.awaiting).toMatchObject([['foo']]);
 
     expect(updateSpy).toHaveBeenCalledTimes(7);
     expect(runAsyncSpy).toHaveBeenCalledTimes(4);
@@ -232,14 +232,14 @@ it('should rehydrate ssr data', async () => {
     const {container, updateSpy, runAsyncSpy, runAsync} = setup({getAsyncValue, isForced: false});
 
     container.update({
-        data: promiseState.fulfilled('foo'),
+        state: promiseState.fulfilled('foo'),
         meta: {ssr: true},
     });
 
     await runAsync();
 
-    expect([container.state, container.meta]).toMatchSnapshot();
-    expect(await container.cache.memoized.get(['foo'])).toBe('foo');
+    expect([container.state, container._meta]).toMatchSnapshot();
+    expect(await container._cache.memoized.get(['foo'])).toBe('foo');
 
     expect(promiseFn).toHaveBeenCalledTimes(0);
     expect(updateSpy).toHaveBeenCalledTimes(3);
@@ -261,7 +261,7 @@ it('should add values to cache when `args` change', async () => {
     await runAsync();
     await runAsync();
 
-    expect(await container.cache.memoized.keys()).toEqual([['foo1', 'bar1'], ['foo0', 'bar0']]);
+    expect(await container._cache.memoized.keys()).toEqual([['foo1', 'bar1'], ['foo0', 'bar0']]);
 
     expect(updateSpy).toHaveBeenCalledTimes(4);
 });
@@ -279,11 +279,11 @@ it('should return cached values when `args` change', async () => {
     const {container, runAsync} = setup({getAsyncValue, isForced: false});
 
     await runAsync();
-    expect([container.state, container.meta]).toMatchSnapshot(); // foo-false
+    expect([container.state, container._meta]).toMatchSnapshot(); // foo-false
 
     await runAsync();
-    expect([container.state, container.meta]).toMatchSnapshot(); // foo-true
+    expect([container.state, container._meta]).toMatchSnapshot(); // foo-true
 
     await runAsync();
-    expect([container.state, container.meta]).toMatchSnapshot(); // foo-false
+    expect([container.state, container._meta]).toMatchSnapshot(); // foo-false
 });

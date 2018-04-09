@@ -3,8 +3,11 @@ import {type, isBrowser} from './helpers';
 import * as promiseState from './promiseState';
 
 export class Container {
-    constructor(initialState = {}) {
+    constructor(initialState, options = {}) {
+        const {meta} = options;
+
         this.state = initialState;
+        this._meta = meta;
         this._listeners = [];
     }
 
@@ -26,25 +29,27 @@ export class Container {
 }
 
 export class AsyncContainer extends Container {
-    constructor(getAsyncValue, initialState) {
+    constructor(getAsyncValue, options = {}) {
         super();
 
-        this.getAsyncValue = getAsyncValue;
-        this.state = initialState?.state || promiseState.empty();
-        this.meta = initialState?.meta || {ssr: !isBrowser};
-        this.cache = new Cache();
+        const {state, meta} = options;
+
+        this.state = state || promiseState.empty();
+        this._meta = meta || {ssr: !isBrowser};
+        this._getAsyncValue = getAsyncValue;
+        this._cache = new Cache();
     }
 
     update = (updater) => {
         this.setState((state) => {
-            const updaterResult = type(updater) === 'function' ? updater(state, this.meta) : updater;
+            const updaterResult = type(updater) === 'function' ? updater(state, this._meta) : updater;
 
             if (updaterResult != null) {
                 // eslint-disable-next-line no-param-reassign
-                this.meta = {...this.meta, ...updaterResult.meta};
+                this._meta = {...this._meta, ...updaterResult.meta};
 
-                if (updaterResult.data) {
-                    return {...state, ...updaterResult.data};
+                if (updaterResult.state) {
+                    return {...state, ...updaterResult.state};
                 }
             }
 
@@ -53,8 +58,8 @@ export class AsyncContainer extends Container {
     };
 
     runAsync = ({props, isForced}) =>
-        this.cache.run({
-            asyncValue: this.getAsyncValue(props),
+        this._cache.run({
+            asyncValue: this._getAsyncValue(props),
             isForced,
             update: this.update,
             onExpire: () => {

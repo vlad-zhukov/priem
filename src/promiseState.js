@@ -7,7 +7,7 @@ import {type} from './helpers';
  * @param [fulfilled] {Boolean}
  * @param [rejected] {Boolean}
  * @param [value] {*}
- * @param [reason] {*}
+ * @param [reason] {String|Null}
  * @returns {Object}
  */
 function create({
@@ -82,7 +82,7 @@ export function fulfilled(valueOrPromiseState) {
 
 /**
  * Creates a promiseState that is rejected with the given reason.
- * @param reason {*}
+ * @param reason {String}
  * @returns {Object}
  */
 export function rejected(reason) {

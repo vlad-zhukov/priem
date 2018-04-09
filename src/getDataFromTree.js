@@ -147,7 +147,7 @@ export default function getDataFromTree(rootElement, fetchRoot = true) {
         const promises = Object.keys(props.sources).map((key) => {
             const source = props.sources[key];
             if (type(source.runAsync) === 'function') {
-                const opts = {props: instance._createProps(), isForced: false};
+                const opts = {props: instance._getProps(), isForced: false};
                 return Promise.resolve()
                     .then(() => source.runAsync(opts))
                     .then(() => source);
@@ -162,6 +162,6 @@ export default function getDataFromTree(rootElement, fetchRoot = true) {
     }, []);
 
     return Promise.all(mappedQueries).then(sources =>
-        sources.map(source => ({state: source.state, meta: source.meta}))
+        sources.map(source => ({state: source.state, meta: source._meta}))
     );
 }

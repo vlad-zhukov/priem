@@ -128,12 +128,12 @@ export default class Cache {
 
             if (isFulfilled) {
                 return {
-                    data: promiseState.refreshing(s),
+                    state: promiseState.refreshing(s),
                 };
             }
 
             return {
-                data: promiseState.pending(),
+                state: promiseState.pending(),
             };
         });
 
@@ -149,7 +149,7 @@ export default class Cache {
             .then((result) => {
                 this.removeAwaiting(args);
                 update({
-                    data: promiseState.fulfilled(result),
+                    state: promiseState.fulfilled(result),
                     meta: {ssr: !isBrowser, args},
                 });
             })
@@ -157,7 +157,7 @@ export default class Cache {
                 this.removeAwaiting(args);
                 this.rejected = true;
                 update({
-                    data: promiseState.rejected(e.message),
+                    state: promiseState.rejected(e.message),
                     meta: {ssr: !isBrowser, args: null},
                 });
             });

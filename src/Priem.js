@@ -60,7 +60,7 @@ export default class Priem extends React.Component {
     render() {
         const {render, component, children} = this.props;
 
-        const props = this._createProps();
+        const props = this._getProps();
 
         if (type(render) === 'function') {
             return render(props);
@@ -86,7 +86,7 @@ export default class Priem extends React.Component {
         });
 
         if (this._isMounted) {
-            const props = this._createProps();
+            const props = this._getProps();
             Object.keys(this._sources).forEach((key) => {
                 const {runAsync} = this._sources[key];
                 if (type(runAsync) === 'function') {
@@ -96,7 +96,7 @@ export default class Priem extends React.Component {
         }
     }
 
-    _createProps() {
+    _getProps() {
         const {render, component, children, sources, ...props} = this.props;
         Object.keys(this._sources).forEach((key) => {
             const instance = this._sources[key];

@@ -11,7 +11,7 @@ it('should fetch and render to string with data', async () => {
     const data = await getDataFromTree(<TestComponentSimple />);
     expect(data).toMatchSnapshot();
 
-    const content = ReactDOM.renderToStaticMarkup(<TestComponentSimple initialState={data} />);
+    const content = ReactDOM.renderToStaticMarkup(<TestComponentSimple options={data} />);
     expect(content).toBe('<div>foo</div>');
 });
 
@@ -19,6 +19,6 @@ it('should not fetch data from a nested component', async () => {
     const data = await getDataFromTree(<TestComponentNested />);
     expect(data).toMatchSnapshot();
 
-    const content = ReactDOM.renderToStaticMarkup(<TestComponentNested initialState={data} />);
+    const content = ReactDOM.renderToStaticMarkup(<TestComponentNested options={data} />);
     expect(content).toBe('');
 });
