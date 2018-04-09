@@ -2,12 +2,43 @@ import Cache from './Cache';
 import {type, isBrowser} from './helpers';
 import * as promiseState from './promiseState';
 
+const maps = {
+    containerMap: {},
+    stateMap: {},
+};
+
+export function getContainerMap() {
+    return maps.containerMap;
+}
+
+export function injectStateMap(stateMap) {
+    maps.stateMap = stateMap;
+}
+
 export class Container {
     constructor(initialState, options = {}) {
-        const {meta} = options;
+        const {meta, ssrKey} = options;
 
         this.state = initialState;
-        this._meta = meta;
+        this._meta = meta || {ssr: !isBrowser};
+
+        if (type(ssrKey) === 'string') {
+            if (maps.containerMap[ssrKey]) {
+                throw new Error(
+                    `A 'ssrKey' must be unique across all containers. Please check the following 'ssrKey': ${ssrKey}.`
+                );
+            }
+
+            if (maps.stateMap[ssrKey]) {
+                this.state = maps.stateMap[ssrKey].state;
+                this._meta = maps.stateMap[ssrKey].meta;
+                delete maps.stateMap[ssrKey];
+            }
+
+            this._meta.ssrKey = ssrKey;
+            maps.containerMap[ssrKey] = this;
+        }
+
         this._listeners = [];
     }
 
@@ -30,12 +61,8 @@ export class Container {
 
 export class AsyncContainer extends Container {
     constructor(getAsyncValue, options = {}) {
-        super();
+        super(options.state || promiseState.empty(), options);
 
-        const {state, meta} = options;
-
-        this.state = state || promiseState.empty();
-        this._meta = meta || {ssr: !isBrowser};
         this._getAsyncValue = getAsyncValue;
         this._cache = new Cache();
     }

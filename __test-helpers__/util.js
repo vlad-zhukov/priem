@@ -7,25 +7,31 @@ import {Container, AsyncContainer} from '../src/Container';
 import withPriem from '../src/withPriem';
 import * as promiseState from '../src/promiseState';
 
-export function TestComponentSimple({options}) {
-    const container = new AsyncContainer(
-        () => ({
-            args: ['foo'],
-            promise: value => delay(100, value),
-        }),
-        options,
-    );
-
-    return <Priem sources={{container}} render={({container}) => <div>{container.value}</div>} />;
+export function removeObjectProps(obj) {
+    Object.keys(obj).forEach((key) => {
+        delete obj[key];
+    });
 }
 
-export function TestComponentSimpleDecorated({options}) {
+export function TestComponentSimple(props) {
     const container = new AsyncContainer(
         () => ({
             args: ['foo'],
             promise: value => delay(100, value),
         }),
-        options
+        props
+    );
+
+    return <Priem sources={{container}} render={p => <div>{p.container.value}</div>} />;
+}
+
+export function TestComponentSimpleDecorated(props) {
+    const container = new AsyncContainer(
+        () => ({
+            args: ['foo'],
+            promise: value => delay(100, value),
+        }),
+        props
     );
 
     const TestComponent = withPriem({sources: {container}})(({container}) => <div>{container.value}</div>);
@@ -33,7 +39,7 @@ export function TestComponentSimpleDecorated({options}) {
     return <TestComponent />;
 }
 
-export const initialStateForTestComponentSimple = {
+export const propsForTestComponentSimple = {
     state: promiseState.fulfilled('baz'),
     meta: {
         ssr: true,
@@ -41,20 +47,24 @@ export const initialStateForTestComponentSimple = {
     },
 };
 
-export function TestComponentNested({options}) {
-    const syncContainer = new Container({counter: 2});
+export function TestComponentNested({syncContainerProps, container1Props, container2Props}) {
+    const syncContainer = new Container({counter: 2}, syncContainerProps);
 
-    const container1 = new AsyncContainer(({syncContainer}) => {
-        return ({
+    const container1 = new AsyncContainer(
+        ({syncContainer}) => ({
             args: [syncContainer.counter, 'foo'],
             promise: (counter, value) => delay(100, `${counter}-${value}`),
-        });
-    });
+        }),
+        container1Props
+    );
 
-    const container2 = new AsyncContainer(({container1value}) => ({
-        args: [container1value, 'bar'],
-        promise: (c1value, value) => delay(100, c1value + value),
-    }));
+    const container2 = new AsyncContainer(
+        ({container1value}) => ({
+            args: [container1value, 'bar'],
+            promise: (c1value, value) => delay(100, c1value + value),
+        }),
+        container2Props
+    );
 
     return (
         <Priem
@@ -70,12 +80,18 @@ export function TestComponentNested({options}) {
                     <Priem
                         sources={{container2}}
                         container1value={c1.value}
-                        render={({container2: c2}) => (
-                            <div>
-                                {c2.value}
-                                <button onClick={onClick} />
-                            </div>
-                        )}
+                        render={({container2: c2}) => {
+                            if (!c2.value) {
+                                return null;
+                            }
+
+                            return (
+                                <div>
+                                    {c2.value}
+                                    <button onClick={onClick} />
+                                </div>
+                            );
+                        }}
                     />
                 );
             }}

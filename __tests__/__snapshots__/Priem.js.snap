@@ -19,10 +19,6 @@ exports[`should render a nested component 2`] = `
 Object {
   "container1": Object {
     "meta": Object {
-      "args": Array [
-        2,
-        "foo",
-      ],
       "ssr": false,
     },
     "state": Object {
@@ -35,7 +31,9 @@ Object {
     },
   },
   "syncContainer": Object {
-    "meta": undefined,
+    "meta": Object {
+      "ssr": false,
+    },
     "state": Object {
       "counter": 2,
     },
@@ -56,10 +54,6 @@ exports[`should render a nested component 4`] = `
 Object {
   "container1": Object {
     "meta": Object {
-      "args": Array [
-        2,
-        "foo",
-      ],
       "ssr": false,
     },
     "state": Object {
@@ -72,7 +66,9 @@ Object {
     },
   },
   "syncContainer": Object {
-    "meta": undefined,
+    "meta": Object {
+      "ssr": false,
+    },
     "state": Object {
       "counter": 3,
     },

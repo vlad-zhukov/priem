@@ -2,7 +2,8 @@ import React from 'react';
 import delay from 'delay';
 import {mount} from 'enzyme';
 import {createSerializer} from 'enzyme-to-json';
-import {TestComponentSimple, TestComponentNested, initialStateForTestComponentSimple} from '../__test-helpers__/util';
+import {TestComponentSimple, TestComponentNested, propsForTestComponentSimple} from '../__test-helpers__/util';
+import {getContainerMap} from '../src/Container';
 
 expect.addSnapshotSerializer(createSerializer({mode: 'deep'}));
 
@@ -22,7 +23,7 @@ it('should render a simple component', async () => {
 });
 
 it('should rehydrate ssr data', async () => {
-    const wrapper = mount(<TestComponentSimple options={initialStateForTestComponentSimple} />);
+    const wrapper = mount(<TestComponentSimple {...propsForTestComponentSimple} />);
     await delay(150);
     wrapper.update();
     expect(wrapper).toMatchSnapshot();

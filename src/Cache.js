@@ -23,6 +23,7 @@ export default class Cache {
         this.memoized = null;
         this.awaiting = [];
         this.rejected = false;
+        this.prevArgs = null;
     }
 
     add(value, onExpire) {
@@ -101,7 +102,7 @@ export default class Cache {
             return;
         }
 
-        let didUpdateState = true;
+        let shouldUpdateState = true;
 
         // eslint-disable-next-line consistent-return
         update((s, m) => {
@@ -110,13 +111,15 @@ export default class Cache {
 
             if (this.isMemoized(args)) {
                 // Do not recall memoized promises unless forced
-                if (isFulfilled && !isForced && arrayElementsEqual(args, m.args)) {
-                    didUpdateState = false;
+                if (isFulfilled && !isForced && arrayElementsEqual(args, this.prevArgs)) {
+                    shouldUpdateState = false;
                     return null;
                 }
             }
             else if (isSsr) {
+                shouldUpdateState = false;
                 this.memoized.add(args, Promise.resolve(s.value));
+                this.prevArgs = args;
                 // eslint-disable-next-line consistent-return
                 return {
                     meta: {ssr: false},
@@ -137,7 +140,7 @@ export default class Cache {
             };
         });
 
-        if (!didUpdateState) {
+        if (!shouldUpdateState) {
             return null;
         }
 
@@ -148,17 +151,19 @@ export default class Cache {
         return this.memoized(...args)
             .then((result) => {
                 this.removeAwaiting(args);
+                this.prevArgs = args;
                 update({
                     state: promiseState.fulfilled(result),
-                    meta: {ssr: !isBrowser, args},
+                    meta: {ssr: !isBrowser},
                 });
             })
             .catch((e) => {
                 this.removeAwaiting(args);
                 this.rejected = true;
+                this.prevArgs = null;
                 update({
                     state: promiseState.rejected(e.message),
-                    meta: {ssr: !isBrowser, args: null},
+                    meta: {ssr: !isBrowser},
                 });
             });
     }

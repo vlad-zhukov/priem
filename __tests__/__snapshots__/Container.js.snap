@@ -13,9 +13,6 @@ Array [
     },
   },
   Object {
-    "args": Array [
-      "foo",
-    ],
     "ssr": false,
   },
 ]
@@ -34,9 +31,6 @@ Array [
     },
   },
   Object {
-    "args": Array [
-      "foo",
-    ],
     "ssr": false,
   },
 ]
@@ -55,9 +49,6 @@ Array [
     },
   },
   Object {
-    "args": Array [
-      "foo",
-    ],
     "ssr": false,
   },
 ]
@@ -74,7 +65,6 @@ Array [
     "value": null,
   },
   Object {
-    "args": null,
     "ssr": false,
   },
 ]
@@ -109,9 +99,6 @@ Array [
     },
   },
   Object {
-    "args": Array [
-      "foo",
-    ],
     "ssr": false,
   },
 ]
@@ -128,9 +115,6 @@ Array [
     "value": null,
   },
   Object {
-    "args": Array [
-      null,
-    ],
     "ssr": false,
   },
 ]
@@ -147,9 +131,6 @@ Array [
     "value": "foo1",
   },
   Object {
-    "args": Array [
-      "foo",
-    ],
     "ssr": false,
   },
 ]
@@ -166,9 +147,6 @@ Array [
     "value": "foo1",
   },
   Object {
-    "args": Array [
-      "foo",
-    ],
     "ssr": false,
   },
 ]
@@ -185,9 +163,6 @@ Array [
     "value": "foo2",
   },
   Object {
-    "args": Array [
-      "foo",
-    ],
     "ssr": false,
   },
 ]
@@ -204,9 +179,6 @@ Array [
     "value": "foo",
   },
   Object {
-    "args": Array [
-      "foo",
-    ],
     "ssr": false,
   },
 ]
@@ -225,9 +197,6 @@ Array [
     },
   },
   Object {
-    "args": Array [
-      "foo",
-    ],
     "ssr": false,
   },
 ]
@@ -246,9 +215,6 @@ Array [
     },
   },
   Object {
-    "args": Array [
-      "foo-false",
-    ],
     "ssr": false,
   },
 ]
@@ -267,9 +233,6 @@ Array [
     },
   },
   Object {
-    "args": Array [
-      "foo-true",
-    ],
     "ssr": false,
   },
 ]
@@ -288,9 +251,6 @@ Array [
     },
   },
   Object {
-    "args": Array [
-      "foo-false",
-    ],
     "ssr": false,
   },
 ]
@@ -309,9 +269,6 @@ Array [
     },
   },
   Object {
-    "args": Array [
-      "foo",
-    ],
     "ssr": false,
   },
 ]

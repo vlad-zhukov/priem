@@ -1,13 +1,11 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`should fetch and render to string with data 1`] = `
-Array [
-  Object {
+Object {
+  "unique-key-1": Object {
     "meta": Object {
-      "args": Array [
-        "foo",
-      ],
       "ssr": true,
+      "ssrKey": "unique-key-1",
     },
     "state": Object {
       "fulfilled": true,
@@ -18,24 +16,24 @@ Array [
       "value": "foo",
     },
   },
-]
+}
 `;
 
 exports[`should not fetch data from a nested component 1`] = `
-Array [
-  Object {
-    "meta": undefined,
+Object {
+  "unique-key-1": Object {
+    "meta": Object {
+      "ssr": true,
+      "ssrKey": "unique-key-1",
+    },
     "state": Object {
       "counter": 2,
     },
   },
-  Object {
+  "unique-key-2": Object {
     "meta": Object {
-      "args": Array [
-        2,
-        "foo",
-      ],
       "ssr": true,
+      "ssrKey": "unique-key-2",
     },
     "state": Object {
       "fulfilled": true,
@@ -46,5 +44,5 @@ Array [
       "value": "2-foo",
     },
   },
-]
+}
 `;

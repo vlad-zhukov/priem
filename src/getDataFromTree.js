@@ -1,4 +1,5 @@
 import React from 'react';
+import {getContainerMap} from './Container';
 import {type} from './helpers';
 
 function getProps(element) {
@@ -112,8 +113,8 @@ function isPriemComponent(instance) {
     return instance._isPriemComponent === true;
 }
 
-function getQueriesFromTree(rootElement, fetchRoot) {
-    const queries = [];
+function getPromisesFromTree(rootElement, fetchRoot) {
+    const promises = [];
 
     walkTree(rootElement, (element, instance) => {
         // Skip root
@@ -122,46 +123,57 @@ function getQueriesFromTree(rootElement, fetchRoot) {
         }
 
         if (instance && isReactElement(element) && isPriemComponent(instance)) {
-            queries.push({props: instance.props, element, instance});
+            // todo: filter added sources
 
-            // Tell walkTree to not recurse inside this component;  we will
-            // wait for the query to execute before attempting it.
+            const p = Object.keys(instance._sources).map((key) => {
+                const source = instance._sources[key];
+                if (type(source.runAsync) === 'function') {
+                    const opts = {props: instance._getProps(), isForced: false};
+                    const promise = Promise.resolve()
+                        .then(() => source.runAsync(opts))
+                        .then(() => source);
+
+                    return {promise, instance};
+                }
+                return {promise: Promise.resolve(source), instance};
+            });
+
+            promises.push(...p);
+
+            // Tell walkTree to not recurse inside this component.
+            // We will wait for the query to execute before attempting it.
             return false; // eslint-disable-line consistent-return
         }
     });
 
-    return queries;
+    return promises;
 }
 
 // XXX component Cache
 export default function getDataFromTree(rootElement, fetchRoot = true) {
-    const queries = getQueriesFromTree(rootElement, fetchRoot);
+    const queries = getPromisesFromTree(rootElement, fetchRoot);
 
     // no queries found, nothing to do
     if (!queries.length) {
-        return Promise.resolve();
+        return Promise.resolve({});
     }
 
     // wait on each query that we found, re-rendering the subtree when it's done
-    const mappedQueries = queries.reduce((acc, {props, instance}) => {
-        const promises = Object.keys(props.sources).map((key) => {
-            const source = props.sources[key];
-            if (type(source.runAsync) === 'function') {
-                const opts = {props: instance._getProps(), isForced: false};
-                return Promise.resolve()
-                    .then(() => source.runAsync(opts))
-                    .then(() => source);
-            }
-            return source;
-        });
+    const mappedQueries = queries.reduce(
+        (result, {promise, instance}) =>
+            // const d = promise.then(() => getDataFromTree(element, false));
 
-        // const d = promise.then(() => getDataFromTree(element, false));
-
-        // we've just grabbed the query for element, so don't try and get it again
-        return acc.concat(promises);
-    }, []);
+            // we've just grabbed the query for element, so don't try and get it again
+            result.concat(promise),
+        []
+    );
 
     return Promise.all(mappedQueries).then(sources =>
-        sources.map(source => ({state: source.state, meta: source._meta}))
+        sources.reduce((result, {state, _meta}) => {
+            if (_meta.ssrKey) {
+                result[_meta.ssrKey] = {state, meta: _meta};
+            }
+            return result;
+        }, {})
     );
 }

@@ -1,17 +1,18 @@
 import delay from 'delay';
-import {AsyncContainer} from '../src/Container';
+import {AsyncContainer, getContainerMap, injectStateMap} from '../src/Container';
 import * as promiseState from '../src/promiseState';
+import {removeObjectProps} from '../__test-helpers__/util';
 
-function setup({props = {}, getAsyncValue, ...options}) {
-    const container = new AsyncContainer(getAsyncValue);
+function setup({props = {}, getAsyncValue, options}) {
+    const container = new AsyncContainer(getAsyncValue, options);
 
     const updateSpy = jest.spyOn(container, 'update');
     const runAsyncSpy = jest.spyOn(container, 'runAsync');
     const subscribeSpy = jest.fn(() => {});
     container.subscribe(subscribeSpy);
 
-    function runAsync(moreOptions) {
-        return container.runAsync({props, ...options, ...moreOptions});
+    function runAsync(runAsyncOptions) {
+        return container.runAsync({props, ...runAsyncOptions});
     }
 
     return {
@@ -30,9 +31,9 @@ it('should not run promises if both `autoRefresh` and `isForced` are false', asy
         autoRefresh: false,
     });
 
-    const {container, updateSpy, runAsyncSpy, runAsync} = setup({getAsyncValue, isForced: false});
+    const {container, updateSpy, runAsyncSpy, runAsync} = setup({getAsyncValue});
 
-    runAsync();
+    runAsync({isForced: false});
     expect(container._cache.awaiting).toMatchObject([]);
 
     await delay(250);
@@ -50,9 +51,9 @@ it('should run promises if `autoRefresh` is false but `isForced` is true', async
         autoRefresh: false,
     });
 
-    const {container, updateSpy, runAsyncSpy, runAsync} = setup({getAsyncValue, isForced: true});
+    const {container, updateSpy, runAsyncSpy, runAsync} = setup({getAsyncValue});
 
-    runAsync();
+    runAsync({isForced: true});
     expect(container._cache.awaiting).toMatchObject([['foo']]);
 
     await delay(250);
@@ -69,15 +70,15 @@ it('should not run promises when awaiting', async () => {
         promise: value => delay(200, {value}),
     });
 
-    const {container, updateSpy, runAsyncSpy, runAsync} = setup({getAsyncValue, isForced: false});
+    const {container, updateSpy, runAsyncSpy, runAsync} = setup({getAsyncValue});
 
-    runAsync();
+    runAsync({isForced: false});
     expect(container._cache.awaiting).toMatchObject([['foo']]);
 
-    runAsync();
+    runAsync({isForced: false});
     expect(container._cache.awaiting).toMatchObject([['foo']]);
 
-    runAsync();
+    runAsync({isForced: false});
     expect(container._cache.awaiting).toMatchObject([['foo']]);
 
     await delay(250);
@@ -98,9 +99,9 @@ it('should refresh a promise if forced', async () => {
         },
     });
 
-    const {container, updateSpy, runAsync} = setup({getAsyncValue, isForced: false});
+    const {container, updateSpy, runAsync} = setup({getAsyncValue});
 
-    await runAsync();
+    await runAsync({isForced: false});
     expect([container.state, container._meta]).toMatchSnapshot();
 
     runAsync({isForced: true});
@@ -125,15 +126,15 @@ it('should not rerun promises if previous promise was rejected', async () => {
         },
     });
 
-    const {container, updateSpy, runAsyncSpy, runAsync} = setup({getAsyncValue, isForced: false});
+    const {container, updateSpy, runAsyncSpy, runAsync} = setup({getAsyncValue});
 
-    runAsync();
+    runAsync({isForced: false});
     expect(container._cache.awaiting).toMatchObject([['foo']]);
 
     await delay(250);
     expect(container._cache.awaiting).toMatchObject([]);
 
-    runAsync();
+    runAsync({isForced: false});
     expect(container._cache.awaiting).toMatchObject([]);
 
     expect(updateSpy).toHaveBeenCalledTimes(2);
@@ -154,15 +155,15 @@ it('should rerun promises if previous promise was rejected but `isForced` is tru
         },
     });
 
-    const {container, updateSpy, runAsyncSpy, runAsync} = setup({getAsyncValue, isForced: true});
+    const {container, updateSpy, runAsyncSpy, runAsync} = setup({getAsyncValue});
 
-    runAsync();
+    runAsync({isForced: true});
     expect(container._cache.awaiting).toMatchObject([['foo']]);
 
     await delay(250);
     expect(container._cache.awaiting).toMatchObject([]);
 
-    runAsync();
+    runAsync({isForced: true});
     expect(container._cache.awaiting).toMatchObject([['foo']]);
 
     await delay(250);
@@ -179,15 +180,15 @@ it('should not try to rerun fulfilled promises if `value` is null', async () => 
         promise: value => delay(100, value),
     });
 
-    const {container, updateSpy, runAsyncSpy, runAsync} = setup({getAsyncValue, isForced: false});
+    const {container, updateSpy, runAsyncSpy, runAsync} = setup({getAsyncValue});
 
-    runAsync();
+    runAsync({isForced: false});
     expect(container._cache.awaiting).toMatchObject([[null]]);
 
     await delay(150);
     expect(container._cache.awaiting).toMatchObject([]);
 
-    runAsync();
+    runAsync({isForced: false});
     expect(container._cache.awaiting).toMatchObject([]);
 
     expect(updateSpy).toHaveBeenCalledTimes(3);
@@ -202,9 +203,9 @@ it('should expire if maxAge is set', async () => {
         maxAge: 300,
     });
 
-    const {container, updateSpy, runAsyncSpy, runAsync} = setup({getAsyncValue, isForced: false});
+    const {container, updateSpy, runAsyncSpy, runAsync} = setup({getAsyncValue});
 
-    runAsync();
+    runAsync({isForced: false});
     expect(container._cache.awaiting).toMatchObject([['foo']]);
 
     await delay(250);
@@ -222,6 +223,13 @@ it('should expire if maxAge is set', async () => {
 });
 
 it('should rehydrate ssr data', async () => {
+    injectStateMap({
+        'unique-key-1': {
+            state: promiseState.fulfilled('foo'),
+            meta: {ssr: true},
+        },
+    });
+
     const promiseFn = jest.fn(value => delay(200, {value}));
 
     const getAsyncValue = () => ({
@@ -229,20 +237,15 @@ it('should rehydrate ssr data', async () => {
         promise: promiseFn,
     });
 
-    const {container, updateSpy, runAsyncSpy, runAsync} = setup({getAsyncValue, isForced: false});
+    const {container, updateSpy, runAsyncSpy, runAsync} = setup({getAsyncValue, options: {ssrKey: 'unique-key-1'}});
 
-    container.update({
-        state: promiseState.fulfilled('foo'),
-        meta: {ssr: true},
-    });
-
-    await runAsync();
+    await runAsync({isForced: false});
 
     expect([container.state, container._meta]).toMatchSnapshot();
     expect(await container._cache.memoized.get(['foo'])).toBe('foo');
 
     expect(promiseFn).toHaveBeenCalledTimes(0);
-    expect(updateSpy).toHaveBeenCalledTimes(3);
+    expect(updateSpy).toHaveBeenCalledTimes(1);
     expect(runAsyncSpy).toHaveBeenCalledTimes(1);
 });
 
@@ -256,10 +259,10 @@ it('should add values to cache when `args` change', async () => {
         },
     });
 
-    const {container, updateSpy, runAsync} = setup({getAsyncValue, isForced: false});
+    const {container, updateSpy, runAsync} = setup({getAsyncValue});
 
-    await runAsync();
-    await runAsync();
+    await runAsync({isForced: false});
+    await runAsync({isForced: false});
 
     expect(await container._cache.memoized.keys()).toEqual([['foo1', 'bar1'], ['foo0', 'bar0']]);
 
@@ -276,14 +279,55 @@ it('should return cached values when `args` change', async () => {
         },
     });
 
-    const {container, runAsync} = setup({getAsyncValue, isForced: false});
+    const {container, runAsync} = setup({getAsyncValue});
 
-    await runAsync();
+    await runAsync({isForced: false});
     expect([container.state, container._meta]).toMatchSnapshot(); // foo-false
 
-    await runAsync();
+    await runAsync({isForced: false});
     expect([container.state, container._meta]).toMatchSnapshot(); // foo-true
 
-    await runAsync();
+    await runAsync({isForced: false});
     expect([container.state, container._meta]).toMatchSnapshot(); // foo-false
+});
+
+it('should add a container instances to the `containerMap` if `ssrKey` exists', () => {
+    removeObjectProps(getContainerMap());
+
+    const getAsyncValue = () => ({
+        args: [],
+        promise: () => delay(100, 'foo'),
+    });
+
+    setup({getAsyncValue, options: {ssrKey: 'unique-key-1'}});
+    setup({getAsyncValue, options: {ssrKey: 'unique-key-2'}});
+
+    expect(getContainerMap()).toHaveProperty('unique-key-1');
+    expect(getContainerMap()).toHaveProperty('unique-key-2');
+});
+
+it('should not add a container instances to the `containerMap` if `ssrKey` does not exists', () => {
+    removeObjectProps(getContainerMap());
+
+    const getAsyncValue = () => ({
+        args: [],
+        promise: () => delay(100, 'foo'),
+    });
+
+    setup({getAsyncValue});
+
+    expect(getContainerMap()).toEqual({});
+});
+
+it('should throw a container instance with such `ssrKey` has been already added', () => {
+    removeObjectProps(getContainerMap());
+
+    const getAsyncValue = () => ({
+        args: [],
+        promise: () => delay(100, 'foo'),
+    });
+
+    setup({getAsyncValue, options: {ssrKey: 'unique-key-1'}});
+
+    expect(() => setup({getAsyncValue, options: {ssrKey: 'unique-key-1'}})).toThrow();
 });
