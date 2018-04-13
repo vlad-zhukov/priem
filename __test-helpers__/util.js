@@ -3,7 +3,7 @@
 import React from 'react';
 import delay from 'delay';
 import Priem from '../src/Priem';
-import createStore from '../src/Container';
+import createStore from '../src/createStore';
 import withPriem from '../src/withPriem';
 import * as promiseState from '../src/promiseState';
 
