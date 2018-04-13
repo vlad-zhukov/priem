@@ -1,4 +1,6 @@
-import {empty, pending, refreshing, fulfilled, rejected, isPromiseState} from '../src/promiseState';
+import {promiseState} from '../src/index';
+
+const {empty, pending, refreshing, fulfilled, rejected, isPromiseState} = promiseState;
 
 it('should create an empty promise state', () => {
     expect(empty()).toMatchSnapshot();

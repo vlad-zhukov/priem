@@ -18,7 +18,6 @@
     "prepublishOnly": "yarn build && yarn lint && yarn test"
   },
   "dependencies": {
-    "create-react-context": "^0.2.1",
     "moize": "^5.2.1",
     "prop-types": "^15.6.1",
     "react-shallow-equal": "^0.1.1"
@@ -75,6 +74,9 @@
     ],
     "transform": {
       ".js$": "babel-jest"
-    }
+    },
+    "collectCoverage": true,
+    "collectCoverageFrom": ["src/**/*"],
+    "coverageDirectory": "__coverage__"
   }
 }

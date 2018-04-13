@@ -1,4 +1,5 @@
 node_modules/
 dist/
+__coverage__/
 package-lock.json
 *.log
