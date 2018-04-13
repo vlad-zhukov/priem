@@ -112,7 +112,7 @@ function isPriemComponent(instance) {
     return instance._isPriemComponent === true;
 }
 
-function getPromisesFromTree(rootElement, fetchRoot) {
+function getPromisesFromTree(rootElement, fetchRoot = true) {
     const promises = [];
 
     walkTree(rootElement, (element, instance) => {
@@ -149,31 +149,29 @@ function getPromisesFromTree(rootElement, fetchRoot) {
 }
 
 // XXX component Cache
-export default function getDataFromTree(rootElement, fetchRoot = true) {
-    const queries = getPromisesFromTree(rootElement, fetchRoot);
+export default function getDataFromTree(rootElement, getStore) {
+    const queries = getPromisesFromTree(rootElement);
 
-    // no queries found, nothing to do
     if (!queries.length) {
         return Promise.resolve({});
     }
 
-    // wait on each query that we found, re-rendering the subtree when it's done
-    const mappedQueries = queries.reduce(
-        (result, {promise}) =>
-            // const d = promise.then(() => getDataFromTree(element, false));
+    const errors = [];
 
-            // we've just grabbed the query for element, so don't try and get it again
-            result.concat(promise),
-        []
+    const mappedQueries = queries.map(({promise, instance}) =>
+        promise.then(() => getDataFromTree(instance.render(), getStore)).catch(e => errors.push(e))
     );
 
-    return Promise.all(mappedQueries).then(sources =>
-        sources.reduce((result, {state, _meta}) => {
-            if (_meta.ssrKey) {
-                // eslint-disable-next-line no-param-reassign
-                result[_meta.ssrKey] = {state, meta: _meta};
-            }
-            return result;
-        }, {})
-    );
+    return Promise.all(mappedQueries).then(() => {
+        if (errors.length > 0) {
+            const error =
+                errors.length === 1
+                    ? errors[0]
+                    : new Error(`${errors.length} errors were thrown when fetching components.`);
+            error.queryErrors = errors;
+            throw error;
+        }
+
+        return getStore();
+    });
 }

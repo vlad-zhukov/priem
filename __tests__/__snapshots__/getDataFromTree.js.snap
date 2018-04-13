@@ -19,7 +19,7 @@ Object {
 }
 `;
 
-exports[`should not fetch data from a nested component 1`] = `
+exports[`should fetch data from a nested component 1`] = `
 Object {
   "unique-key-1": Object {
     "meta": Object {
@@ -42,6 +42,20 @@ Object {
       "refreshing": false,
       "rejected": false,
       "value": "2-foo",
+    },
+  },
+  "unique-key-3": Object {
+    "meta": Object {
+      "ssr": true,
+      "ssrKey": "unique-key-3",
+    },
+    "state": Object {
+      "fulfilled": true,
+      "pending": false,
+      "reason": null,
+      "refreshing": false,
+      "rejected": false,
+      "value": "2-foobar",
     },
   },
 }

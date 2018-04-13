@@ -1,4 +1,3 @@
-import React from 'react';
 import delay from 'delay';
 import {mount} from 'enzyme';
 import {createSerializer} from 'enzyme-to-json';

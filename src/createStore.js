@@ -16,6 +16,7 @@ export default function createStore(initialStore = {}) {
     function getStore() {
         return Object.keys(maps.containerMap).reduce((result, key) => {
             const container = maps.containerMap[key];
+            // eslint-disable-next-line no-param-reassign
             result[key] = {state: container.state, meta: container._meta};
             return result;
         }, {});
@@ -30,9 +31,7 @@ export default function createStore(initialStore = {}) {
 
             if (type(ssrKey) === 'string') {
                 if (maps.containerMap[ssrKey]) {
-                    throw new Error(
-                        `A 'ssrKey' must be unique across all containers. Please check the following 'ssrKey': ${ssrKey}.`
-                    );
+                    throw new Error(`A 'ssrKey' must be unique across all containers. Please check '${ssrKey}'.`);
                 }
 
                 if (maps.stateMap[ssrKey]) {
