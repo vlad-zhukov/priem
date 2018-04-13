@@ -57,17 +57,24 @@ export default class Priem extends React.Component {
         this._updateSubscriptions({instancesToUnsub: this._sources});
     }
 
-    _updateSubscriptions({instancesToSub = {}, instancesToUnsub = {}, isForced = false}) {
-        const instanceToSubKeys = Object.keys(instancesToSub);
-        const instanceToUnsubKeys = Object.keys(instancesToUnsub);
+    refresh = () => {
+        this._updateSubscriptions({isForced: true});
+    };
 
-        instanceToSubKeys.forEach((key) => {
-            instancesToSub[key].subscribe(this._onUpdate);
-        });
+    _updateSubscriptions({instancesToSub, instancesToUnsub, isForced = false}) {
+        if (instancesToSub) {
+            const instanceToSubKeys = Object.keys(instancesToSub);
+            instanceToSubKeys.forEach((key) => {
+                instancesToSub[key].subscribe(this._onUpdate);
+            });
+        }
 
-        instanceToUnsubKeys.forEach((key) => {
-            instancesToUnsub[key].unsubscribe(this._onUpdate);
-        });
+        if (instancesToUnsub) {
+            const instanceToUnsubKeys = Object.keys(instancesToUnsub);
+            instanceToUnsubKeys.forEach((key) => {
+                instancesToUnsub[key].unsubscribe(this._onUpdate);
+            });
+        }
 
         if (this._isMounted) {
             const props = this._getProps();
@@ -86,6 +93,7 @@ export default class Priem extends React.Component {
             const instance = this._sources[key];
             props[key] = instance.state;
         });
+        props.refresh = this.refresh;
         return props;
     }
 

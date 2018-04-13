@@ -1,8 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Priem, Container, AsyncContainer, propTypes} from 'priem';
+import {Priem, createStore, propTypes} from 'priem';
 import Picker from '../components/Picker';
 import Posts from '../components/Posts';
+
+const {Container, AsyncContainer} = createStore();
 
 const redditPicker = new Container({reddit: 'reactjs'});
 
