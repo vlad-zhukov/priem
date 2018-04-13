@@ -1,9 +1,9 @@
 import delay from 'delay';
-import {AsyncContainer, getContainerMap, injectStateMap} from '../src/Container';
+import createStore from '../src/Container';
 import * as promiseState from '../src/promiseState';
-import {removeObjectProps} from '../__test-helpers__/util';
 
-function setup({props = {}, getAsyncValue, options}) {
+function setup({props = {}, getAsyncValue, options, initialStore}) {
+    const {Container, AsyncContainer, getStore} = createStore(initialStore);
     const container = new AsyncContainer(getAsyncValue, options);
 
     const updateSpy = jest.spyOn(container, 'update');
@@ -21,6 +21,9 @@ function setup({props = {}, getAsyncValue, options}) {
         runAsyncSpy,
         subscribeSpy,
         runAsync,
+        Container,
+        AsyncContainer,
+        getStore,
     };
 }
 
@@ -223,12 +226,12 @@ it('should expire if maxAge is set', async () => {
 });
 
 it('should rehydrate ssr data', async () => {
-    injectStateMap({
+    const initialStore = {
         'unique-key-1': {
             state: promiseState.fulfilled('foo'),
             meta: {ssr: true},
         },
-    });
+    };
 
     const promiseFn = jest.fn(value => delay(200, {value}));
 
@@ -237,7 +240,11 @@ it('should rehydrate ssr data', async () => {
         promise: promiseFn,
     });
 
-    const {container, updateSpy, runAsyncSpy, runAsync} = setup({getAsyncValue, options: {ssrKey: 'unique-key-1'}});
+    const {container, updateSpy, runAsyncSpy, runAsync} = setup({
+        getAsyncValue,
+        options: {ssrKey: 'unique-key-1'},
+        initialStore,
+    });
 
     await runAsync({isForced: false});
 
@@ -292,42 +299,36 @@ it('should return cached values when `args` change', async () => {
 });
 
 it('should add a container instances to the `containerMap` if `ssrKey` exists', () => {
-    removeObjectProps(getContainerMap());
-
     const getAsyncValue = () => ({
         args: [],
         promise: () => delay(100, 'foo'),
     });
 
-    setup({getAsyncValue, options: {ssrKey: 'unique-key-1'}});
-    setup({getAsyncValue, options: {ssrKey: 'unique-key-2'}});
+    const {Container, getStore} = setup({getAsyncValue, options: {ssrKey: 'unique-key-1'}});
+    new Container({}, {ssrKey: 'unique-key-2'});
 
-    expect(getContainerMap()).toHaveProperty('unique-key-1');
-    expect(getContainerMap()).toHaveProperty('unique-key-2');
+    expect(getStore()).toHaveProperty('unique-key-1');
+    expect(getStore()).toHaveProperty('unique-key-2');
 });
 
 it('should not add a container instances to the `containerMap` if `ssrKey` does not exists', () => {
-    removeObjectProps(getContainerMap());
-
     const getAsyncValue = () => ({
         args: [],
         promise: () => delay(100, 'foo'),
     });
 
-    setup({getAsyncValue});
+    const {getStore} = setup({getAsyncValue});
 
-    expect(getContainerMap()).toEqual({});
+    expect(getStore()).toEqual({});
 });
 
 it('should throw a container instance with such `ssrKey` has been already added', () => {
-    removeObjectProps(getContainerMap());
-
     const getAsyncValue = () => ({
         args: [],
         promise: () => delay(100, 'foo'),
     });
 
-    setup({getAsyncValue, options: {ssrKey: 'unique-key-1'}});
+    const {Container} = setup({getAsyncValue, options: {ssrKey: 'unique-key-1'}});
 
-    expect(() => setup({getAsyncValue, options: {ssrKey: 'unique-key-1'}})).toThrow();
+    expect(() => new Container({}, {ssrKey: 'unique-key-1'})).toThrow();
 });

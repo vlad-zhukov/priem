@@ -17,9 +17,19 @@ exports[`should render a nested component 1`] = `
 
 exports[`should render a nested component 2`] = `
 Object {
-  "container1": Object {
+  "unique-key-1": Object {
     "meta": Object {
       "ssr": false,
+      "ssrKey": "unique-key-1",
+    },
+    "state": Object {
+      "counter": 2,
+    },
+  },
+  "unique-key-2": Object {
+    "meta": Object {
+      "ssr": false,
+      "ssrKey": "unique-key-2",
     },
     "state": Object {
       "fulfilled": true,
@@ -30,12 +40,18 @@ Object {
       "value": "2-foo",
     },
   },
-  "syncContainer": Object {
+  "unique-key-3": Object {
     "meta": Object {
       "ssr": false,
+      "ssrKey": "unique-key-3",
     },
     "state": Object {
-      "counter": 2,
+      "fulfilled": true,
+      "pending": false,
+      "reason": null,
+      "refreshing": false,
+      "rejected": false,
+      "value": "2-foobar",
     },
   },
 }
@@ -52,9 +68,19 @@ exports[`should render a nested component 3`] = `
 
 exports[`should render a nested component 4`] = `
 Object {
-  "container1": Object {
+  "unique-key-1": Object {
     "meta": Object {
       "ssr": false,
+      "ssrKey": "unique-key-1",
+    },
+    "state": Object {
+      "counter": 3,
+    },
+  },
+  "unique-key-2": Object {
+    "meta": Object {
+      "ssr": false,
+      "ssrKey": "unique-key-2",
     },
     "state": Object {
       "fulfilled": true,
@@ -65,12 +91,18 @@ Object {
       "value": "2-foo",
     },
   },
-  "syncContainer": Object {
+  "unique-key-3": Object {
     "meta": Object {
       "ssr": false,
+      "ssrKey": "unique-key-3",
     },
     "state": Object {
-      "counter": 3,
+      "fulfilled": true,
+      "pending": false,
+      "reason": null,
+      "refreshing": false,
+      "rejected": false,
+      "value": "2-foobar",
     },
   },
 }
