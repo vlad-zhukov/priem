@@ -9,8 +9,7 @@ describe('type', () => {
         expect(type(true)).toBe('boolean');
         expect(type([])).toBe('array');
         expect(type({})).toBe('object');
-        expect(type(() => {
-        })).toBe('function');
+        expect(type(() => {})).toBe('function');
     });
 });
 

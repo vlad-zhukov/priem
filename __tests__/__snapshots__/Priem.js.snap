@@ -1,9 +1,36 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`should rehydrate ssr data 1`] = `
-<div>
-  baz
-</div>
+exports[`should not keep data after the unmount if "persist: false" 1`] = `
+Object {
+  "fulfilled": true,
+  "pending": false,
+  "reason": null,
+  "refreshing": false,
+  "rejected": false,
+  "value": "foo",
+}
+`;
+
+exports[`should not keep data after the unmount if "persist: false" 2`] = `
+Object {
+  "fulfilled": false,
+  "pending": false,
+  "reason": null,
+  "refreshing": false,
+  "rejected": false,
+  "value": null,
+}
+`;
+
+exports[`should not keep data after the unmount if "persist: false" 3`] = `
+Object {
+  "fulfilled": true,
+  "pending": false,
+  "reason": null,
+  "refreshing": false,
+  "rejected": false,
+  "value": "foo",
+}
 `;
 
 exports[`should render a nested component 1`] = `

@@ -24,7 +24,9 @@ export function assertType(variable, types, variableName = 'The value') {
     }
 
     if (isValid === false) {
-        const error = new TypeError(`Priem: ${variableName} must be one of the following: '${typesAsString}', but got: '${typeOfVariable}'.`);
+        const error = new TypeError(
+            `Priem: ${variableName} must be one of the following: '${typesAsString}', but got: '${typeOfVariable}'.`
+        );
         error.framesToPop = 1;
         throw error;
     }

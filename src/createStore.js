@@ -1,21 +1,15 @@
 import Cache from './Cache';
-import {type, isBrowser} from './helpers';
+import {type, assertType, isBrowser} from './helpers';
 import * as promiseState from './promiseState';
 
 export default function createStore(initialStore = {}) {
-    const typeOfInitialStore = type(initialStore);
-    if (typeOfInitialStore !== 'object') {
-        throw new TypeError(`'initialStore' must be an object, but got: ${typeOfInitialStore}`);
-    }
+    assertType(initialStore, ['object'], "'initialStore'");
 
-    const maps = {
-        containerMap: {},
-        stateMap: initialStore,
-    };
+    const containerMap = {};
 
     function getStore() {
-        return Object.keys(maps.containerMap).reduce((result, key) => {
-            const container = maps.containerMap[key];
+        return Object.keys(containerMap).reduce((result, key) => {
+            const container = containerMap[key];
             // eslint-disable-next-line no-param-reassign
             result[key] = {state: container.state, meta: container._meta};
             return result;
@@ -23,28 +17,37 @@ export default function createStore(initialStore = {}) {
     }
 
     class Container {
-        constructor(initialState, options = {}) {
-            const {meta, ssrKey} = options;
-
-            this.state = initialState;
-            this._meta = meta || {ssr: !isBrowser};
-
-            if (type(ssrKey) === 'string') {
-                if (maps.containerMap[ssrKey]) {
-                    throw new Error(`A 'ssrKey' must be unique across all containers. Please check '${ssrKey}'.`);
-                }
-
-                if (maps.stateMap[ssrKey]) {
-                    this.state = maps.stateMap[ssrKey].state;
-                    this._meta = maps.stateMap[ssrKey].meta;
-                    delete maps.stateMap[ssrKey];
-                }
-
-                this._meta.ssrKey = ssrKey;
-                maps.containerMap[ssrKey] = this;
-            }
+        constructor(initialState, options) {
+            assertType(initialState, ['object', 'undefined'], "'initialState'");
+            assertType(options, ['object', 'undefined'], "'options'");
 
             this._listeners = [];
+            this._options = options || {};
+
+            const {ssrKey} = this._options;
+
+            assertType(ssrKey, ['string', 'undefined'], "'ssrKey'");
+
+            this._initialState = initialState || {};
+            this._initialMeta = {ssr: !isBrowser};
+
+            if (ssrKey) {
+                if (containerMap[ssrKey]) {
+                    throw new Error(`A 'ssrKey' must be unique across all containers, check '${ssrKey}'.`);
+                }
+
+                if (initialStore[ssrKey]) {
+                    this._initialState = initialStore[ssrKey].state;
+                    this._initialMeta = initialStore[ssrKey].meta;
+                    delete initialStore[ssrKey]; // eslint-disable-line no-param-reassign
+                }
+
+                this._initialMeta.ssrKey = ssrKey;
+                containerMap[ssrKey] = this;
+            }
+
+            this.state = this._initialState;
+            this._meta = this._initialMeta;
         }
 
         setState(updater) {
@@ -61,6 +64,10 @@ export default function createStore(initialStore = {}) {
 
         unsubscribe(fn) {
             this._listeners = this._listeners.filter(f => f !== fn);
+            if (this._options.persist === false && this._listeners.length === 0) {
+                this.state = this._initialState;
+                this._meta = this._initialMeta;
+            }
         }
     }
 
@@ -96,10 +103,17 @@ export default function createStore(initialStore = {}) {
                 update: this.update,
                 onExpire: () => {
                     if (this._listeners.length > 0) {
-                        this.runAsync({props, isForced: true, update: this.update});
+                        this.runAsync({props, isForced: true});
                     }
                 },
             });
+
+        unsubscribe(fn) {
+            super.unsubscribe(fn);
+            if (this._options.persist === false && this._listeners.length === 0 && this._cache.memoized) {
+                this._cache.memoized.clear();
+            }
+        }
     }
 
     return {Container, AsyncContainer, getStore};

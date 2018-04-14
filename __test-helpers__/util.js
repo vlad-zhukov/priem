@@ -17,7 +17,7 @@ export function testComponent({initialStore, options} = {}) {
 
     const element = <Priem sources={{container}} render={p => <div>{p.container.value}</div>} />;
 
-    return {element, getStore};
+    return {element, container, getStore};
 }
 
 export function testComponentDecorated({initialStore, options} = {}) {
@@ -35,14 +35,6 @@ export function testComponentDecorated({initialStore, options} = {}) {
 
     return {element: <ComponentDecorated />, getStore};
 }
-
-export const optionsForTestComponent = {
-    state: promiseState.fulfilled('baz'),
-    meta: {
-        ssr: true,
-        autoRefresh: true,
-    },
-};
 
 export function testComponentNested({initialStore, syncContainerProps, container1Props, container2Props} = {}) {
     const {Container, AsyncContainer, getStore} = createStore(initialStore);

@@ -1,7 +1,7 @@
 import moize from 'moize';
 import {elementsEqual} from 'react-shallow-equal';
 import * as promiseState from './promiseState';
-import {type, isBrowser} from './helpers';
+import {type, assertType, isBrowser} from './helpers';
 
 function arrayElementsEqual(a, b) {
     if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) {
@@ -27,20 +27,8 @@ export default class Cache {
     }
 
     add(value, onExpire) {
-        const typeOfValue = type(value);
-        if (typeOfValue !== 'object') {
-            throw new TypeError(
-                `Priem: 'getAsyncValue' must be a function that returns and object, but got: ${typeOfValue}.`
-            );
-        }
-
-        const typeOfValuePromise = type(value.promise);
-        if (typeOfValuePromise !== 'function') {
-            throw new TypeError(
-                "Priem: 'getAsyncValue' must return an object with a property 'promise'," +
-                    `but got: '${typeOfValuePromise}'.`
-            );
-        }
+        assertType(value, ['object'], "'getAsyncValue() -> value'");
+        assertType(value.promise, ['function'], "'getAsyncValue() -> value.promise'");
 
         this.memoized = moize(value.promise, {
             isPromise: true,
