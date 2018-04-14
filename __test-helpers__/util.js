@@ -2,18 +2,16 @@
 
 import React from 'react';
 import delay from 'delay';
-import {Priem, withPriem, createStore, promiseState} from '../src/index';
+import {Priem, withPriem, createStore} from '../src/index';
 
 export function testComponent({initialStore, options} = {}) {
     const {AsyncContainer, getStore} = createStore(initialStore);
 
-    const container = new AsyncContainer(
-        () => ({
-            args: ['foo'],
-            promise: value => delay(100, value),
-        }),
-        options
-    );
+    const container = new AsyncContainer({
+        mapPropsToArgs: () => ['foo'],
+        promise: value => delay(100, value),
+        ...options,
+    });
 
     const element = <Priem sources={{container}} render={p => <div>{p.container.value}</div>} />;
 
@@ -23,13 +21,11 @@ export function testComponent({initialStore, options} = {}) {
 export function testComponentDecorated({initialStore, options} = {}) {
     const {AsyncContainer, getStore} = createStore(initialStore);
 
-    const container = new AsyncContainer(
-        () => ({
-            args: ['foo'],
-            promise: value => delay(100, value),
-        }),
-        options
-    );
+    const container = new AsyncContainer({
+        mapPropsToArgs: () => ['foo'],
+        promise: value => delay(100, value),
+        ...options,
+    });
 
     const ComponentDecorated = withPriem({sources: {container}})(p => <div>{p.container.value}</div>);
 
@@ -41,21 +37,17 @@ export function testComponentNested({initialStore, syncContainerProps, container
 
     const syncContainer = new Container({counter: 2}, syncContainerProps);
 
-    const container1 = new AsyncContainer(
-        ({syncContainer: sC}) => ({
-            args: [sC.counter, 'foo'],
-            promise: (counter, value) => delay(100, `${counter}-${value}`),
-        }),
-        container1Props
-    );
+    const container1 = new AsyncContainer({
+        mapPropsToArgs: ({syncContainer: sC}) => [sC.counter, 'foo'],
+        promise: (counter, value) => delay(100, `${counter}-${value}`),
+        ...container1Props,
+    });
 
-    const container2 = new AsyncContainer(
-        ({container1value}) => ({
-            args: [container1value, 'bar'],
-            promise: (c1value, value) => delay(100, c1value + value),
-        }),
-        container2Props
-    );
+    const container2 = new AsyncContainer({
+        mapPropsToArgs: ({container1value}) => [container1value, 'bar'],
+        promise: (c1value, value) => delay(100, c1value + value),
+        ...container2Props,
+    });
 
     const element = (
         <Priem
@@ -95,15 +87,15 @@ export function testComponentNested({initialStore, syncContainerProps, container
 export function testComponentNestedDecorated({initialStore} = {}) {
     const {AsyncContainer, getStore} = createStore(initialStore);
 
-    const container1 = new AsyncContainer(() => ({
-        args: ['foo'],
+    const container1 = new AsyncContainer({
+        mapPropsToArgs: () => ['foo'],
         promise: value => delay(100, value),
-    }));
+    });
 
-    const container2 = new AsyncContainer(({component1value}) => ({
-        args: [component1value, 'bar'],
+    const container2 = new AsyncContainer({
+        mapPropsToArgs: ({component1value}) => [component1value, 'bar'],
         promise: (c1value, value) => delay(100, c1value + value),
-    }));
+    });
 
     @withPriem({sources: {container1}})
     class TestComponent1 extends React.Component {

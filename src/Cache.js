@@ -1,7 +1,7 @@
 import moize from 'moize';
 import {elementsEqual} from 'react-shallow-equal';
 import * as promiseState from './promiseState';
-import {type, assertType, isBrowser} from './helpers';
+import {isBrowser} from './helpers';
 
 function arrayElementsEqual(a, b) {
     if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) {
@@ -16,8 +16,6 @@ function arrayElementsEqual(a, b) {
     return true;
 }
 
-export const defaultAsyncValueOptions = {autoRefresh: true, maxSize: Infinity};
-
 export default class Cache {
     constructor() {
         this.memoized = null;
@@ -26,24 +24,10 @@ export default class Cache {
         this.prevArgs = null;
     }
 
-    add(value, onExpire) {
-        assertType(value, ['object'], "'getAsyncValue() -> value'");
-        assertType(value.promise, ['function'], "'getAsyncValue() -> value.promise'");
-
-        this.memoized = moize(value.promise, {
-            isPromise: true,
-            maxAge: value.maxAge,
-            maxArgs: value.maxArgs,
-            maxSize: value.maxSize,
-            onExpire,
-        });
-    }
-
     isMemoized(args) {
         if (!this.memoized) {
             return false;
         }
-
         return this.memoized.has(args);
     }
 
@@ -53,7 +37,6 @@ export default class Cache {
                 return i;
             }
         }
-
         return -1;
     }
 
@@ -68,18 +51,20 @@ export default class Cache {
         }
     }
 
-    run({asyncValue, isForced, update, onExpire}) {
-        const value = {...defaultAsyncValueOptions, ...asyncValue};
-
+    run({args, promise, maxAge, maxArgs, maxSize = Infinity, autoRefresh = true, isForced, update, onExpire}) {
         // Stop auto-refreshing
-        if (!value.autoRefresh && !isForced) {
+        if (!autoRefresh && !isForced) {
             return;
         }
 
-        const args = type(value.args) === 'array' ? value.args : [];
-
         if (!this.memoized) {
-            this.add(value, onExpire);
+            this.memoized = moize(promise, {
+                isPromise: true,
+                maxAge,
+                maxArgs,
+                maxSize,
+                onExpire,
+            });
         }
 
         // Do not recall rejected (uncached) promises unless forced

@@ -72,10 +72,13 @@ export default function createStore(initialStore = {}) {
     }
 
     class AsyncContainer extends Container {
-        constructor(getAsyncValue, options = {}) {
-            super(options.state || promiseState.empty(), options);
+        constructor(options = {}) {
+            super(promiseState.empty(), options);
 
-            this._getAsyncValue = getAsyncValue;
+            assertType(this._options.mapPropsToArgs, ['function', 'undefined'], "'mapPropsToArgs'");
+            assertType(this._options.promise, ['function'], "'promise'");
+
+            this._mapPropsToArgs = this._options.mapPropsToArgs || (() => []);
             this._cache = new Cache();
         }
 
@@ -98,7 +101,12 @@ export default function createStore(initialStore = {}) {
 
         runAsync = ({props, isForced}) =>
             this._cache.run({
-                asyncValue: this._getAsyncValue(props),
+                args: this._mapPropsToArgs(props),
+                promise: this._options.promise,
+                autoRefresh: this._options.autoRefresh,
+                maxAge: this._options.maxAge,
+                maxArgs: this._options.maxArgs,
+                maxSize: this._options.maxSize,
                 isForced,
                 update: this.update,
                 onExpire: () => {
