@@ -1,0 +1,7 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`assertType should throw if type is wrong 1`] = `"Priem: The value must be one of the following: 'object', but got: 'null'."`;
+
+exports[`assertType should throw if type is wrong 2`] = `"Priem: The value must be one of the following: 'number, function', but got: 'string'."`;
+
+exports[`assertType should throw if type is wrong 3`] = `"Priem: 'myProps' must be one of the following: 'number', but got: 'object'."`;

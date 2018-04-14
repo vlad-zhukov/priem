@@ -7,6 +7,5 @@ describe('import-bundle-cjs', () => {
         expect(typeof priem.withPriem).toBe('function');
         expect(typeof priem.getDataFromTree).toBe('function');
         expect(typeof priem.promiseState).toBe('object');
-        expect(typeof priem.propTypes).toBe('object');
     });
 });
