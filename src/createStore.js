@@ -72,7 +72,8 @@ export default function createStore(initialStore = {}) {
     }
 
     class AsyncContainer extends Container {
-        constructor(options = {}) {
+        constructor(options) {
+            assertType(options, ['object'], "AsyncContainer argument 'options'");
             super(promiseState.empty(), options);
 
             assertType(this._options.mapPropsToArgs, ['function', 'undefined'], "'mapPropsToArgs'");

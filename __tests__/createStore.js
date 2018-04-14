@@ -301,7 +301,7 @@ it('should add a container instances to the `containerMap` if `ssrKey` exists', 
     };
 
     const {Container, getStore} = setup({options});
-    new Container({}, {ssrKey: 'unique-key-2'}); // eslint-disable-line no-new
+    new Container(undefined, {ssrKey: 'unique-key-2'}); // eslint-disable-line no-new
 
     expect(getStore()).toHaveProperty('unique-key-1');
     expect(getStore()).toHaveProperty('unique-key-2');

@@ -1,10 +1,6 @@
 import React from 'react';
 import {type} from './helpers';
 
-function getProps(element) {
-    return element.props || element.attributes;
-}
-
 function isReactElement(element) {
     return !!element.type;
 }
@@ -30,7 +26,7 @@ export function walkTree(element, visitor) {
     if (isReactElement(element)) {
         if (type(element.type) === 'function') {
             const Comp = element.type;
-            const props = Object.assign({}, Comp.defaultProps, getProps(element));
+            const props = Object.assign({}, Comp.defaultProps, element.props);
             let child;
 
             // Are we are a react class?
@@ -149,17 +145,17 @@ function getPromisesFromTree(rootElement, fetchRoot = true) {
 }
 
 // XXX component Cache
-export default function getDataFromTree(rootElement, getStore) {
+export default function getDataFromTree(rootElement) {
     const queries = getPromisesFromTree(rootElement);
 
     if (!queries.length) {
-        return Promise.resolve({});
+        return Promise.resolve();
     }
 
     const errors = [];
 
     const mappedQueries = queries.map(({promise, instance}) =>
-        promise.then(() => getDataFromTree(instance.render(), getStore)).catch(e => errors.push(e))
+        promise.then(() => getDataFromTree(instance.render())).catch(e => errors.push(e))
     );
 
     return Promise.all(mappedQueries).then(() => {
@@ -171,7 +167,5 @@ export default function getDataFromTree(rootElement, getStore) {
             error.queryErrors = errors;
             throw error;
         }
-
-        return getStore();
     });
 }
