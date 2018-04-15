@@ -13,9 +13,11 @@ export function testComponent({initialStore, options} = {}) {
         ...options,
     });
 
+    const setStateSpy = jest.spyOn(Priem.prototype, 'setState');
+
     const element = <Priem sources={{container}} render={p => <div>{p.container.value}</div>} />;
 
-    return {element, container, getStore};
+    return {element, container, getStore, setStateSpy};
 }
 
 export function testComponentDecorated({initialStore, options} = {}) {

@@ -6,7 +6,8 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom/server';
-import {getDataFromTree} from '../src/index';
+import delay from 'delay';
+import {getDataFromTree, Priem, createStore} from '../src/index';
 import {walkTree} from '../src/getDataFromTree';
 import {testComponent, testComponentNested, times} from '../__test-helpers__/util';
 
@@ -58,60 +59,92 @@ describe('getDataFromTree()', () => {
 
         expect(content).toBe('<div>2-foobar<button></button></div>');
     });
+
+    it('should catch all errors and reject the promise', async () => {
+        const MyComponent = () => {
+            throw new Error('foo');
+        };
+
+        await expect(getDataFromTree(<MyComponent />)).rejects.toThrow('foo');
+
+        const {AsyncContainer} = createStore();
+
+        const container1 = new AsyncContainer({
+            mapPropsToArgs: () => {
+                throw new Error('bar');
+            },
+            promise: () => delay(100),
+        });
+        const element1 = <Priem sources={{container1}} render={() => null} />;
+        await expect(getDataFromTree(element1)).rejects.toThrow('bar');
+
+        const container2 = new AsyncContainer({
+            mapPropsToArgs: () => {
+                throw new Error('baz');
+            },
+            promise: () => delay(100),
+        });
+        const element2 = <Priem sources={{container1, container2}} render={() => null} />;
+        await expect(getDataFromTree(element2)).rejects.toThrow('2 errors were thrown when fetching containers.');
+    });
 });
 
-function setupWalkTree(element) {
-    const visitorSpy = jest.fn(() => {});
+function setupWalkTree(element, visitor = () => {}) {
+    const visitorSpy = jest.fn(visitor);
     walkTree(element, visitorSpy);
     return {visitorSpy};
 }
 
 describe('walkTree()', () => {
     it('traverses basic element trees', () => {
-        const rootElement = (
+        const element = (
             <div>
                 <span>Foo</span>
                 <span>Bar</span>
             </div>
         );
-        const {visitorSpy} = setupWalkTree(rootElement);
+        const {visitorSpy} = setupWalkTree(element);
 
         expect(visitorSpy).toHaveBeenCalledTimes(5);
     });
 
     it('traverses basic element trees with nulls', () => {
-        const rootElement = <div>{null}</div>;
-        const {visitorSpy} = setupWalkTree(rootElement);
+        const element = <div>{null}</div>;
+        const {visitorSpy} = setupWalkTree(element);
 
         expect(visitorSpy).toHaveBeenCalledTimes(1);
     });
 
     it('traverses basic element trees with false', () => {
-        const rootElement = <div>{false}</div>;
-        const {visitorSpy} = setupWalkTree(rootElement);
+        const element = <div>{false}</div>;
+        const {visitorSpy} = setupWalkTree(element);
 
         expect(visitorSpy).toHaveBeenCalledTimes(1);
     });
 
     it('traverses basic element trees with empty string', () => {
-        const rootElement = <div />;
-        const {visitorSpy} = setupWalkTree(rootElement);
+        const element = <div />;
+        const {visitorSpy} = setupWalkTree(element);
 
         expect(visitorSpy).toHaveBeenCalledTimes(1);
     });
 
     it('traverses basic element trees with arrays', () => {
-        const rootElement = [1, 2];
-        const {visitorSpy} = setupWalkTree(rootElement);
+        const element = [1, 2];
+        const {visitorSpy} = setupWalkTree(element);
 
         expect(visitorSpy).toHaveBeenCalledTimes(2);
     });
 
-    it('traverses basic element trees with false or null', () => {
-        const rootElement = [1, false, null, ''];
-        const {visitorSpy} = setupWalkTree(rootElement);
+    it('traverses basic element trees with null, undefined and booleans', () => {
+        const element = [1, false, null, '', 0, undefined, true];
+        const {visitorSpy} = setupWalkTree(element);
 
-        expect(visitorSpy).toHaveBeenCalledTimes(1);
+        expect(visitorSpy).toHaveBeenCalledTimes(3);
+    });
+
+    it('should throw on unrenderable values', () => {
+        expect(() => setupWalkTree({})).toThrow();
     });
 
     it('traverses functional stateless components', () => {
@@ -257,10 +290,57 @@ describe('walkTree()', () => {
 
     it('traverses classes with render on instance', () => {
         class MyComponent extends React.Component {
-            render = () => <div>{times(this.props.n, i => <span key={i} />)}</div>;
+            render() {
+                return <div>{times(this.props.n, i => <span key={i} />)}</div>;
+            }
         }
         const {visitorSpy} = setupWalkTree(<MyComponent n={5} />);
 
         expect(visitorSpy).toHaveBeenCalledTimes(7);
+    });
+
+    it('should stop traversing if `visitor` returns false', () => {
+        const element = <div>{times(5, i => <span key={i} />)}</div>;
+        const {visitorSpy} = setupWalkTree(element, () => false);
+
+        expect(visitorSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should stop traversing classes if `visitor` returns false', () => {
+        const MyComponent = ({n}) => <div>{times(n, i => <span key={i} />)}</div>;
+        const {visitorSpy} = setupWalkTree(<MyComponent n={5} />, () => false);
+
+        expect(visitorSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should throw if rendering returns undefined', () => {
+        const MyComponent = () => undefined;
+        expect(() => setupWalkTree(<MyComponent />)).toThrow();
+    });
+
+    it('should handle setState', () => {
+        const setStateSpy = jest.fn(() => ({value: 1}));
+
+        class MyComponent extends React.Component {
+            state = {
+                value: 0,
+            };
+
+            render() {
+                if (this.state.value === 0) {
+                    this.setState(setStateSpy);
+                }
+
+                if (this.state.value === 1) {
+                    this.setState({value: 2});
+                }
+
+                return <div>{this.state.value}</div>;
+            }
+        }
+        const {visitorSpy} = setupWalkTree(<MyComponent />);
+
+        expect(setStateSpy).toHaveBeenCalledTimes(1);
+        expect(visitorSpy).toHaveBeenCalledTimes(3);
     });
 });

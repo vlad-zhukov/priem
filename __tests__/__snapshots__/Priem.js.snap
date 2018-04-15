@@ -1,5 +1,38 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`should have a \`refresh\` method 1`] = `
+Object {
+  "fulfilled": true,
+  "pending": false,
+  "reason": null,
+  "refreshing": false,
+  "rejected": false,
+  "value": "foo",
+}
+`;
+
+exports[`should have a \`refresh\` method 2`] = `
+Object {
+  "fulfilled": true,
+  "pending": false,
+  "reason": null,
+  "refreshing": true,
+  "rejected": false,
+  "value": "foo",
+}
+`;
+
+exports[`should have a \`refresh\` method 3`] = `
+Object {
+  "fulfilled": true,
+  "pending": false,
+  "reason": null,
+  "refreshing": false,
+  "rejected": false,
+  "value": "foo",
+}
+`;
+
 exports[`should not keep data after the unmount if "persist: false" 1`] = `
 Object {
   "fulfilled": true,
@@ -133,10 +166,4 @@ Object {
     },
   },
 }
-`;
-
-exports[`should render a simple component 1`] = `
-<div>
-  foo
-</div>
 `;
