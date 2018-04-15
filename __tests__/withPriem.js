@@ -22,14 +22,14 @@ it('should render a nested decorated component', async () => {
     expect(wrapper).toMatchSnapshot();
 });
 
-it('should throw if "render" prop exists', () => {
+it("should throw if 'render' prop exists", () => {
     expect(() => withPriem({render: () => {}})).toThrow();
 });
 
-it('should throw if "component" prop exists', () => {
+it("should throw if 'component' prop exists", () => {
     expect(() => withPriem({component: () => {}})).toThrow();
 });
 
-it('should throw if "children" prop exists', () => {
+it("should throw if 'children' prop exists", () => {
     expect(() => withPriem({children: () => {}})).toThrow();
 });
