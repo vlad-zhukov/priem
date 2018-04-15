@@ -58,11 +58,11 @@ export default function createStore(initialStore = {}) {
             }
         }
 
-        subscribe(fn) {
+        _subscribe(fn) {
             this._listeners.push(fn);
         }
 
-        unsubscribe(fn) {
+        _unsubscribe(fn) {
             this._listeners = this._listeners.filter(f => f !== fn);
             if (this._options.persist === false && this._listeners.length === 0) {
                 this.state = this._initialState;
@@ -74,12 +74,12 @@ export default function createStore(initialStore = {}) {
     class AsyncContainer extends Container {
         constructor(options) {
             assertType(options, ['object'], "AsyncContainer argument 'options'");
+            assertType(options.promise, ['function'], "'promise'");
+            assertType(options.mapPropsToArgs, ['function', 'undefined'], "'mapPropsToArgs'");
+
             super(promiseState.empty(), options);
 
-            assertType(this._options.mapPropsToArgs, ['function', 'undefined'], "'mapPropsToArgs'");
-            assertType(this._options.promise, ['function'], "'promise'");
-
-            this._mapPropsToArgs = this._options.mapPropsToArgs || (() => []);
+            this._mapPropsToArgs = options.mapPropsToArgs || (() => []);
             this._cache = new Cache();
         }
 
@@ -117,8 +117,8 @@ export default function createStore(initialStore = {}) {
                 },
             });
 
-        unsubscribe(fn) {
-            super.unsubscribe(fn);
+        _unsubscribe(fn) {
+            super._unsubscribe(fn);
             if (this._options.persist === false && this._listeners.length === 0 && this._cache.memoized) {
                 this._cache.memoized.clear();
             }

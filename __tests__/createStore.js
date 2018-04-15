@@ -1,329 +1,417 @@
 import delay from 'delay';
 import {createStore, promiseState} from '../src/index';
 
-function setup({props = {}, options, initialStore}) {
+function setupStore({options, initialStore} = {}) {
     const {Container, AsyncContainer, getStore} = createStore(initialStore);
-    const container = new AsyncContainer(options);
 
-    const updateSpy = jest.spyOn(container, 'update');
-    const runAsyncSpy = jest.spyOn(container, 'runAsync');
-    const subscribeSpy = jest.fn(() => {});
-    container.subscribe(subscribeSpy);
-
-    function runAsync(runAsyncOptions) {
-        return container.runAsync({props, ...runAsyncOptions});
-    }
-
-    return {
-        container,
-        updateSpy,
-        runAsyncSpy,
-        subscribeSpy,
-        runAsync,
+    const out = {
         Container,
         AsyncContainer,
         getStore,
     };
+
+    if (options) {
+        out.container = new AsyncContainer(options);
+
+        out.updateSpy = jest.spyOn(out.container, 'update');
+        out.runAsyncSpy = jest.spyOn(out.container, 'runAsync');
+        out.subscribeSpy = jest.fn(() => {});
+        out.container._subscribe(out.subscribeSpy);
+
+        out.runAsync = runAsyncOptions => out.container.runAsync(runAsyncOptions);
+    }
+
+    return out;
 }
 
-it('should not run promises if both `autoRefresh` and `isForced` are false', async () => {
-    const options = {
-        mapPropsToArgs: () => ['foo'],
-        promise: value => delay(200, {value}),
-        autoRefresh: false,
-    };
+describe('Container()', () => {
+    it('should have a setState method that takes either a function or an object as an argument', () => {
+        const {Container} = setupStore();
+        const counter = new Container({value: 1});
 
-    const {container, updateSpy, runAsyncSpy, runAsync} = setup({options});
+        expect(counter.state).toEqual({value: 1});
 
-    runAsync({isForced: false});
-    expect(container._cache.awaiting).toMatchObject([]);
+        counter.setState({value: 2});
+        expect(counter.state).toEqual({value: 2});
 
-    await delay(250);
-    expect(container._cache.awaiting).toMatchObject([]);
+        counter.setState({didCount: true});
+        expect(counter.state).toEqual({value: 2, didCount: true});
 
-    expect(updateSpy).toHaveBeenCalledTimes(0);
-    expect(runAsyncSpy).toHaveBeenCalledTimes(1);
-    expect([container.state, container._meta]).toMatchSnapshot();
+        counter.setState(s => ({value: s.value + 1}));
+        expect(counter.state).toEqual({value: 3, didCount: true});
+    });
+
+    it('should allow to subscribe and unsubscribe', () => {
+        const {Container} = setupStore();
+        const counter = new Container({value: 1});
+
+        const subscribeSpy1 = jest.fn(() => {});
+        counter._subscribe(subscribeSpy1);
+        expect(counter._listeners).toEqual([subscribeSpy1]);
+
+        counter.setState({value: 2});
+        expect(subscribeSpy1).toHaveBeenCalledTimes(1);
+
+        const subscribeSpy2 = jest.fn(() => {});
+        counter._subscribe(subscribeSpy2);
+        expect(counter._listeners).toEqual([subscribeSpy1, subscribeSpy2]);
+
+        counter.setState({value: 3});
+        expect(subscribeSpy1).toHaveBeenCalledTimes(2);
+        expect(subscribeSpy2).toHaveBeenCalledTimes(1);
+
+        counter._unsubscribe(subscribeSpy1);
+        expect(counter._listeners).toEqual([subscribeSpy2]);
+
+        counter.setState({value: 4});
+        expect(subscribeSpy1).toHaveBeenCalledTimes(2);
+        expect(subscribeSpy2).toHaveBeenCalledTimes(2);
+    });
+
+    it('should not change state and call subscribed functions if setState returns undefined or null', () => {
+        const {Container} = setupStore();
+        const counter = new Container({value: 1});
+        const subscribeSpy = jest.fn(() => {});
+        counter._subscribe(subscribeSpy);
+
+        const prevState = counter.state;
+
+        counter.setState(undefined);
+        expect(prevState).toBe(counter.state);
+        expect(subscribeSpy).toHaveBeenCalledTimes(0);
+
+        counter.setState(null);
+        expect(prevState).toBe(counter.state);
+        expect(subscribeSpy).toHaveBeenCalledTimes(0);
+
+        counter.setState(() => undefined);
+        expect(prevState).toBe(counter.state);
+        expect(subscribeSpy).toHaveBeenCalledTimes(0);
+
+        counter.setState(() => null);
+        expect(prevState).toBe(counter.state);
+        expect(subscribeSpy).toHaveBeenCalledTimes(0);
+    });
+
+    it('should add a container instances to the `containerMap` if `ssrKey` exists', () => {
+        const {Container, getStore} = setupStore();
+        new Container(undefined, {ssrKey: 'unique-key-1'}); // eslint-disable-line no-new
+        new Container(undefined, {ssrKey: 'unique-key-2'}); // eslint-disable-line no-new
+
+        expect(getStore()).toHaveProperty('unique-key-1');
+        expect(getStore()).toHaveProperty('unique-key-2');
+    });
+
+    it('should not add a container instances to the `containerMap` if `ssrKey` does not exists', () => {
+        const {Container, getStore} = setupStore();
+        new Container(); // eslint-disable-line no-new
+
+        expect(getStore()).toEqual({});
+    });
+
+    it('should throw if a container instance with such `ssrKey` has been already added', () => {
+        const {Container} = setupStore();
+        new Container({}, {ssrKey: 'unique-key-1'}); // eslint-disable-line no-new
+
+        expect(() => new Container({}, {ssrKey: 'unique-key-1'})).toThrow();
+    });
 });
 
-it('should run promises if `autoRefresh` is false but `isForced` is true', async () => {
-    const options = {
-        mapPropsToArgs: () => ['foo'],
-        promise: value => delay(200, {value}),
-        autoRefresh: false,
-    };
-
-    const {container, updateSpy, runAsyncSpy, runAsync} = setup({options});
-
-    runAsync({isForced: true});
-    expect(container._cache.awaiting).toMatchObject([['foo']]);
-
-    await delay(250);
-    expect(container._cache.awaiting).toMatchObject([]);
-
-    expect(updateSpy).toHaveBeenCalledTimes(2);
-    expect(runAsyncSpy).toHaveBeenCalledTimes(1);
-    expect([container.state, container._meta]).toMatchSnapshot();
-});
-
-it('should not run promises when awaiting', async () => {
-    const options = {
-        mapPropsToArgs: () => ['foo'],
-        promise: value => delay(200, {value}),
-    };
-
-    const {container, updateSpy, runAsyncSpy, runAsync} = setup({options});
-
-    runAsync({isForced: false});
-    expect(container._cache.awaiting).toMatchObject([['foo']]);
-
-    runAsync({isForced: false});
-    expect(container._cache.awaiting).toMatchObject([['foo']]);
-
-    runAsync({isForced: false});
-    expect(container._cache.awaiting).toMatchObject([['foo']]);
-
-    await delay(250);
-    expect(container._cache.awaiting).toMatchObject([]);
-
-    expect(updateSpy).toHaveBeenCalledTimes(2);
-    expect(runAsyncSpy).toHaveBeenCalledTimes(3);
-    expect([container.state, container._meta]).toMatchSnapshot();
-});
-
-it('should refresh a promise if forced', async () => {
-    let counter = 0;
-    const options = {
-        mapPropsToArgs: () => ['foo'],
-        promise(value) {
-            counter += 1;
-            return delay(200, value + counter);
-        },
-    };
-
-    const {container, updateSpy, runAsync} = setup({options});
-
-    await runAsync({isForced: false});
-    expect([container.state, container._meta]).toMatchSnapshot();
-
-    runAsync({isForced: true});
-    expect([container.state, container._meta]).toMatchSnapshot();
-    await delay(250);
-
-    expect([container.state, container._meta]).toMatchSnapshot();
-
-    expect(updateSpy).toHaveBeenCalledTimes(4);
-});
-
-it('should not rerun promises if previous promise was rejected', async () => {
-    let called = false;
-    const options = {
-        mapPropsToArgs: () => ['foo'],
-        promise(value) {
-            if (!called) {
-                called = true;
-                return delay.reject(200, new Error('foo'));
-            }
-            return delay(200, {value});
-        },
-    };
-
-    const {container, updateSpy, runAsyncSpy, runAsync} = setup({options});
-
-    runAsync({isForced: false});
-    expect(container._cache.awaiting).toMatchObject([['foo']]);
-
-    await delay(250);
-    expect(container._cache.awaiting).toMatchObject([]);
-
-    runAsync({isForced: false});
-    expect(container._cache.awaiting).toMatchObject([]);
-
-    expect(updateSpy).toHaveBeenCalledTimes(2);
-    expect(runAsyncSpy).toHaveBeenCalledTimes(2);
-    expect([container.state, container._meta]).toMatchSnapshot();
-});
-
-it('should rerun promises if previous promise was rejected but `isForced` is true', async () => {
-    let called = false;
-    const options = {
-        mapPropsToArgs: () => ['foo'],
-        promise(value) {
-            if (!called) {
-                called = true;
-                return delay.reject(200, new Error('foo'));
-            }
-            return delay(200, {value});
-        },
-    };
-
-    const {container, updateSpy, runAsyncSpy, runAsync} = setup({options});
-
-    runAsync({isForced: true});
-    expect(container._cache.awaiting).toMatchObject([['foo']]);
-
-    await delay(250);
-    expect(container._cache.awaiting).toMatchObject([]);
-
-    runAsync({isForced: true});
-    expect(container._cache.awaiting).toMatchObject([['foo']]);
-
-    await delay(250);
-    expect(container._cache.awaiting).toMatchObject([]);
+describe('AsyncContainer()', () => {
+    it('should default mapPropsToArgs to a function that returns an empty array', () => {
+        const {AsyncContainer} = setupStore();
+        const container = new AsyncContainer({promise: () => delay(100, {})});
+
+        expect(container._mapPropsToArgs()).toEqual([]);
+    });
+
+    it('should not run promises if both `autoRefresh` and `isForced` are false', async () => {
+        const options = {
+            mapPropsToArgs: () => ['foo'],
+            promise: value => delay(200, {value}),
+            autoRefresh: false,
+        };
+
+        const {container, updateSpy, runAsyncSpy, runAsync} = setupStore({options});
+
+        runAsync({isForced: false});
+        expect(container._cache.awaiting).toMatchObject([]);
+
+        await delay(250);
+        expect(container._cache.awaiting).toMatchObject([]);
+
+        expect(updateSpy).toHaveBeenCalledTimes(0);
+        expect(runAsyncSpy).toHaveBeenCalledTimes(1);
+        expect([container.state, container._meta]).toMatchSnapshot();
+    });
+
+    it('should run promises if `autoRefresh` is false but `isForced` is true', async () => {
+        const options = {
+            mapPropsToArgs: () => ['foo'],
+            promise: value => delay(200, {value}),
+            autoRefresh: false,
+        };
+
+        const {container, updateSpy, runAsyncSpy, runAsync} = setupStore({options});
+
+        runAsync({isForced: true});
+        expect(container._cache.awaiting).toMatchObject([['foo']]);
+
+        await delay(250);
+        expect(container._cache.awaiting).toMatchObject([]);
+
+        expect(updateSpy).toHaveBeenCalledTimes(2);
+        expect(runAsyncSpy).toHaveBeenCalledTimes(1);
+        expect([container.state, container._meta]).toMatchSnapshot();
+    });
+
+    it('should not run promises when awaiting', async () => {
+        const options = {
+            mapPropsToArgs: () => ['foo'],
+            promise: value => delay(200, {value}),
+        };
+
+        const {container, updateSpy, runAsyncSpy, runAsync} = setupStore({options});
+
+        runAsync({isForced: false});
+        expect(container._cache.awaiting).toMatchObject([['foo']]);
+
+        runAsync({isForced: false});
+        expect(container._cache.awaiting).toMatchObject([['foo']]);
+
+        runAsync({isForced: false});
+        expect(container._cache.awaiting).toMatchObject([['foo']]);
+
+        await delay(250);
+        expect(container._cache.awaiting).toMatchObject([]);
+
+        expect(updateSpy).toHaveBeenCalledTimes(2);
+        expect(runAsyncSpy).toHaveBeenCalledTimes(3);
+        expect([container.state, container._meta]).toMatchSnapshot();
+    });
+
+    it('should refresh a promise if forced', async () => {
+        let counter = 0;
+        const options = {
+            mapPropsToArgs: () => ['foo'],
+            promise(value) {
+                counter += 1;
+                return delay(200, value + counter);
+            },
+        };
+
+        const {container, updateSpy, runAsync} = setupStore({options});
+
+        await runAsync({isForced: false});
+        expect([container.state, container._meta]).toMatchSnapshot();
+
+        runAsync({isForced: true});
+        expect([container.state, container._meta]).toMatchSnapshot();
+        await delay(250);
+
+        expect([container.state, container._meta]).toMatchSnapshot();
+
+        expect(updateSpy).toHaveBeenCalledTimes(4);
+    });
+
+    it('should not rerun promises if previous promise was rejected', async () => {
+        let called = false;
+        const options = {
+            mapPropsToArgs: () => ['foo'],
+            promise(value) {
+                if (!called) {
+                    called = true;
+                    return delay.reject(200, new Error('foo'));
+                }
+                return delay(200, {value});
+            },
+        };
+
+        const {container, updateSpy, runAsyncSpy, runAsync} = setupStore({options});
+
+        runAsync({isForced: false});
+        expect(container._cache.awaiting).toMatchObject([['foo']]);
+
+        await delay(250);
+        expect(container._cache.awaiting).toMatchObject([]);
+
+        runAsync({isForced: false});
+        expect(container._cache.awaiting).toMatchObject([]);
+
+        expect(updateSpy).toHaveBeenCalledTimes(2);
+        expect(runAsyncSpy).toHaveBeenCalledTimes(2);
+        expect([container.state, container._meta]).toMatchSnapshot();
+    });
+
+    it('should rerun promises if previous promise was rejected but `isForced` is true', async () => {
+        let called = false;
+        const options = {
+            mapPropsToArgs: () => ['foo'],
+            promise(value) {
+                if (!called) {
+                    called = true;
+                    return delay.reject(200, new Error('foo'));
+                }
+                return delay(200, {value});
+            },
+        };
+
+        const {container, updateSpy, runAsyncSpy, runAsync} = setupStore({options});
+
+        runAsync({isForced: true});
+        expect(container._cache.awaiting).toMatchObject([['foo']]);
+
+        await delay(250);
+        expect(container._cache.awaiting).toMatchObject([]);
+
+        runAsync({isForced: true});
+        expect(container._cache.awaiting).toMatchObject([['foo']]);
+
+        await delay(250);
+        expect(container._cache.awaiting).toMatchObject([]);
 
-    expect(updateSpy).toHaveBeenCalledTimes(4);
-    expect(runAsyncSpy).toHaveBeenCalledTimes(2);
-    expect([container.state, container._meta]).toMatchSnapshot();
-});
-
-it('should not try to rerun fulfilled promises if `value` is null', async () => {
-    const options = {
-        mapPropsToArgs: () => [null],
-        promise: value => delay(100, value),
-    };
-
-    const {container, updateSpy, runAsyncSpy, runAsync} = setup({options});
-
-    runAsync({isForced: false});
-    expect(container._cache.awaiting).toMatchObject([[null]]);
-
-    await delay(150);
-    expect(container._cache.awaiting).toMatchObject([]);
-
-    runAsync({isForced: false});
-    expect(container._cache.awaiting).toMatchObject([]);
-
-    expect(updateSpy).toHaveBeenCalledTimes(3);
-    expect(runAsyncSpy).toHaveBeenCalledTimes(2);
-    expect([container.state, container._meta]).toMatchSnapshot();
-});
-
-it('should expire if maxAge is set', async () => {
-    const options = {
-        mapPropsToArgs: () => ['foo'],
-        promise: value => delay(200, {value}),
-        maxAge: 300,
-    };
-
-    const {container, updateSpy, runAsyncSpy, runAsync} = setup({options});
-
-    runAsync({isForced: false});
-    expect(container._cache.awaiting).toMatchObject([['foo']]);
-
-    await delay(250);
-    expect([container.state, container._meta]).toMatchSnapshot(); // fulfilled
-
-    await delay(100);
-    expect([container.state, container._meta]).toMatchSnapshot(); // refreshing
-
-    await delay(650);
-    expect([container.state, container._meta]).toMatchSnapshot(); // refreshing
-    expect(container._cache.awaiting).toMatchObject([['foo']]);
-
-    expect(updateSpy).toHaveBeenCalledTimes(7);
-    expect(runAsyncSpy).toHaveBeenCalledTimes(4);
-});
-
-it('should rehydrate ssr data', async () => {
-    const initialStore = {
-        'unique-key-1': {
-            state: promiseState.fulfilled('foo'),
-            meta: {ssr: true},
-        },
-    };
-
-    const promiseFn = jest.fn(value => delay(200, {value}));
-
-    const options = {
-        mapPropsToArgs: () => ['foo'],
-        promise: promiseFn,
-        ssrKey: 'unique-key-1',
-    };
-
-    const {container, updateSpy, runAsyncSpy, runAsync} = setup({options, initialStore});
-
-    await runAsync({isForced: false});
-
-    expect([container.state, container._meta]).toMatchSnapshot();
-    expect(await container._cache.memoized.get(['foo'])).toBe('foo');
-
-    expect(promiseFn).toHaveBeenCalledTimes(0);
-    expect(updateSpy).toHaveBeenCalledTimes(1);
-    expect(runAsyncSpy).toHaveBeenCalledTimes(1);
-});
-
-it('should add values to cache when `args` change', async () => {
-    let id = 0;
-    const options = {
-        mapPropsToArgs: () => [`foo${id}`, `bar${id}`],
-        promise(foo, bar) {
-            id += 1;
-            return delay(200, {foo, bar});
-        },
-    };
-
-    const {container, updateSpy, runAsync} = setup({options});
-
-    await runAsync({isForced: false});
-    await runAsync({isForced: false});
-
-    expect(await container._cache.memoized.keys()).toEqual([['foo1', 'bar1'], ['foo0', 'bar0']]);
-
-    expect(updateSpy).toHaveBeenCalledTimes(4);
-});
-
-it('should return cached values when `args` change', async () => {
-    let check = false;
-    const options = {
-        mapPropsToArgs: () => [`foo-${check}`],
-        promise(value) {
-            check = !check;
-            return delay(200, {value});
-        },
-    };
-
-    const {container, runAsync} = setup({options});
-
-    await runAsync({isForced: false});
-    expect([container.state, container._meta]).toMatchSnapshot(); // foo-false
-
-    await runAsync({isForced: false});
-    expect([container.state, container._meta]).toMatchSnapshot(); // foo-true
-
-    await runAsync({isForced: false});
-    expect([container.state, container._meta]).toMatchSnapshot(); // foo-false
-});
-
-it('should add a container instances to the `containerMap` if `ssrKey` exists', () => {
-    const options = {
-        promise: () => delay(100, 'foo'),
-        ssrKey: 'unique-key-1',
-    };
-
-    const {Container, getStore} = setup({options});
-    new Container(undefined, {ssrKey: 'unique-key-2'}); // eslint-disable-line no-new
-
-    expect(getStore()).toHaveProperty('unique-key-1');
-    expect(getStore()).toHaveProperty('unique-key-2');
-});
-
-it('should not add a container instances to the `containerMap` if `ssrKey` does not exists', () => {
-    const options = {
-        promise: () => delay(100, 'foo'),
-    };
-
-    const {getStore} = setup({options});
-
-    expect(getStore()).toEqual({});
-});
-
-it('should throw a container instance with such `ssrKey` has been already added', () => {
-    const options = {
-        promise: () => delay(100, 'foo'),
-        ssrKey: 'unique-key-1',
-    };
-
-    const {Container} = setup({options});
-
-    expect(() => new Container({}, {ssrKey: 'unique-key-1'})).toThrow();
+        expect(updateSpy).toHaveBeenCalledTimes(4);
+        expect(runAsyncSpy).toHaveBeenCalledTimes(2);
+        expect([container.state, container._meta]).toMatchSnapshot();
+    });
+
+    it('should not try to rerun fulfilled promises if `value` is null', async () => {
+        const options = {
+            mapPropsToArgs: () => [null],
+            promise: value => delay(100, value),
+        };
+
+        const {container, updateSpy, runAsyncSpy, runAsync} = setupStore({options});
+
+        runAsync({isForced: false});
+        expect(container._cache.awaiting).toMatchObject([[null]]);
+
+        await delay(150);
+        expect(container._cache.awaiting).toMatchObject([]);
+
+        runAsync({isForced: false});
+        expect(container._cache.awaiting).toMatchObject([]);
+
+        expect(updateSpy).toHaveBeenCalledTimes(3);
+        expect(runAsyncSpy).toHaveBeenCalledTimes(2);
+        expect([container.state, container._meta]).toMatchSnapshot();
+    });
+
+    it('should expire if maxAge is set', async () => {
+        const options = {
+            mapPropsToArgs: () => ['foo'],
+            promise: value => delay(200, {value}),
+            maxAge: 300,
+        };
+
+        const {container, updateSpy, runAsyncSpy, runAsync} = setupStore({options});
+
+        runAsync({isForced: false});
+        expect(container._cache.awaiting).toMatchObject([['foo']]);
+
+        await delay(250);
+        expect([container.state, container._meta]).toMatchSnapshot(); // fulfilled
+
+        await delay(100);
+        expect([container.state, container._meta]).toMatchSnapshot(); // refreshing
+
+        await delay(650);
+        expect([container.state, container._meta]).toMatchSnapshot(); // refreshing
+        expect(container._cache.awaiting).toMatchObject([['foo']]);
+
+        expect(updateSpy).toHaveBeenCalledTimes(7);
+        expect(runAsyncSpy).toHaveBeenCalledTimes(4);
+    });
+
+    it('should not call `onExpire` if there are no listeners', async () => {
+        const options = {
+            mapPropsToArgs: () => ['foo'],
+            promise: value => delay(100, {value}),
+            maxAge: 200,
+        };
+
+        const {container, updateSpy, runAsyncSpy, subscribeSpy, runAsync} = setupStore({options});
+
+        runAsync({isForced: false});
+        await delay(250);
+
+        expect(updateSpy).toHaveBeenCalledTimes(3);
+        expect(runAsyncSpy).toHaveBeenCalledTimes(2);
+
+        container._unsubscribe(subscribeSpy);
+        await delay(250);
+
+        expect(updateSpy).toHaveBeenCalledTimes(4);
+        expect(runAsyncSpy).toHaveBeenCalledTimes(2);
+    });
+
+    it('should rehydrate ssr data', async () => {
+        const initialStore = {
+            'unique-key-1': {
+                state: promiseState.fulfilled('foo'),
+                meta: {ssr: true},
+            },
+        };
+
+        const promiseFn = jest.fn(value => delay(200, {value}));
+
+        const options = {
+            mapPropsToArgs: () => ['foo'],
+            promise: promiseFn,
+            ssrKey: 'unique-key-1',
+        };
+
+        const {container, updateSpy, runAsyncSpy, runAsync} = setupStore({options, initialStore});
+
+        await runAsync({isForced: false});
+
+        expect([container.state, container._meta]).toMatchSnapshot();
+        expect(await container._cache.memoized.get(['foo'])).toBe('foo');
+
+        expect(promiseFn).toHaveBeenCalledTimes(0);
+        expect(updateSpy).toHaveBeenCalledTimes(1);
+        expect(runAsyncSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should add values to cache when `args` change', async () => {
+        let id = 0;
+        const options = {
+            mapPropsToArgs: () => [`foo${id}`, `bar${id}`],
+            promise(foo, bar) {
+                id += 1;
+                return delay(200, {foo, bar});
+            },
+        };
+
+        const {container, updateSpy, runAsync} = setupStore({options});
+
+        await runAsync({isForced: false});
+        await runAsync({isForced: false});
+
+        expect(await container._cache.memoized.keys()).toEqual([['foo1', 'bar1'], ['foo0', 'bar0']]);
+
+        expect(updateSpy).toHaveBeenCalledTimes(4);
+    });
+
+    it('should return cached values when `args` change', async () => {
+        let check = false;
+        const options = {
+            mapPropsToArgs: () => [`foo-${check}`],
+            promise(value) {
+                check = !check;
+                return delay(200, {value});
+            },
+        };
+
+        const {container, runAsync} = setupStore({options});
+
+        await runAsync({isForced: false});
+        expect([container.state, container._meta]).toMatchSnapshot(); // foo-false
+
+        await runAsync({isForced: false});
+        expect([container.state, container._meta]).toMatchSnapshot(); // foo-true
+
+        await runAsync({isForced: false});
+        expect([container.state, container._meta]).toMatchSnapshot(); // foo-false
+    });
 });

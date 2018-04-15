@@ -2,20 +2,13 @@
  * @jest-environment node
  */
 
+/* eslint-disable react/prop-types, react/no-multi-comp, react/prefer-stateless-function */
+
 import React from 'react';
 import ReactDOM from 'react-dom/server';
 import {getDataFromTree} from '../src/index';
 import {walkTree} from '../src/getDataFromTree';
-import {testComponent, testComponentNested} from '../__test-helpers__/util';
-
-function times(n, fn) {
-    const arr = new Array(n);
-    const out = [];
-    for (let i = 0, l = arr.length; i < l; i++) {
-        out.push(fn(i));
-    }
-    return out;
-}
+import {testComponent, testComponentNested, times} from '../__test-helpers__/util';
 
 describe('getDataFromTree()', () => {
     it('should fetch and render to string with data', async () => {

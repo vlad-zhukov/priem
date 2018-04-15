@@ -120,3 +120,11 @@ export function testComponentNestedDecorated({initialStore} = {}) {
 
     return {element: <TestComponent1 />, getStore};
 }
+
+export function times(n, fn) {
+    const out = [];
+    for (let i = 0; i < n; i++) {
+        out.push(fn(i));
+    }
+    return out;
+}

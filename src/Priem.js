@@ -65,14 +65,14 @@ export default class Priem extends React.Component {
         if (instancesToSub) {
             const instanceToSubKeys = Object.keys(instancesToSub);
             instanceToSubKeys.forEach((key) => {
-                instancesToSub[key].subscribe(this._onUpdate);
+                instancesToSub[key]._subscribe(this._onUpdate);
             });
         }
 
         if (instancesToUnsub) {
             const instanceToUnsubKeys = Object.keys(instancesToUnsub);
             instanceToUnsubKeys.forEach((key) => {
-                instancesToUnsub[key].unsubscribe(this._onUpdate);
+                instancesToUnsub[key]._unsubscribe(this._onUpdate);
             });
         }
 
