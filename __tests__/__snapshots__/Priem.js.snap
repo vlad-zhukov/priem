@@ -167,3 +167,5 @@ Object {
   },
 }
 `;
+
+exports[`should throw if there is a race condition 1`] = `[Error: Priem: exceeded the threshold of consecutive updates of AsyncContainer. This indicates a race condition between 2 or more Priem components that results in an infinite rerender loop. Please, fix.]`;

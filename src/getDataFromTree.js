@@ -123,10 +123,10 @@ function getPromisesFromTree(rootElement) {
             const p = Object.keys(instance._sources).map((key) => {
                 const source = instance._sources[key];
 
-                if (type(source.runAsync) === 'function') {
+                if (type(source._runAsync) === 'function') {
                     const opts = {props: instance._getProps(), isForced: false};
                     const promise = Promise.resolve()
-                        .then(() => source.runAsync(opts))
+                        .then(() => source._runAsync(opts))
                         .then(() => source);
 
                     return {promise, instance};

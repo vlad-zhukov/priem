@@ -161,3 +161,38 @@ it('should render a nested component', async () => {
     expect(wrapper).toMatchSnapshot();
     expect(getStore()).toMatchSnapshot();
 });
+
+it('should throw if there is a race condition', async () => {
+    const {AsyncContainer} = createStore();
+    const container = new AsyncContainer({
+        mapPropsToArgs: ({value}) => [value],
+        promise: value => delay(100, value),
+    });
+
+    class ErrorBoundary extends React.Component {
+        state = {initTime: Date.now(), hasError: null};
+
+        componentDidCatch(error) {
+            this.setState({hasError: error, catchTime: Date.now()});
+        }
+
+        render() {
+            if (this.state.hasError) {
+                return null;
+            }
+            return this.props.children;
+        }
+    }
+
+    const wrapper = mount(
+        <ErrorBoundary>
+            <Priem sources={{container}} value="foo" />
+            <Priem sources={{container}} value="bar" />
+        </ErrorBoundary>
+    );
+    await delay(500);
+
+    const state = wrapper.state();
+    console.info(`Error has been caught in ${state.catchTime - state.initTime}ms`);
+    expect(state.hasError).toMatchSnapshot();
+});

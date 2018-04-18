@@ -81,6 +81,8 @@ export default function createStore(initialStore = {}) {
 
             this._mapPropsToArgs = options.mapPropsToArgs || (() => []);
             this._cache = new Cache();
+            this._recentCallCount = 0;
+            this._lastCallTime = 0;
         }
 
         update = (updater) => {
@@ -100,8 +102,25 @@ export default function createStore(initialStore = {}) {
             });
         };
 
-        runAsync = ({props, isForced}) =>
-            this._cache.run({
+        _runAsync = ({props, isForced}) => {
+            const now = Date.now();
+            if (now - this._lastCallTime < 100) {
+                if (this._recentCallCount > 100) {
+                    throw new Error(
+                        'Priem: exceeded the threshold of consecutive updates of AsyncContainer. ' +
+                            'This indicates a race condition between 2 or more Priem components ' +
+                            'that results in an infinite rerender loop. Please, fix.'
+                    );
+                }
+                this._recentCallCount += 1;
+            }
+            else {
+                this._recentCallCount = 1;
+            }
+
+            this._lastCallTime = now;
+
+            return this._cache.run({
                 args: this._mapPropsToArgs(props),
                 promise: this._options.promise,
                 autoRefresh: this._options.autoRefresh,
@@ -112,10 +131,11 @@ export default function createStore(initialStore = {}) {
                 update: this.update,
                 onExpire: () => {
                     if (this._listeners.length > 0) {
-                        this.runAsync({props, isForced: true});
+                        this._runAsync({props, isForced: true});
                     }
                 },
             });
+        };
 
         _unsubscribe(fn) {
             super._unsubscribe(fn);
