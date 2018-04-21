@@ -1,4 +1,4 @@
-# priem · [![npm](https://img.shields.io/npm/v/priem.svg)](https://npm.im/priem) [![Build Status](https://travis-ci.org/vlad-zhukov/priem.svg?branch=master)](https://travis-ci.org/vlad-zhukov/priem)
+# priem · [![npm][1]][2] [![Build Status][3]][4] [![codecov][5]][6]
 
 > Rich (a)sync state management across multiple React components
 
@@ -311,3 +311,10 @@ An object with prop types.
 - `promiseState` _(Object)_
 
 ---
+
+[1]: https://img.shields.io/npm/v/priem.svg
+[2]: https://npm.im/priem
+[3]: https://travis-ci.org/vlad-zhukov/priem.svg?branch=master
+[4]: https://travis-ci.org/vlad-zhukov/priem
+[5]: https://codecov.io/gh/vlad-zhukov/priem/branch/master/graph/badge.svg
+[6]: https://codecov.io/gh/vlad-zhukov/priem
