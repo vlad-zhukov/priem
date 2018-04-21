@@ -19,5 +19,4 @@ cache:
     - "node_modules"
 
 script:
-  - yarn prepublishOnly
-  - codecov --disable=gcov
+  - yarn prepublishOnly && codecov --disable=gcov
