@@ -1,20 +1,7 @@
 import moize from 'moize';
-import {elementsEqual} from 'react-shallow-equal';
+import {deepEqual} from 'fast-equals';
 import * as promiseState from './promiseState';
 import {isBrowser} from './helpers';
-
-function arrayElementsEqual(a, b) {
-    if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) {
-        return false;
-    }
-    for (let i = 0; i < a.length; i++) {
-        if (a[i] !== b[i]) {
-            return false;
-        }
-    }
-
-    return true;
-}
 
 export default class Cache {
     constructor({promise, maxAge, maxArgs, maxSize = Infinity, update, runAsync}) {
@@ -30,7 +17,7 @@ export default class Cache {
             maxArgs,
             maxSize,
             onExpire: (args) => {
-                if (arrayElementsEqual(args, this.prevArgs)) {
+                if (deepEqual(args, this.prevArgs)) {
                     runAsync();
                 }
             },
@@ -39,7 +26,7 @@ export default class Cache {
 
     getAwaitingIndex(args) {
         for (let i = 0, l = this.awaiting.length; i < l; i++) {
-            if (elementsEqual(this.awaiting[i], args)) {
+            if (deepEqual(this.awaiting[i], args)) {
                 return i;
             }
         }
@@ -52,6 +39,7 @@ export default class Cache {
 
     removeAwaiting(args) {
         const index = this.getAwaitingIndex(args);
+        /* istanbul ignore next */
         if (index !== -1) {
             this.awaiting.splice(index, 1);
         }
@@ -80,7 +68,7 @@ export default class Cache {
 
             if (this.memoized.has(args)) {
                 // Do not recall memoized promises unless forced
-                if (isFulfilled && !isForced && arrayElementsEqual(args, this.prevArgs)) {
+                if (isFulfilled && !isForced && deepEqual(args, this.prevArgs)) {
                     shouldUpdateState = false;
                     return null;
                 }

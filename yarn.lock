@@ -2153,6 +2153,10 @@ fast-equals@^1.2.1:
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/fast-equals/-/fast-equals-1.2.1.tgz#aa1926b828213df4b528bfd9e21b17ba1c7d34cb"
 
+fast-equals@^1.3.1:
+  version "1.3.1"
+  resolved "https://registry.yarnpkg.com/fast-equals/-/fast-equals-1.3.1.tgz#e4f2f35beac5b22b900873d128926168db0a5e91"
+
 fast-json-stable-stringify@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/fast-json-stable-stringify/-/fast-json-stable-stringify-2.0.0.tgz#d5142c0caee6b1189f87d3a76111064f86c8bbf2"
@@ -4189,12 +4193,6 @@ react-reconciler@^0.7.0:
     object-assign "^4.1.1"
     prop-types "^15.6.0"
 
-react-shallow-equal@^0.1.1:
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/react-shallow-equal/-/react-shallow-equal-0.1.1.tgz#7a8e317e42c3f9871c6e788426cbd6ed65390c63"
-  dependencies:
-    style-equal "^1.0.0"
-
 react-test-renderer@^16.0.0-0:
   version "16.3.1"
   resolved "https://registry.yarnpkg.com/react-test-renderer/-/react-test-renderer-16.3.1.tgz#d9257936d8535bd40f57f3d5a84e7b0452fb17f2"
@@ -4826,10 +4824,6 @@ strip-eof@^1.0.0:
 strip-json-comments@~2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/strip-json-comments/-/strip-json-comments-2.0.1.tgz#3c531942e908c2697c0ec344858c286c7ca0a60a"
-
-style-equal@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/style-equal/-/style-equal-1.0.0.tgz#98a1c5922226bfe13c196e73f1940e91b8e66595"
 
 supports-color@^2.0.0:
   version "2.0.0"
