@@ -173,7 +173,7 @@ it('should rerun promises when cache expires if maxAge is set', async () => {
     expect(updateSpy).toHaveBeenCalledTimes(1);
     expect(runAsyncSpy).toHaveBeenCalledTimes(2);
 
-    await delay(200);
+    await delay(250);
     wrapper.update();
 
     expect(container.state).toMatchSnapshot(); // fulfilled
@@ -190,7 +190,7 @@ it('should rerun promises when cache expires if maxAge is set', async () => {
     expect(updateSpy).toHaveBeenCalledTimes(4);
     expect(runAsyncSpy).toHaveBeenCalledTimes(5);
 
-    await delay(210);
+    await delay(200);
     wrapper.update();
 
     expect(container.state).toMatchSnapshot(); // fulfilled
