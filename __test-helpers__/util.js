@@ -7,6 +7,9 @@ import {Priem, withPriem, createStore} from '../src/index';
 export function testComponent({initialStore, options} = {}) {
     const {AsyncContainer, getStore} = createStore(initialStore);
 
+    const updateSpy = jest.spyOn(AsyncContainer.prototype, '_update');
+    const runAsyncSpy = jest.spyOn(AsyncContainer.prototype, '_runAsync');
+
     const container = new AsyncContainer({
         mapPropsToArgs: () => ['foo'],
         promise: value => delay(100, value),
@@ -14,10 +17,11 @@ export function testComponent({initialStore, options} = {}) {
     });
 
     const setStateSpy = jest.spyOn(Priem.prototype, 'setState');
+    setStateSpy.mockClear();
 
     const element = <Priem sources={{container}} render={p => <div>{p.container.value}</div>} />;
 
-    return {element, container, getStore, setStateSpy};
+    return {element, container, getStore, updateSpy, runAsyncSpy, setStateSpy};
 }
 
 export function testComponentDecorated({initialStore, options} = {}) {

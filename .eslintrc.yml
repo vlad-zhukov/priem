@@ -1,11 +1,10 @@
 parser: babel-eslint
 
-extends: airbnb
+extends: [airbnb, plugin:jest/recommended]
 
 env:
     browser: true
     node: true
-    jest: true
 
 rules:
     brace-style: [error, stroustrup, {allowSingleLine: true}]

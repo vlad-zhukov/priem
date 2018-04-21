@@ -11,10 +11,11 @@ function setupStore({options, initialStore} = {}) {
     };
 
     if (options) {
+        out.updateSpy = jest.spyOn(AsyncContainer.prototype, '_update');
+        out.runAsyncSpy = jest.spyOn(AsyncContainer.prototype, '_runAsync');
+
         out.container = new AsyncContainer(options);
 
-        out.updateSpy = jest.spyOn(out.container, 'update');
-        out.runAsyncSpy = jest.spyOn(out.container, '_runAsync');
         out.subscribeSpy = jest.fn(() => {});
         out.container._subscribe(out.subscribeSpy);
     }
@@ -293,54 +294,6 @@ describe('AsyncContainer()', () => {
         expect(updateSpy).toHaveBeenCalledTimes(3);
         expect(runAsyncSpy).toHaveBeenCalledTimes(2);
         expect([container.state, container._meta]).toMatchSnapshot();
-    });
-
-    it('should expire if maxAge is set', async () => {
-        const options = {
-            mapPropsToArgs: () => ['foo'],
-            promise: value => delay(200, {value}),
-            maxAge: 300,
-        };
-
-        const {container, updateSpy, runAsyncSpy} = setupStore({options});
-
-        container._runAsync({isForced: false});
-        expect(container._cache.awaiting).toMatchObject([['foo']]);
-
-        await delay(250);
-        expect([container.state, container._meta]).toMatchSnapshot(); // fulfilled
-
-        await delay(100);
-        expect([container.state, container._meta]).toMatchSnapshot(); // refreshing
-
-        await delay(650);
-        expect([container.state, container._meta]).toMatchSnapshot(); // refreshing
-        expect(container._cache.awaiting).toMatchObject([['foo']]);
-
-        expect(updateSpy).toHaveBeenCalledTimes(7);
-        expect(runAsyncSpy).toHaveBeenCalledTimes(4);
-    });
-
-    it('should not call `onExpire` if there are no listeners', async () => {
-        const options = {
-            mapPropsToArgs: () => ['foo'],
-            promise: value => delay(100, {value}),
-            maxAge: 200,
-        };
-
-        const {container, updateSpy, runAsyncSpy, subscribeSpy} = setupStore({options});
-
-        container._runAsync({isForced: false});
-        await delay(250);
-
-        expect(updateSpy).toHaveBeenCalledTimes(3);
-        expect(runAsyncSpy).toHaveBeenCalledTimes(2);
-
-        container._unsubscribe(subscribeSpy);
-        await delay(250);
-
-        expect(updateSpy).toHaveBeenCalledTimes(4);
-        expect(runAsyncSpy).toHaveBeenCalledTimes(2);
     });
 
     it('should rehydrate ssr data', async () => {

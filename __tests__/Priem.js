@@ -92,6 +92,7 @@ it('should resubscribe when `sources` change', () => {
 
 it('should rerender when container state changes', () => {
     const {Container} = createStore();
+
     const container = new Container({value: 1});
     const wrapper = mount(<Priem sources={{}} render={() => null} />);
     const onUpdateSpy = jest.spyOn(wrapper.instance(), '_onUpdate');
@@ -142,6 +143,81 @@ it('should have a `refresh` method', async () => {
     expect(container.state).toMatchSnapshot(); // fulfilled
 });
 
+it('should rerun promises when cache expires if maxAge is set', async () => {
+    /**
+     * ASYNC UPDATE FLOW.
+     * Numbers mean the order of function calls.
+     *
+     *                     | Priem#setState | AsyncC#_update | AsyncC#_runAsync
+     * --------------------|----------------|----------------|------------------
+     *  mount (pending)    | 3              | 2              | 1, 4
+     *  fulfilled          | 6              | 5, 8           | 7
+     *  setProps (pending) | 11             | 10             | 9, 12
+     *  fulfilled          | 14             | 13, 16         | 15
+     *  onExpire (pending) | 19             | 18             | 17, 20
+     *  fulfilled          | 22             | 21, 24         | 23
+     */
+
+    const options = {
+        mapPropsToArgs: ({count = 1}) => [`foo${count}`],
+        promise: value => delay(200, value),
+        maxAge: 300,
+    };
+
+    const {element, container, updateSpy, runAsyncSpy, setStateSpy} = testComponent({options});
+    const wrapper = mount(element);
+
+    expect(container.state).toMatchSnapshot(); // pending
+    expect(container._cache.awaiting).toMatchObject([['foo1']]);
+    expect(setStateSpy).toHaveBeenCalledTimes(1);
+    expect(updateSpy).toHaveBeenCalledTimes(1);
+    expect(runAsyncSpy).toHaveBeenCalledTimes(2);
+
+    await delay(250);
+    wrapper.update();
+
+    expect(container.state).toMatchSnapshot(); // fulfilled
+    expect(container._cache.awaiting).toMatchObject([]);
+    expect(setStateSpy).toHaveBeenCalledTimes(2);
+    expect(updateSpy).toHaveBeenCalledTimes(3);
+    expect(runAsyncSpy).toHaveBeenCalledTimes(3);
+
+    wrapper.setProps({count: 2});
+
+    expect(container.state).toMatchSnapshot(); // refreshing
+    expect(container._cache.awaiting).toMatchObject([['foo2']]);
+    expect(setStateSpy).toHaveBeenCalledTimes(3);
+    expect(updateSpy).toHaveBeenCalledTimes(4);
+    expect(runAsyncSpy).toHaveBeenCalledTimes(5);
+
+    await delay(200);
+    wrapper.update();
+
+    expect(container.state).toMatchSnapshot(); // fulfilled
+    expect(container._cache.awaiting).toMatchObject([]);
+    expect(setStateSpy).toHaveBeenCalledTimes(4);
+    expect(updateSpy).toHaveBeenCalledTimes(6);
+    expect(runAsyncSpy).toHaveBeenCalledTimes(6);
+
+    await delay(200);
+    wrapper.update();
+
+    expect(container.state).toMatchSnapshot(); // refreshing
+    expect(container._cache.awaiting).toMatchObject([['foo2']]);
+    expect(setStateSpy).toHaveBeenCalledTimes(5);
+    expect(updateSpy).toHaveBeenCalledTimes(7);
+    expect(runAsyncSpy).toHaveBeenCalledTimes(8);
+
+    await delay(100);
+    wrapper.update();
+
+    expect(container.state).toMatchSnapshot(); // fulfilled
+    expect(container._cache.awaiting).toMatchObject([]);
+    expect(setStateSpy).toHaveBeenCalledTimes(6);
+    expect(updateSpy).toHaveBeenCalledTimes(9);
+    expect(runAsyncSpy).toHaveBeenCalledTimes(9);
+});
+
 it('should render a nested component', async () => {
     const {element, getStore} = testComponentNested({
         syncContainerProps: {ssrKey: 'unique-key-1'},
@@ -169,6 +245,7 @@ it('should throw if there is a race condition', async () => {
         promise: value => delay(100, value),
     });
 
+    /* eslint-disable react/no-unused-state, react/prop-types */
     class ErrorBoundary extends React.Component {
         state = {initTime: Date.now(), hasError: null};
 
@@ -183,6 +260,7 @@ it('should throw if there is a race condition', async () => {
             return this.props.children;
         }
     }
+    /* eslint-enable react/no-unused-state, react/prop-types */
 
     const wrapper = mount(
         <ErrorBoundary>

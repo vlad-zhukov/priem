@@ -2,12 +2,13 @@ import {type} from './helpers';
 
 /**
  * Constructor for creating a new promiseState.
- * @param [pending] {Boolean}
- * @param [refreshing] {Boolean}
- * @param [fulfilled] {Boolean}
- * @param [rejected] {Boolean}
- * @param [value] {*}
- * @param [reason] {String|Null}
+ * @param [options] {Object}
+ * @param [options.pending] {Boolean}
+ * @param [options.refreshing] {Boolean}
+ * @param [options.fulfilled] {Boolean}
+ * @param [options.rejected] {Boolean}
+ * @param [options.value] {*}
+ * @param [options.reason] {String|Null}
  * @returns {Object}
  */
 function create({

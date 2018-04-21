@@ -17,18 +17,24 @@ function arrayElementsEqual(a, b) {
 }
 
 export default class Cache {
-    constructor() {
-        this.memoized = null;
+    constructor({promise, maxAge, maxArgs, maxSize = Infinity, update, runAsync}) {
+        this._update = update;
+
         this.awaiting = [];
         this.rejected = false;
         this.prevArgs = null;
-    }
 
-    isMemoized(args) {
-        if (!this.memoized) {
-            return false;
-        }
-        return this.memoized.has(args);
+        this.memoized = moize(promise, {
+            isPromise: true,
+            maxAge,
+            maxArgs,
+            maxSize,
+            onExpire: (args) => {
+                if (arrayElementsEqual(args, this.prevArgs)) {
+                    runAsync();
+                }
+            },
+        });
     }
 
     getAwaitingIndex(args) {
@@ -51,20 +57,10 @@ export default class Cache {
         }
     }
 
-    run({args, promise, maxAge, maxArgs, maxSize = Infinity, autoRefresh = true, isForced, update, onExpire}) {
+    run({args, autoRefresh = true, isForced}) {
         // Stop auto-refreshing
         if (!autoRefresh && !isForced) {
             return;
-        }
-
-        if (!this.memoized) {
-            this.memoized = moize(promise, {
-                isPromise: true,
-                maxAge,
-                maxArgs,
-                maxSize,
-                onExpire,
-            });
         }
 
         // Do not recall rejected (uncached) promises unless forced
@@ -78,12 +74,11 @@ export default class Cache {
 
         let shouldUpdateState = true;
 
-        // eslint-disable-next-line consistent-return
-        update((s, m) => {
+        this._update((s, m) => {
             const isFulfilled = !!s.fulfilled;
             const isSsr = !!(isFulfilled && m.ssr);
 
-            if (this.isMemoized(args)) {
+            if (this.memoized.has(args)) {
                 // Do not recall memoized promises unless forced
                 if (isFulfilled && !isForced && arrayElementsEqual(args, this.prevArgs)) {
                     shouldUpdateState = false;
@@ -94,7 +89,6 @@ export default class Cache {
                 shouldUpdateState = false;
                 this.memoized.add(args, Promise.resolve(s.value));
                 this.prevArgs = args;
-                // eslint-disable-next-line consistent-return
                 return {
                     meta: {ssr: false},
                 };
@@ -118,6 +112,8 @@ export default class Cache {
             return;
         }
 
+        this.prevArgs = args;
+
         if (isForced) {
             this.memoized.remove(args);
         }
@@ -126,8 +122,7 @@ export default class Cache {
         return this.memoized(...args)
             .then((result) => {
                 this.removeAwaiting(args);
-                this.prevArgs = args;
-                update({
+                this._update({
                     state: promiseState.fulfilled(result),
                     meta: {ssr: !isBrowser},
                 });
@@ -136,7 +131,7 @@ export default class Cache {
                 this.removeAwaiting(args);
                 this.rejected = true;
                 this.prevArgs = null;
-                update({
+                this._update({
                     state: promiseState.rejected(e.message),
                     meta: {ssr: !isBrowser},
                 });

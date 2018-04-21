@@ -79,18 +79,28 @@ export default function createStore(initialStore = {}) {
 
             super(promiseState.empty(), options);
 
+            this._update = this._update.bind(this);
+            this._runAsync = this._runAsync.bind(this);
+
             this._mapPropsToArgs = options.mapPropsToArgs || (() => []);
-            this._cache = new Cache();
+            this._cache = new Cache({
+                promise: options.promise,
+                maxAge: options.maxAge,
+                maxArgs: options.maxArgs,
+                maxSize: options.maxSize,
+                update: this._update,
+                runAsync: this._runAsync,
+            });
             this._recentCallCount = 0;
             this._lastCallTime = 0;
+            this._prevProps = null;
         }
 
-        update = (updater) => {
+        _update(updater) {
             this.setState((state) => {
                 const updaterResult = type(updater) === 'function' ? updater(state, this._meta) : updater;
 
                 if (updaterResult != null) {
-                    // eslint-disable-next-line no-param-reassign
                     this._meta = {...this._meta, ...updaterResult.meta};
 
                     if (updaterResult.state) {
@@ -100,9 +110,9 @@ export default function createStore(initialStore = {}) {
 
                 return null;
             });
-        };
+        }
 
-        _runAsync = ({props, isForced}) => {
+        _runAsync(options) {
             const now = Date.now();
             if (now - this._lastCallTime < 100) {
                 if (this._recentCallCount > 100) {
@@ -117,25 +127,17 @@ export default function createStore(initialStore = {}) {
             else {
                 this._recentCallCount = 1;
             }
-
             this._lastCallTime = now;
+
+            const props = (options && options.props) || this._prevProps;
+            this._prevProps = props;
 
             return this._cache.run({
                 args: this._mapPropsToArgs(props),
-                promise: this._options.promise,
                 autoRefresh: this._options.autoRefresh,
-                maxAge: this._options.maxAge,
-                maxArgs: this._options.maxArgs,
-                maxSize: this._options.maxSize,
-                isForced,
-                update: this.update,
-                onExpire: () => {
-                    if (this._listeners.length > 0) {
-                        this._runAsync({props, isForced: true});
-                    }
-                },
+                isForced: (options && options.isForced) || false,
             });
-        };
+        }
 
         _unsubscribe(fn) {
             super._unsubscribe(fn);

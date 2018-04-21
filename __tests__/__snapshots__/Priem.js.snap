@@ -168,4 +168,70 @@ Object {
 }
 `;
 
+exports[`should rerun promises when cache expires if maxAge is set 1`] = `
+Object {
+  "fulfilled": false,
+  "pending": true,
+  "reason": null,
+  "refreshing": false,
+  "rejected": false,
+  "value": null,
+}
+`;
+
+exports[`should rerun promises when cache expires if maxAge is set 2`] = `
+Object {
+  "fulfilled": true,
+  "pending": false,
+  "reason": null,
+  "refreshing": false,
+  "rejected": false,
+  "value": "foo1",
+}
+`;
+
+exports[`should rerun promises when cache expires if maxAge is set 3`] = `
+Object {
+  "fulfilled": true,
+  "pending": false,
+  "reason": null,
+  "refreshing": true,
+  "rejected": false,
+  "value": "foo1",
+}
+`;
+
+exports[`should rerun promises when cache expires if maxAge is set 4`] = `
+Object {
+  "fulfilled": true,
+  "pending": false,
+  "reason": null,
+  "refreshing": false,
+  "rejected": false,
+  "value": "foo2",
+}
+`;
+
+exports[`should rerun promises when cache expires if maxAge is set 5`] = `
+Object {
+  "fulfilled": true,
+  "pending": false,
+  "reason": null,
+  "refreshing": true,
+  "rejected": false,
+  "value": "foo2",
+}
+`;
+
+exports[`should rerun promises when cache expires if maxAge is set 6`] = `
+Object {
+  "fulfilled": true,
+  "pending": false,
+  "reason": null,
+  "refreshing": false,
+  "rejected": false,
+  "value": "foo2",
+}
+`;
+
 exports[`should throw if there is a race condition 1`] = `[Error: Priem: exceeded the threshold of consecutive updates of AsyncContainer. This indicates a race condition between 2 or more Priem components that results in an infinite rerender loop. Please, fix.]`;
