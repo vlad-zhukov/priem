@@ -16,8 +16,9 @@ if (env === 'production') {
     presets.unshift([
         '@babel/preset-env',
         {
-            targets: {node: 6, browsers: ['> 1%']},
-            modules: false
+            targets: {node: '6.6'},
+            modules: false,
+            loose: true,
         }
     ]);
 }

@@ -6,5 +6,5 @@ export default function withPriem(opts) {
         throw new Error("'render', 'component' and 'children' props are not supported with 'withPriem' decorator.");
     }
 
-    return component => props => <Priem {...opts} {...props} component={component} />;
+    return component => props => React.createElement(Priem, {...opts, ...props, component});
 }
