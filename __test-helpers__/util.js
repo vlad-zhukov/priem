@@ -4,6 +4,8 @@ import React from 'react';
 import delay from 'delay';
 import {Priem, withPriem, createStore} from '../src/index';
 
+const setStateSpy = jest.spyOn(Priem.prototype, 'setState');
+
 export function testComponent({initialStore, options} = {}) {
     const {AsyncContainer, getStore} = createStore(initialStore);
 
@@ -16,7 +18,6 @@ export function testComponent({initialStore, options} = {}) {
         ...options,
     });
 
-    const setStateSpy = jest.spyOn(Priem.prototype, 'setState');
     setStateSpy.mockClear();
 
     const element = <Priem sources={{container}} render={p => <div>{p.container.value}</div>} />;

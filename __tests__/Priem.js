@@ -161,7 +161,7 @@ it('should rerun promises when cache expires if maxAge is set', async () => {
     const options = {
         mapPropsToArgs: ({count = 1}) => [`foo${count}`],
         promise: value => delay(200, value),
-        maxAge: 300,
+        maxAge: 1000,
     };
 
     const {element, container, updateSpy, runAsyncSpy, setStateSpy} = testComponent({options});
@@ -199,7 +199,7 @@ it('should rerun promises when cache expires if maxAge is set', async () => {
     expect(updateSpy).toHaveBeenCalledTimes(6);
     expect(runAsyncSpy).toHaveBeenCalledTimes(6);
 
-    await delay(200);
+    await delay(800);
     wrapper.update();
 
     expect(container.state).toMatchSnapshot(); // refreshing
@@ -208,7 +208,7 @@ it('should rerun promises when cache expires if maxAge is set', async () => {
     expect(updateSpy).toHaveBeenCalledTimes(7);
     expect(runAsyncSpy).toHaveBeenCalledTimes(8);
 
-    await delay(100);
+    await delay(200);
     wrapper.update();
 
     expect(container.state).toMatchSnapshot(); // fulfilled

@@ -20,4 +20,4 @@ cache:
 
 script:
   - yarn prepublishOnly
-  - codecov
+  - codecov --disable=gcov
