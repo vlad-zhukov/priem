@@ -1,19 +1,21 @@
 # priem · [![npm][1]][2] [![Build Status][3]][4] [![codecov][5]][6]
 
-> Rich (a)sync state management across multiple React components
+> Rich (a)sync state management.
 
 ## Table of Contents
 
 - [Install](#install)
 - [Getting Started](#getting-started)
+  - [Sync usage](#sync-usage)
+  - [Server-side rendering](#server-side-rendering)
+  - [`withPriem` HOC](#withpriem-hoc)
 - [Examples](#examples)
 - [API](#api)
-  - [`PriemProvider`](#priemprovider)
+  - [`createStore`](#createStore)
   - [`Priem`](#priem)
   - [`withPriem`](#withpriemprops)
   - [`getDataFromTree`](#getdatafromtreecomponent)
   - [`promiseState`](#promisestate)
-  - [`propTypes`](#proptypes)
 
 ## Install
 
@@ -23,115 +25,111 @@ yarn add priem
 
 ## Getting Started
 
-__Step 1:__ Wrap your component tree with the `PriemProvider`:
+### Sync usage
 
 ```jsx
 import React from 'react';
-import ReactDOM from 'react-dom';
-import {PriemProvider} from 'priem';
-import App from './App';
+import {Priem, createStore} from 'priem';
 
-ReactDOM.render(
-    <PriemProvider>
-        <App />
-    </PriemProvider>,
-    document.getElementById('root')
-);
-```
+const {Container} = createStore();
 
-__Step 2:__ Connect components with the `Priem` component:
+class CounterContainer extends Continer {
+    increment = () => {
+        this.setState({value: this.state.value + 1});
+    };
 
-```jsx
-import React from 'react';
-import {Priem} from 'priem';
+    decrement = () => {
+        this.setState({value: this.state.value - 1});
+    };
+}
+
+const counterContainer = new CounterContainer({value: 1});
 
 export default () => (
     <Priem
-        name="Counter"
-        initialValues={{couter: 0}}
-        render={({priem, setPriem}) => {
-            const increment = () => setPriem(state => ({
-                counter: state.counter + 1,
-            }));
-
-            const decrement = () => setPriem(state => ({
-                counter: state.counter - 1,
-            }))
-
-            return (
-                <div>
-                    <p>{priem.counter}</p>
-                    <button onClick={increment}>Increment</button>
-                    <button onClick={decrement}>Decrement</button>
-                </div>
-            );
-        }}
+        sources={{counter: counterContainer}}
+        render={({counter}) => (
+            <div>
+                <p>{counter.value}</p>
+                <button onClick={counterContainer.increment}>Increment</button>
+                <button onClick={counterContainer.decrement}>Decrement</button>
+            </div>
+        )}
     />
 );
 ```
 
-## Examples
+### Server-side rendering
 
-Example apps can be found under the `examples/` directory. They are
-ported from the official [Redux repository](https://github.com/reactjs/redux/tree/master/examples),
-so you can compare both implementations.
+__store.js__
 
-- [Counter](https://github.com/Vlad-Zhukov/priem/tree/master/examples/counter)
-- [Async](https://github.com/Vlad-Zhukov/priem/tree/master/examples/async)
+```jsx
+import {createStore} from 'priem';
 
-__Async usage__
+let initialStore = {};
+
+if (isBrowser) {
+    initialStore = JSON.parse(window.__PRIEM_STORE__);
+    delete window.__PRIEM_STORE__;
+}
+
+const {AsyncContainer, getStore} = createStore(initialStore);
+
+const redditContainer = new AsyncContainer({
+    promise: () => fetch('https://www.reddit.com/r/reactjs.json')
+       .then(res => res.json())
+       .then(res => res.data.children),
+    ssrKey: 'redditContainer', // this is required for SSR to work
+});
+
+export {redditContainer, getStore};
+```
+
+__App.js__
 
 ```jsx
 import React from 'react';
 import {Priem} from 'priem';
+import {redditContainer} from './store';
 
 export default () => (
     <Priem
-        name="Async" // 'name' is required
-        asyncValues={props => ({
-            [props.reddit]: {
-              args: [props.reddit],
-              promise: reddit => fetch(`https://www.reddit.com/r/${reddit}.json`)
-                  .then(res => res.json())
-                  .then(res => res.data.children),
-            },
-        })}
-        render=(({priem, reddit}) => {
-            const {pending, refreshing, value} = priem[reddit];
+        sources={{reddit: redditContainer}}
+        render=(({reddit}) => {
+            const {pending, refreshing, value} = reddit;
 
             if (!value) {
                 return pending ? <h2>Loading...</h2> : <h2>Empty.</h2>;
             }
 
             return (
-             <div style={{opacity: pending || refreshing ? 0.5 : 1}}>
-                 <ul>
-                     {posts.map((post, i) => <li key={i}>{post.data.title}</li>)}
-                 </ul>
-             </div>
+                <div style={{opacity: pending || refreshing ? 0.5 : 1}}>
+                    <ul>
+                        {value.map((post, i) => <li key={i}>{post.data.title}</li>)}
+                    </ul>
+                </div>
             );
         })
     />
 );
 ```
 
-__Server-side rendering__
-
-Server:
+__server.js__
 
 ```jsx
 import React from 'react';
 import ReactDOM from 'react-dom/server';
 import {getDataFromTree} from 'priem';
+import {getStore} from './store';
 import App from './App';
 
 app.get(async (req, res) => {
-    const store = await getDataFromTree(<App />);
-    const content = ReactDOM.renderToString(<App initialStore={store} />);
+    await getDataFromTree(<App />);
+    const content = ReactDOM.renderToString(<App />);
 
     // We suggest to use a specific library instead of JSON.stringify
     // for example `devalue` or `serialize-javascript`.
-    const storeJson = JSON.stringify(storeManager.store.getState()).replace(/</g, '\\u003c');
+    const storeJson = JSON.stringify(getStore()).replace(/</g, '\\u003c');
 
     res.send(`
         <!doctype html>
@@ -143,45 +141,33 @@ app.get(async (req, res) => {
 });
 ```
 
-Client:
+__client.js__
 
 ```jsx
 import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './App';
 
-const store = JSON.parse(window.__PRIEM_STORE__);
-delete window.__PRIEM_STORE__;
-
 ReactDOM.hydrate(
-    <App initialStore={store} />,
+    <App />,
     document.getElementById('root')
 );
 ```
 
-__withPriem__
+### `withPriem` HOC
 
-The above async example would look like this:
+The above async example can be rewritten using the [`withPriem`](#withpriem)
+higher-order component:
 
 ```jsx
 import React from 'react';
 import {withPriem} from 'priem';
+import {redditContainer} from './store';
 
-@withPriem({
-    name: 'Async',
-    asyncValues: props => ({
-        [props.reddit]: {
-          args: [props.reddit],
-          promise: reddit => fetch(`https://www.reddit.com/r/${reddit}.json`)
-              .then(res => res.json())
-              .then(res => res.data.children),
-        },
-    }),
-})
+@withPriem({sources={{reddit: redditContainer}}})
 class RedditPosts extends React.Component {
     render() {
-        const {priem, reddit} = this.props;
-        const {pending, refreshing, value} = priem[reddit];
+        const {pending, refreshing, value} = this.props.reddit;
 
         if (!value) {
             return pending ? <h2>Loading...</h2> : <h2>Empty.</h2>;
@@ -190,7 +176,7 @@ class RedditPosts extends React.Component {
         return (
             <div style={{opacity: pending || refreshing ? 0.5 : 1}}>
                 <ul>
-                    {posts.map((post, i) => <li key={i}>{post.data.title}</li>)}
+                    {value.map((post, i) => <li key={i}>{post.data.title}</li>)}
                 </ul>
             </div>
         );
@@ -198,80 +184,98 @@ class RedditPosts extends React.Component {
 }
 ```
 
+## Examples
+
+Example apps can be found under the `examples/` directory. They are
+ported from the official [Redux repository](https://github.com/reactjs/redux/tree/master/examples),
+so you can compare both implementations.
+
+- [Counter](https://github.com/Vlad-Zhukov/priem/tree/master/examples/counter)
+- [Async](https://github.com/Vlad-Zhukov/priem/tree/master/examples/async)
+
 ## API
 
-### `PriemProvider`
+### `createStore([initialStore])`
 
-A component that provides context for [`Priem`](#priem) component.
+A function that creates a new store. Optionally takes a single argument
+`initialStore` that must be a server-side rendered store. Return
+an object with the following properties:
 
-__Props__
+#### `Container`
 
-1. `[initialStore]` _(Object)_: A server rendered store. See
-SSR example on how to use it.
+A base class that should be used to create sync containers. It's also
+a good idea to extend it with custom functions.
 
----
+__Arguments:__
+
+1. `[initialState]` _(Object)_: A state object this container will be
+created with.
+2. `[options]` _(Object)_: An options object, that can have
+the following options properties:
+   * `[persist]` _(Boolean)_: When `false`, this container's state
+   will be set to its initial value when all `Priem` components
+   unsubscribe from this container. Defaults to `true`.
+   * `[ssrKey]` _(String)_: A unique key that will be used to place
+   this container to the store. Required be used for server-side
+   rendering.
+
+Similarly to React instances, containers have a `state` property and
+a `setState` method. However unlike in React, the state changes
+are _synchronous_.
+
+#### `AsyncContainer`
+
+A class that extends the `Container` class. It was designed to
+efficiently handle async jobs and never trigger unwanted React updates.
+It also caches results of promises using [`moize`](https://github.com/planttheidea/moize).
+
+__Arguments:__
+1. `options` _(Object)_: An object that inherits all options from the
+base `Container` and also allows to set the following:
+   * `promise` _(AsyncFunction)_: An async function that takes
+   arguments created by `mapPropsToArgs` and returns a Promise. During
+   resolving the container's stage updates with
+   [`promiseState`](#promisestate) objects.
+   * `[mapPropsToArgs]` _(Function)_: A function that takes React props
+   and must return an array of values that will be passed to `promise`
+   function as arguments. Args must be immutable (booleans, numbers,
+   strings or symbols) otherwise the memoization will not work.
+   Defaults to `() => []`.
+   * `[autoRefresh]` _(Boolean)_: Should this container resolve the
+   `promise` on initial mounting and when props change. Setting it
+   to `false` makes it only possible to refresh using the `refresh`
+   method from the [`Priem`](#priem) component. Defaults to `true`.
+   * `[maxAge]` _(Number)_: See [`moize` documentation](https://github.com/planttheidea/moize#advanced-usage).
+   * `[maxArgs]` _(Number)_: See [`moize` documentation](https://github.com/planttheidea/moize#advanced-usage).
+   * `[maxSize]` _(Number)_: See [`moize` documentation](https://github.com/planttheidea/moize#advanced-usage).
+
+#### `getStore`
+
+A function that return a serializable store from all containers
+that have a `ssrKey` property. Handy for sending server-side rendered
+store to the client.
 
 ### `Priem`
 
-A component for storing plain data as well as handling async jobs with
-promises (such as data fetching). It uses [`moize`](https://github.com/planttheidea/moize)
-for caching results of promises.
+A component for subscribing to containers.
 
 __Props__
 
-1. `name` _(String)_: A key under which the state will be stored.
-2. `[initialValues]` _(Object)_: Values which will be used during
-initialization, they can have any shape. Defaults to `{}`.
-3. `[asyncValues]` _(Function)_: A function that takes `props` and must
-return an object. Each key of that object refers to a place
-in the reducer under which a data will be stored. Each value must be
-an object with the following properties.
-    * `promise` _(Function)_: A function that takes `args` as
-    arguments (if specified) and returns a promise. The result of that
-    promise will be memoized and stored in the store.
-    * `[args]` _(Array)_: Arguments that will be passed to
-    the `promise` function. They must be immutable (booleans, numbers
-    and strings) otherwise the meimozation will not work.
-    * `[autoRefresh]` _(Boolean)_: An option that defines if this async
-    function should be called or not on initial mounting and when props
-    change. Setting it to `false` only leaves manual refreshes using
-    the `refresh` method. Defaults to `true`.
-    * `[maxAge]` _(Number)_: See [`moize` documentation](https://github.com/planttheidea/moize#advanced-usage).
-    * `[maxArgs]` _(Number)_: See [`moize` documentation](https://github.com/planttheidea/moize#advanced-usage).
-    * `[maxSize]` _(Number)_: See [`moize` documentation](https://github.com/planttheidea/moize#advanced-usage).
-4. `[persist]` _(Boolean)_: If `false`, the state related to that
-`name` will be removed when the last component using it unmounts.
-Defaults to `true`.
-6. `[render]` _(Function)_: One of three ways to render components.
+1. `sources` _(Object)_: An object of containers to subscribe to.
+2. `[render]` _(Function)_: One of three ways to render components.
 Must be a function that takes [props](#passed-props) and returns
 React component(s).
-7. `[component]` _(React.Element)_: A React element that can be
+3. `[component]` _(React.Element)_: A React element that can be
 rendered using `React.createElement` with [props](#passed-props).
-8. `[children]` _(React.Component)_: A React component or an array of
+4. `[children]` _(React.Component)_: A React component or an array of
 components, all of which will be rendered with [props](#passed-props).
 
 __Passed props__
 
-The following props will be passed down to the wrapped component:
+The following props will be passed down:
 
-- `priem` _(Object)_: A slice of store.
-- `setPriem(updater)` _(Function)_: If the `updater` is a
-function, it takes a current `priem` state slice as an argument and must
-return an object that will be shallow merged with the current `priem`.
-If the `updater` is an object, it will be shallow merged directly.
-- `setPriemTo(priemName, updater)` _(Function)_: Similar
-to `setPriem()` but also takes a `priemName` as the first argument.
-Useful for setting data to another `priem` slices.
-- `refresh()` _(Function)_: Forces the update of async values. Note that
-it will call the memoized function.
-
-The following props are the ones that have been used during the
-initialization. They are not connected to the store for performance
-reasons, but it might be changed in the future if there will be
-a strong reason to do that.
-
-- `priemName` _(String)_
-- `persist` _(Boolean)_
+* Container stores that will match keys specified in the `sources` prop.
+* `refresh()` _(Function)_: Forces the update of async values.
 
 ---
 
@@ -285,8 +289,9 @@ as `Priem` with a single exception that 'render', 'component' and
 
 ### `getDataFromTree(component)`
 
-A function that walks the component tree and fetches async values.
-Returns a promise that resolves into a Priem store.
+An async function that walks the component tree and fetches async values.
+Returns a promise that either resolves with `undefined` or rejects
+on errors.
 
 ---
 
@@ -300,15 +305,6 @@ async values. Most of these are not intended for public usage.
 - `fulfilled(valueOrPromiseState: any): PromiseState`
 - `rejected(reason: any): PromiseState`
 - `isPromiseState(maybePromiseState: any): boolean`
-
----
-
-### `propTypes`
-
-An object with prop types.
-
-- `priem` _(Object)_
-- `promiseState` _(Object)_
 
 ---
 
