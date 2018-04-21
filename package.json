@@ -79,7 +79,6 @@
     "collectCoverage": true,
     "collectCoverageFrom": [
       "src/**/*"
-    ],
-    "coverageDirectory": "__coverage__"
+    ]
   }
 }

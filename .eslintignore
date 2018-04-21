@@ -1,4 +1,4 @@
 node_modules/
 dist/
 examples/
-__coverage__/
+coverage/
