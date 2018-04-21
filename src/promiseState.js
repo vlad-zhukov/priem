@@ -2,12 +2,13 @@ import {type} from './helpers';
 
 /**
  * Constructor for creating a new promiseState.
- * @param [pending] {Boolean}
- * @param [refreshing] {Boolean}
- * @param [fulfilled] {Boolean}
- * @param [rejected] {Boolean}
- * @param [value] {*}
- * @param [reason] {*}
+ * @param [options] {Object}
+ * @param [options.pending] {Boolean}
+ * @param [options.refreshing] {Boolean}
+ * @param [options.fulfilled] {Boolean}
+ * @param [options.rejected] {Boolean}
+ * @param [options.value] {*}
+ * @param [options.reason] {String|Null}
  * @returns {Object}
  */
 function create({
@@ -43,6 +44,14 @@ export function isPromiseState(maybePromiseState) {
 }
 
 /**
+ * Creates an empty promiseState
+ * @returns {Object}
+ */
+export function empty() {
+    return create({});
+}
+
+/**
  * Creates a new promiseState that is pending.
  * @returns {Object}
  */
@@ -74,7 +83,7 @@ export function fulfilled(valueOrPromiseState) {
 
 /**
  * Creates a promiseState that is rejected with the given reason.
- * @param reason {*}
+ * @param reason {String}
  * @returns {Object}
  */
 export function rejected(reason) {

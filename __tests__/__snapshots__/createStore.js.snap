@@ -1,0 +1,222 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AsyncContainer() should not rerun promises if previous promise was rejected 1`] = `
+Array [
+  Object {
+    "fulfilled": false,
+    "pending": false,
+    "reason": "foo",
+    "refreshing": false,
+    "rejected": true,
+    "value": null,
+  },
+  Object {
+    "ssr": false,
+  },
+]
+`;
+
+exports[`AsyncContainer() should not run promises if both \`autoRefresh\` and \`isForced\` are false 1`] = `
+Array [
+  Object {
+    "fulfilled": false,
+    "pending": false,
+    "reason": null,
+    "refreshing": false,
+    "rejected": false,
+    "value": null,
+  },
+  Object {
+    "ssr": false,
+  },
+]
+`;
+
+exports[`AsyncContainer() should not run promises when awaiting 1`] = `
+Array [
+  Object {
+    "fulfilled": true,
+    "pending": false,
+    "reason": null,
+    "refreshing": false,
+    "rejected": false,
+    "value": Object {
+      "value": "foo",
+    },
+  },
+  Object {
+    "ssr": false,
+  },
+]
+`;
+
+exports[`AsyncContainer() should not try to rerun fulfilled promises if \`value\` is null 1`] = `
+Array [
+  Object {
+    "fulfilled": true,
+    "pending": false,
+    "reason": null,
+    "refreshing": false,
+    "rejected": false,
+    "value": null,
+  },
+  Object {
+    "ssr": false,
+  },
+]
+`;
+
+exports[`AsyncContainer() should refresh a promise if forced 1`] = `
+Array [
+  Object {
+    "fulfilled": true,
+    "pending": false,
+    "reason": null,
+    "refreshing": false,
+    "rejected": false,
+    "value": "foo1",
+  },
+  Object {
+    "ssr": false,
+  },
+]
+`;
+
+exports[`AsyncContainer() should refresh a promise if forced 2`] = `
+Array [
+  Object {
+    "fulfilled": true,
+    "pending": false,
+    "reason": null,
+    "refreshing": true,
+    "rejected": false,
+    "value": "foo1",
+  },
+  Object {
+    "ssr": false,
+  },
+]
+`;
+
+exports[`AsyncContainer() should refresh a promise if forced 3`] = `
+Array [
+  Object {
+    "fulfilled": true,
+    "pending": false,
+    "reason": null,
+    "refreshing": false,
+    "rejected": false,
+    "value": "foo2",
+  },
+  Object {
+    "ssr": false,
+  },
+]
+`;
+
+exports[`AsyncContainer() should rehydrate ssr data 1`] = `
+Array [
+  Object {
+    "fulfilled": true,
+    "pending": false,
+    "reason": null,
+    "refreshing": false,
+    "rejected": false,
+    "value": "foo",
+  },
+  Object {
+    "ssr": false,
+    "ssrKey": "unique-key-1",
+  },
+]
+`;
+
+exports[`AsyncContainer() should rerun promises if previous promise was rejected but \`isForced\` is true 1`] = `
+Array [
+  Object {
+    "fulfilled": true,
+    "pending": false,
+    "reason": null,
+    "refreshing": false,
+    "rejected": false,
+    "value": Object {
+      "value": "foo",
+    },
+  },
+  Object {
+    "ssr": false,
+  },
+]
+`;
+
+exports[`AsyncContainer() should return cached values when \`args\` change 1`] = `
+Array [
+  Object {
+    "fulfilled": true,
+    "pending": false,
+    "reason": null,
+    "refreshing": false,
+    "rejected": false,
+    "value": Object {
+      "value": "foo-false",
+    },
+  },
+  Object {
+    "ssr": false,
+  },
+]
+`;
+
+exports[`AsyncContainer() should return cached values when \`args\` change 2`] = `
+Array [
+  Object {
+    "fulfilled": true,
+    "pending": false,
+    "reason": null,
+    "refreshing": false,
+    "rejected": false,
+    "value": Object {
+      "value": "foo-true",
+    },
+  },
+  Object {
+    "ssr": false,
+  },
+]
+`;
+
+exports[`AsyncContainer() should return cached values when \`args\` change 3`] = `
+Array [
+  Object {
+    "fulfilled": true,
+    "pending": false,
+    "reason": null,
+    "refreshing": false,
+    "rejected": false,
+    "value": Object {
+      "value": "foo-false",
+    },
+  },
+  Object {
+    "ssr": false,
+  },
+]
+`;
+
+exports[`AsyncContainer() should run promises if \`autoRefresh\` is false but \`isForced\` is true 1`] = `
+Array [
+  Object {
+    "fulfilled": true,
+    "pending": false,
+    "reason": null,
+    "refreshing": false,
+    "rejected": false,
+    "value": Object {
+      "value": "foo",
+    },
+  },
+  Object {
+    "ssr": false,
+  },
+]
+`;

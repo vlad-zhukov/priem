@@ -1,86 +1,121 @@
-/* eslint-disable react/no-multi-comp */
-
 import React from 'react';
 import PropTypes from 'prop-types';
-import createReactContext from 'create-react-context';
-import PriemContainer from './PriemContainer';
-import {createInitializeFunction, createDestroyFunction, createUpdateFunction} from './store';
-import {MemoizedPool} from './MemoizedPool';
+import {type} from './helpers';
 
-const PriemContext = createReactContext();
+const DUMMY_STATE = {};
 
-export class PriemProvider extends React.Component {
+export default class Priem extends React.Component {
     static propTypes = {
-        initialStore: PropTypes.shape({
-            state: PropTypes.object.isRequired, // eslint-disable-line react/forbid-prop-types
-            meta: PropTypes.object.isRequired, // eslint-disable-line react/forbid-prop-types
-        }),
-        children: PropTypes.node.isRequired,
-    };
-
-    static defaultProps = {
-        initialStore: {
-            state: {},
-            meta: {},
-        },
-    };
-
-    constructor(props) {
-        super(props);
-        this.state = props.initialStore.state;
-        this.meta = props.initialStore.meta;
-
-        this.memoizedPool = new MemoizedPool();
-
-        this.initialize = createInitializeFunction(this);
-        this.destroy = createDestroyFunction(this);
-        this.update = createUpdateFunction(this);
-    }
-
-    render() {
-        const value = {
-            priemState: this.state,
-            initialize: this.initialize,
-            destroy: this.destroy,
-            update: this.update,
-            memoizedPool: this.memoizedPool,
-        };
-        return <PriemContext.Provider value={value}>{this.props.children}</PriemContext.Provider>;
-    }
-}
-
-export class Priem extends React.Component {
-    static propTypes = {
-        name: PropTypes.string.isRequired,
-        initialValues: PropTypes.any, // eslint-disable-line react/forbid-prop-types
-        asyncValues: PropTypes.func,
-        persist: PropTypes.bool,
+        sources: PropTypes.object.isRequired, // eslint-disable-line react/forbid-prop-types
         render: PropTypes.func,
         component: PropTypes.func,
         children: PropTypes.node,
     };
 
     static defaultProps = {
-        initialValues: {},
-        asyncValues: null,
-        persist: true,
         render: null,
         component: null,
         children: null,
     };
 
-    renderConsumer = ({priemState, initialize, destroy, update, memoizedPool}) => (
-        <PriemContainer
-            {...this.props}
-            priem={priemState?.[this.props.name]}
-            initialize={initialize}
-            destroy={destroy}
-            update={update}
-            memoizedPool={memoizedPool}
-        />
-    );
+    constructor(props) {
+        super(props);
+
+        this._isPriemComponent = true;
+        this._isMounted = false;
+        this._sources = props.sources;
+    }
+
+    componentDidMount() {
+        this._isMounted = true;
+        this._updateSubscriptions({instancesToSub: this._sources});
+    }
+
+    componentDidUpdate() {
+        const {sources: nextSources} = this.props;
+
+        const instancesToUnsub = {};
+        Object.keys(this._sources).forEach((key) => {
+            if (this._sources[key] !== nextSources[key]) {
+                instancesToUnsub[key] = this._sources[key];
+            }
+        });
+
+        const instancesToSub = {};
+        Object.keys(nextSources).forEach((key) => {
+            if (nextSources[key] !== this._sources[key]) {
+                instancesToSub[key] = nextSources[key];
+            }
+        });
+
+        this._sources = nextSources;
+        this._updateSubscriptions({instancesToSub, instancesToUnsub});
+    }
+
+    componentWillUnmount() {
+        this._isMounted = false;
+        this._updateSubscriptions({instancesToUnsub: this._sources});
+    }
+
+    refresh = () => {
+        this._updateSubscriptions({isForced: true});
+    };
+
+    _getProps() {
+        const {render, component, children, sources, ...props} = this.props;
+        Object.keys(this._sources).forEach((key) => {
+            const instance = this._sources[key];
+            props[key] = instance.state;
+        });
+        props.refresh = this.refresh;
+        return props;
+    }
+
+    _updateSubscriptions({instancesToSub, instancesToUnsub, isForced = false}) {
+        if (instancesToSub) {
+            const instanceToSubKeys = Object.keys(instancesToSub);
+            instanceToSubKeys.forEach((key) => {
+                instancesToSub[key]._subscribe(this._onUpdate);
+            });
+        }
+
+        if (instancesToUnsub) {
+            const instanceToUnsubKeys = Object.keys(instancesToUnsub);
+            instanceToUnsubKeys.forEach((key) => {
+                instancesToUnsub[key]._unsubscribe(this._onUpdate);
+            });
+        }
+
+        if (this._isMounted) {
+            const props = this._getProps();
+            Object.keys(this._sources).forEach((key) => {
+                const source = this._sources[key];
+                if (type(source._runAsync) === 'function') {
+                    source._runAsync({props, isForced});
+                }
+            });
+        }
+    }
+
+    _onUpdate = () => {
+        if (this._isMounted) {
+            this.setState(DUMMY_STATE);
+        }
+    };
 
     render() {
-        return <PriemContext.Consumer>{this.renderConsumer}</PriemContext.Consumer>;
+        const {render, component, children} = this.props;
+
+        const props = this._getProps();
+
+        if (type(render) === 'function') {
+            return render(props);
+        }
+
+        if (component) {
+            return React.createElement(component, props);
+        }
+
+        return React.Children.toArray(children).map(child => React.cloneElement(child, props));
     }
 }

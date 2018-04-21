@@ -1,64 +1,103 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`should fetch and render to string with data 1`] = `
+exports[`getDataFromTree() should fetch and render to string with data 1`] = `
 Object {
-  "meta": Object {
-    "Test": Object {
-      "@@count": 0,
-      "@@initialValues": Object {},
-      "@@name": "Test",
-      "@@persist": true,
-      "testValue": Object {
-        "args": Array [
-          "foo",
-        ],
-        "ssr": true,
-      },
+  "unique-key-1": Object {
+    "meta": Object {
+      "ssr": true,
+      "ssrKey": "unique-key-1",
     },
-  },
-  "state": Object {
-    "Test": Object {
-      "testValue": Object {
-        "fulfilled": true,
-        "pending": false,
-        "reason": null,
-        "refreshing": false,
-        "rejected": false,
-        "value": "foo",
-      },
+    "state": Object {
+      "fulfilled": true,
+      "pending": false,
+      "reason": null,
+      "refreshing": false,
+      "rejected": false,
+      "value": "foo",
     },
   },
 }
 `;
 
-exports[`should not fetch data from a nested component 1`] = `
+exports[`getDataFromTree() should fetch data from a nested component 1`] = `
 Object {
-  "meta": Object {
-    "Test1": Object {
-      "@@count": 0,
-      "@@initialValues": Object {
-        "counter": 2,
-      },
-      "@@name": "Test1",
-      "@@persist": true,
-      "testValue": Object {
-        "args": Array [
-          "foo",
-        ],
-        "ssr": true,
-      },
+  "unique-key-1": Object {
+    "meta": Object {
+      "ssr": true,
+      "ssrKey": "unique-key-1",
+    },
+    "state": Object {
+      "counter": 2,
     },
   },
-  "state": Object {
-    "Test1": Object {
-      "testValue": Object {
-        "fulfilled": true,
-        "pending": false,
-        "reason": null,
-        "refreshing": false,
-        "rejected": false,
-        "value": "foo",
-      },
+  "unique-key-2": Object {
+    "meta": Object {
+      "ssr": true,
+      "ssrKey": "unique-key-2",
+    },
+    "state": Object {
+      "fulfilled": true,
+      "pending": false,
+      "reason": null,
+      "refreshing": false,
+      "rejected": false,
+      "value": "2-foo",
+    },
+  },
+  "unique-key-3": Object {
+    "meta": Object {
+      "ssr": true,
+      "ssrKey": "unique-key-3",
+    },
+    "state": Object {
+      "fulfilled": true,
+      "pending": false,
+      "reason": null,
+      "refreshing": false,
+      "rejected": false,
+      "value": "2-foobar",
+    },
+  },
+}
+`;
+
+exports[`getDataFromTree() should rehydrate data from initial store 1`] = `
+Object {
+  "unique-key-1": Object {
+    "meta": Object {
+      "ssr": true,
+      "ssrKey": "unique-key-1",
+    },
+    "state": Object {
+      "counter": 2,
+    },
+  },
+  "unique-key-2": Object {
+    "meta": Object {
+      "ssr": true,
+      "ssrKey": "unique-key-2",
+    },
+    "state": Object {
+      "fulfilled": true,
+      "pending": false,
+      "reason": null,
+      "refreshing": false,
+      "rejected": false,
+      "value": "2-foo",
+    },
+  },
+  "unique-key-3": Object {
+    "meta": Object {
+      "ssr": true,
+      "ssrKey": "unique-key-3",
+    },
+    "state": Object {
+      "fulfilled": true,
+      "pending": false,
+      "reason": null,
+      "refreshing": false,
+      "rejected": false,
+      "value": "2-foobar",
     },
   },
 }

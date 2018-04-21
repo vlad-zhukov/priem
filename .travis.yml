@@ -9,6 +9,9 @@ before_install:
   - curl -o- -L https://yarnpkg.com/install.sh | bash
   - export PATH="$HOME/.yarn/bin:$PATH"
 
+install:
+  - npm i -g codecov
+
 cache:
   yarn: true
   directories:
@@ -16,4 +19,4 @@ cache:
     - "node_modules"
 
 script:
-  - yarn prepublishOnly
+  - yarn prepublishOnly && codecov --disable=gcov

@@ -1,85 +1,237 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`should initialize if \`name\` has changed 1`] = `
+exports[`should have a \`refresh\` method 1`] = `
 Object {
-  "Test1": Object {
-    "counter": 2,
-    "testValue": Object {
-      "fulfilled": true,
-      "pending": false,
-      "reason": null,
-      "refreshing": false,
-      "rejected": false,
-      "value": "foo",
-    },
-  },
-  "Test2": Object {
-    "testValue": Object {
-      "fulfilled": true,
-      "pending": false,
-      "reason": null,
-      "refreshing": false,
-      "rejected": false,
-      "value": "foobar",
-    },
-  },
+  "fulfilled": true,
+  "pending": false,
+  "reason": null,
+  "refreshing": false,
+  "rejected": false,
+  "value": "foo",
 }
 `;
 
-exports[`should initialize if \`name\` has changed 2`] = `
+exports[`should have a \`refresh\` method 2`] = `
 Object {
-  "Test1": Object {
-    "counter": 3,
-    "testValue": Object {
-      "fulfilled": true,
-      "pending": false,
-      "reason": null,
-      "refreshing": false,
-      "rejected": false,
-      "value": "foo",
-    },
-  },
-  "Test2": Object {
-    "testValue": Object {
-      "fulfilled": true,
-      "pending": false,
-      "reason": null,
-      "refreshing": false,
-      "rejected": false,
-      "value": "foobar",
-    },
-  },
-  "Test3": Object {
-    "testValue": Object {
-      "fulfilled": false,
-      "pending": true,
-      "reason": null,
-      "refreshing": false,
-      "rejected": false,
-      "value": null,
-    },
-  },
+  "fulfilled": true,
+  "pending": false,
+  "reason": null,
+  "refreshing": true,
+  "rejected": false,
+  "value": "foo",
 }
 `;
 
-exports[`should rehydrate ssr data 1`] = `
-<div>
-  baz
-</div>
+exports[`should have a \`refresh\` method 3`] = `
+Object {
+  "fulfilled": true,
+  "pending": false,
+  "reason": null,
+  "refreshing": false,
+  "rejected": false,
+  "value": "foo",
+}
+`;
+
+exports[`should not keep data after the unmount if "persist: false" 1`] = `
+Object {
+  "fulfilled": true,
+  "pending": false,
+  "reason": null,
+  "refreshing": false,
+  "rejected": false,
+  "value": "foo",
+}
+`;
+
+exports[`should not keep data after the unmount if "persist: false" 2`] = `
+Object {
+  "fulfilled": false,
+  "pending": false,
+  "reason": null,
+  "refreshing": false,
+  "rejected": false,
+  "value": null,
+}
+`;
+
+exports[`should not keep data after the unmount if "persist: false" 3`] = `
+Object {
+  "fulfilled": true,
+  "pending": false,
+  "reason": null,
+  "refreshing": false,
+  "rejected": false,
+  "value": "foo",
+}
 `;
 
 exports[`should render a nested component 1`] = `
 <div>
-  foobar
-   
+  2-foobar
   <button
     onClick={[Function]}
   />
 </div>
 `;
 
-exports[`should render a simple component 1`] = `
+exports[`should render a nested component 2`] = `
+Object {
+  "unique-key-1": Object {
+    "meta": Object {
+      "ssr": false,
+      "ssrKey": "unique-key-1",
+    },
+    "state": Object {
+      "counter": 2,
+    },
+  },
+  "unique-key-2": Object {
+    "meta": Object {
+      "ssr": false,
+      "ssrKey": "unique-key-2",
+    },
+    "state": Object {
+      "fulfilled": true,
+      "pending": false,
+      "reason": null,
+      "refreshing": false,
+      "rejected": false,
+      "value": "2-foo",
+    },
+  },
+  "unique-key-3": Object {
+    "meta": Object {
+      "ssr": false,
+      "ssrKey": "unique-key-3",
+    },
+    "state": Object {
+      "fulfilled": true,
+      "pending": false,
+      "reason": null,
+      "refreshing": false,
+      "rejected": false,
+      "value": "2-foobar",
+    },
+  },
+}
+`;
+
+exports[`should render a nested component 3`] = `
 <div>
-  foo
+  2-foobar
+  <button
+    onClick={[Function]}
+  />
 </div>
 `;
+
+exports[`should render a nested component 4`] = `
+Object {
+  "unique-key-1": Object {
+    "meta": Object {
+      "ssr": false,
+      "ssrKey": "unique-key-1",
+    },
+    "state": Object {
+      "counter": 3,
+    },
+  },
+  "unique-key-2": Object {
+    "meta": Object {
+      "ssr": false,
+      "ssrKey": "unique-key-2",
+    },
+    "state": Object {
+      "fulfilled": true,
+      "pending": false,
+      "reason": null,
+      "refreshing": true,
+      "rejected": false,
+      "value": "2-foo",
+    },
+  },
+  "unique-key-3": Object {
+    "meta": Object {
+      "ssr": false,
+      "ssrKey": "unique-key-3",
+    },
+    "state": Object {
+      "fulfilled": true,
+      "pending": false,
+      "reason": null,
+      "refreshing": false,
+      "rejected": false,
+      "value": "2-foobar",
+    },
+  },
+}
+`;
+
+exports[`should rerun promises when cache expires if maxAge is set 1`] = `
+Object {
+  "fulfilled": false,
+  "pending": true,
+  "reason": null,
+  "refreshing": false,
+  "rejected": false,
+  "value": null,
+}
+`;
+
+exports[`should rerun promises when cache expires if maxAge is set 2`] = `
+Object {
+  "fulfilled": true,
+  "pending": false,
+  "reason": null,
+  "refreshing": false,
+  "rejected": false,
+  "value": "foo1",
+}
+`;
+
+exports[`should rerun promises when cache expires if maxAge is set 3`] = `
+Object {
+  "fulfilled": true,
+  "pending": false,
+  "reason": null,
+  "refreshing": true,
+  "rejected": false,
+  "value": "foo1",
+}
+`;
+
+exports[`should rerun promises when cache expires if maxAge is set 4`] = `
+Object {
+  "fulfilled": true,
+  "pending": false,
+  "reason": null,
+  "refreshing": false,
+  "rejected": false,
+  "value": "foo2",
+}
+`;
+
+exports[`should rerun promises when cache expires if maxAge is set 5`] = `
+Object {
+  "fulfilled": true,
+  "pending": false,
+  "reason": null,
+  "refreshing": true,
+  "rejected": false,
+  "value": "foo2",
+}
+`;
+
+exports[`should rerun promises when cache expires if maxAge is set 6`] = `
+Object {
+  "fulfilled": true,
+  "pending": false,
+  "reason": null,
+  "refreshing": false,
+  "rejected": false,
+  "value": "foo2",
+}
+`;
+
+exports[`should throw if there is a race condition 1`] = `[Error: Priem: exceeded the threshold of consecutive updates of AsyncContainer. This indicates a race condition between 2 or more Priem components that results in an infinite rerender loop. Please, fix.]`;

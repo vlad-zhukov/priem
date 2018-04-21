@@ -2,144 +2,136 @@
 
 import React from 'react';
 import delay from 'delay';
-import {PriemProvider, Priem} from '../src/Priem';
-import withPriem from '../src/withPriem';
-import {consts} from '../src/store';
-import * as promiseState from '../src/promiseState';
+import {Priem, withPriem, createStore} from '../src/index';
 
-export const TestComponentSimple = ({initialStore}) => (
-    <PriemProvider initialStore={initialStore}>
+const setStateSpy = jest.spyOn(Priem.prototype, 'setState');
+
+export function testComponent({initialStore, options} = {}) {
+    const {AsyncContainer, getStore} = createStore(initialStore);
+
+    const updateSpy = jest.spyOn(AsyncContainer.prototype, '_update');
+    const runAsyncSpy = jest.spyOn(AsyncContainer.prototype, '_runAsync');
+
+    const container = new AsyncContainer({
+        mapPropsToArgs: () => ['foo'],
+        promise: value => delay(100, value),
+        ...options,
+    });
+
+    setStateSpy.mockClear();
+
+    const element = <Priem sources={{container}} render={p => <div>{p.container.value}</div>} />;
+
+    return {element, container, getStore, updateSpy, runAsyncSpy, setStateSpy};
+}
+
+export function testComponentDecorated({initialStore, options} = {}) {
+    const {AsyncContainer, getStore} = createStore(initialStore);
+
+    const container = new AsyncContainer({
+        mapPropsToArgs: () => ['foo'],
+        promise: value => delay(100, value),
+        ...options,
+    });
+
+    const ComponentDecorated = withPriem({sources: {container}})(p => <div>{p.container.value}</div>);
+
+    return {element: <ComponentDecorated />, getStore};
+}
+
+export function testComponentNested({initialStore, syncContainerProps, container1Props, container2Props} = {}) {
+    const {Container, AsyncContainer, getStore} = createStore(initialStore);
+
+    const syncContainer = new Container({counter: 2}, syncContainerProps);
+
+    const container1 = new AsyncContainer({
+        mapPropsToArgs: ({syncContainer: sC}) => [sC.counter, 'foo'],
+        promise: (counter, value) => delay(100, `${counter}-${value}`),
+        ...container1Props,
+    });
+
+    const container2 = new AsyncContainer({
+        mapPropsToArgs: ({container1value}) => [container1value, 'bar'],
+        promise: (c1value, value) => delay(100, c1value + value),
+        ...container2Props,
+    });
+
+    const element = (
         <Priem
-            name="Test"
-            asyncValues={() => ({
-                testValue: {
-                    args: ['foo'],
-                    promise: value => delay(100, value),
-                },
-            })}
-            render={({priem}) => <div>{priem.testValue.value}</div>}
-        />
-    </PriemProvider>
-);
-
-export const TestComponentSimpleDecorated = ({initialStore}) => {
-    const TestComponent = withPriem({
-        name: 'Test',
-        asyncValues: () => ({
-            testValue: {
-                args: ['foo'],
-                promise: value => delay(100, value),
-            },
-        }),
-    })(({priem}) => <div>{priem.testValue.value}</div>);
-
-    return (
-        <PriemProvider initialStore={initialStore}>
-            <TestComponent />
-        </PriemProvider>
-    );
-};
-
-export const initialStoreTestComponentSimple = {
-    state: {
-        Test: {
-            testValue: promiseState.fulfilled('baz'),
-        },
-    },
-    meta: {
-        Test: {
-            [consts.NAME]: 'Test',
-            [consts.INITIAL_VALUES]: {},
-            [consts.PERSIST]: false,
-            [consts.COUNT]: 0,
-            testValue: {
-                ssr: true,
-                autoRefresh: true,
-            },
-        },
-    },
-};
-
-export const TestComponentNested = ({initialStore}) => (
-    <PriemProvider initialStore={initialStore}>
-        <Priem
-            name="Test1"
-            initialValues={{counter: 2}}
-            asyncValues={() => ({
-                testValue: {
-                    args: ['foo'],
-                    promise: value => delay(100, value),
-                },
-            })}
-            render={(props) => {
-                if (!props.priem.testValue.value) {
+            sources={{syncContainer, container1}}
+            render={({container1: c1}) => {
+                if (!c1.value) {
                     return null;
                 }
 
-                const onClick = () => props.setPriem(s => ({counter: s.counter + 1}));
+                const onClick = () => syncContainer.setState(s => ({counter: s.counter + 1}));
 
                 return (
                     <Priem
-                        name={`Test${props.priem.counter}`}
-                        asyncValues={() => ({
-                            testValue: {
-                                args: ['bar'],
-                                promise: value => delay(100, props.priem.testValue.value + value),
-                            },
-                        })}
-                        render={({priem}) => (
-                            <div>
-                                {priem.testValue.value} <button onClick={onClick} />
-                            </div>
-                        )}
+                        sources={{container2}}
+                        container1value={c1.value}
+                        render={({container2: c2}) => {
+                            if (!c2.value) {
+                                return null;
+                            }
+
+                            return (
+                                <div>
+                                    {c2.value}
+                                    <button onClick={onClick} />
+                                </div>
+                            );
+                        }}
                     />
                 );
             }}
         />
-    </PriemProvider>
-);
+    );
 
-export const TestComponentNestedDecorated = ({initialStore}) => {
-    @withPriem({
-        name: 'Test1',
-        asyncValues: () => ({
-            testValue: {
-                args: ['foo'],
-                promise: value => delay(100, value),
-            },
-        }),
-    })
+    return {element, getStore};
+}
+
+export function testComponentNestedDecorated({initialStore} = {}) {
+    const {AsyncContainer, getStore} = createStore(initialStore);
+
+    const container1 = new AsyncContainer({
+        mapPropsToArgs: () => ['foo'],
+        promise: value => delay(100, value),
+    });
+
+    const container2 = new AsyncContainer({
+        mapPropsToArgs: ({component1value}) => [component1value, 'bar'],
+        promise: (c1value, value) => delay(100, c1value + value),
+    });
+
+    @withPriem({sources: {container1}})
     class TestComponent1 extends React.Component {
         render() {
-            const {priem} = this.props;
+            const {container1: c1} = this.props;
 
-            if (!priem.testValue.value) {
+            if (!c1.value) {
                 return null;
             }
 
-            return <TestComponent2 testValue1={priem.testValue.value} />;
+            return <TestComponent2 component1value={c1.value} />;
         }
     }
 
-    @withPriem({
-        name: 'Test2',
-        asyncValues: ({testValue1}) => ({
-            testValue: {
-                args: ['bar'],
-                promise: value => delay(100, testValue1 + value),
-            },
-        }),
-    })
+    @withPriem({sources: {container2}})
     class TestComponent2 extends React.Component {
         render() {
-            const {priem} = this.props;
-            return <div>{priem.testValue.value}</div>;
+            const {container2: c2} = this.props;
+            return <div>{c2.value}</div>;
         }
     }
 
-    return (
-        <PriemProvider initialStore={initialStore}>
-            <TestComponent1 />
-        </PriemProvider>
-    );
-};
+    return {element: <TestComponent1 />, getStore};
+}
+
+export function times(n, fn) {
+    const out = [];
+    for (let i = 0; i < n; i++) {
+        out.push(fn(i));
+    }
+    return out;
+}

@@ -1,5 +1,5 @@
 import React from 'react';
-import {Priem} from './Priem';
+import Priem from './Priem';
 
 export default function withPriem(opts) {
     if (opts.render || opts.component || opts.children) {
