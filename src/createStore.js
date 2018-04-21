@@ -11,7 +11,7 @@ export default function createStore(initialStore = {}) {
         return Object.keys(containerMap).reduce((result, key) => {
             const container = containerMap[key];
             // eslint-disable-next-line no-param-reassign
-            result[key] = {state: container.state, meta: container._meta};
+            result[key] = {state: container._state, meta: container._meta};
             return result;
         }, {});
     }
@@ -46,14 +46,18 @@ export default function createStore(initialStore = {}) {
                 containerMap[ssrKey] = this;
             }
 
-            this.state = this._initialState;
+            this._state = this._initialState;
             this._meta = this._initialMeta;
         }
 
+        get state() {
+            return this._state;
+        }
+
         setState(updater) {
-            const nextState = type(updater) === 'function' ? updater(this.state) : updater;
+            const nextState = type(updater) === 'function' ? updater(this._state) : updater;
             if (nextState != null) {
-                this.state = {...this.state, ...nextState};
+                this._state = {...this._state, ...nextState};
                 this._listeners.forEach(fn => fn());
             }
         }
@@ -65,7 +69,7 @@ export default function createStore(initialStore = {}) {
         _unsubscribe(fn) {
             this._listeners = this._listeners.filter(f => f !== fn);
             if (this._options.persist === false && this._listeners.length === 0) {
-                this.state = this._initialState;
+                this._state = this._initialState;
                 this._meta = this._initialMeta;
             }
         }
