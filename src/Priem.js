@@ -1,17 +1,9 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {type} from './helpers';
 
 const DUMMY_STATE = {};
 
 export default class Priem extends React.Component {
-    static propTypes = {
-        sources: PropTypes.object.isRequired, // eslint-disable-line react/forbid-prop-types
-        render: PropTypes.func,
-        component: PropTypes.func,
-        children: PropTypes.node,
-    };
-
     static defaultProps = {
         render: null,
         component: null,

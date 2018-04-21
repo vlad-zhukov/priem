@@ -1,4 +1,4 @@
-/* eslint-disable import/no-extraneous-dependencies, react/no-multi-comp, react/prop-types */
+/* eslint-disable import/no-extraneous-dependencies, react/no-multi-comp */
 
 import React from 'react';
 import delay from 'delay';

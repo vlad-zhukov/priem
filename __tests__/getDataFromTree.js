@@ -2,7 +2,7 @@
  * @jest-environment node
  */
 
-/* eslint-disable react/prop-types, react/no-multi-comp, react/prefer-stateless-function */
+/* eslint-disable react/no-multi-comp, react/prefer-stateless-function */
 
 import React from 'react';
 import ReactDOM from 'react-dom/server';

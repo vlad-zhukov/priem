@@ -245,7 +245,7 @@ it('should throw if there is a race condition', async () => {
         promise: value => delay(100, value),
     });
 
-    /* eslint-disable react/no-unused-state, react/prop-types */
+    /* eslint-disable react/no-unused-state */
     class ErrorBoundary extends React.Component {
         state = {initTime: Date.now(), hasError: null};
 
@@ -260,7 +260,7 @@ it('should throw if there is a race condition', async () => {
             return this.props.children;
         }
     }
-    /* eslint-enable react/no-unused-state, react/prop-types */
+    /* eslint-enable react/no-unused-state */
 
     const wrapper = mount(
         <ErrorBoundary>
