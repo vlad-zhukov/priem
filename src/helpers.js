@@ -1,4 +1,5 @@
 export function type(value) {
+    if (value !== value) return 'NaN';
     if (value === null) return 'null';
     if (value === undefined) return 'undefined';
     const typeofValue = typeof value;
