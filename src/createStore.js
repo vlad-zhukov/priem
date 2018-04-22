@@ -118,12 +118,13 @@ export default function createStore(initialStore = {}) {
 
         _runAsync(options) {
             const now = Date.now();
-            if (now - this._lastCallTime < 100) {
+            if (now - this._lastCallTime < 200) {
                 if (this._recentCallCount > 100) {
                     throw new Error(
-                        'Priem: exceeded the threshold of consecutive updates of AsyncContainer. ' +
-                            'This indicates a race condition between 2 or more Priem components ' +
-                            'that results in an infinite rerender loop. Please, fix.'
+                        "Priem: the amount of updates of 'AsyncContainer' exceeded the safe threshold, which means " +
+                            "it has stuck in an infinite rerender loop. This happens when 'mapPropsToArgs' returns " +
+                            'different results on consecutive calls. For example, this might be caused by ' +
+                            'a race condition between 2 or more Priem components. Please, fix.'
                     );
                 }
                 this._recentCallCount += 1;
@@ -136,8 +137,11 @@ export default function createStore(initialStore = {}) {
             const props = (options && options.props) || this._prevProps;
             this._prevProps = props;
 
+            const args = this._mapPropsToArgs(props);
+            assertType(args, ['array'], "The result of 'mapPropsToArgs(props)'");
+
             return this._cache.run({
-                args: this._mapPropsToArgs(props),
+                args,
                 autoRefresh: this._options.autoRefresh,
                 isForced: (options && options.isForced) || false,
             });

@@ -33,7 +33,7 @@ Object {
 }
 `;
 
-exports[`should not keep data after the unmount if "persist: false" 1`] = `
+exports[`should not keep data after the unmount if \`persist: false\` 1`] = `
 Object {
   "fulfilled": true,
   "pending": false,
@@ -44,7 +44,7 @@ Object {
 }
 `;
 
-exports[`should not keep data after the unmount if "persist: false" 2`] = `
+exports[`should not keep data after the unmount if \`persist: false\` 2`] = `
 Object {
   "fulfilled": false,
   "pending": false,
@@ -55,7 +55,7 @@ Object {
 }
 `;
 
-exports[`should not keep data after the unmount if "persist: false" 3`] = `
+exports[`should not keep data after the unmount if \`persist: false\` 3`] = `
 Object {
   "fulfilled": true,
   "pending": false,
@@ -168,7 +168,7 @@ Object {
 }
 `;
 
-exports[`should rerun promises when cache expires if maxAge is set 1`] = `
+exports[`should rerun promises when cache expires if \`maxAge\` is set 1`] = `
 Object {
   "fulfilled": false,
   "pending": true,
@@ -179,7 +179,7 @@ Object {
 }
 `;
 
-exports[`should rerun promises when cache expires if maxAge is set 2`] = `
+exports[`should rerun promises when cache expires if \`maxAge\` is set 2`] = `
 Object {
   "fulfilled": true,
   "pending": false,
@@ -190,7 +190,7 @@ Object {
 }
 `;
 
-exports[`should rerun promises when cache expires if maxAge is set 3`] = `
+exports[`should rerun promises when cache expires if \`maxAge\` is set 3`] = `
 Object {
   "fulfilled": true,
   "pending": false,
@@ -201,7 +201,7 @@ Object {
 }
 `;
 
-exports[`should rerun promises when cache expires if maxAge is set 4`] = `
+exports[`should rerun promises when cache expires if \`maxAge\` is set 4`] = `
 Object {
   "fulfilled": true,
   "pending": false,
@@ -212,7 +212,7 @@ Object {
 }
 `;
 
-exports[`should rerun promises when cache expires if maxAge is set 5`] = `
+exports[`should rerun promises when cache expires if \`maxAge\` is set 5`] = `
 Object {
   "fulfilled": true,
   "pending": false,
@@ -223,7 +223,7 @@ Object {
 }
 `;
 
-exports[`should rerun promises when cache expires if maxAge is set 6`] = `
+exports[`should rerun promises when cache expires if \`maxAge\` is set 6`] = `
 Object {
   "fulfilled": true,
   "pending": false,
@@ -234,4 +234,4 @@ Object {
 }
 `;
 
-exports[`should throw if there is a race condition 1`] = `[Error: Priem: exceeded the threshold of consecutive updates of AsyncContainer. This indicates a race condition between 2 or more Priem components that results in an infinite rerender loop. Please, fix.]`;
+exports[`should throw if \`mapPropsToArgs\` updates too often due to a race condition 1`] = `[Error: Priem: the amount of updates of 'AsyncContainer' exceeded the safe threshold, which means it has stuck in an infinite rerender loop. This happens when 'mapPropsToArgs' returns different results on consecutive calls. For example, this might be caused by a race condition between 2 or more Priem components. Please, fix.]`;

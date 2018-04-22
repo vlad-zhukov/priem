@@ -365,4 +365,26 @@ describe('AsyncContainer()', () => {
         await container._runAsync({isForced: false});
         expect([container.state, container._meta]).toMatchSnapshot(); // foo-false
     });
+
+    it('should respect `maxArgs` when caches values', async () => {
+        const options = {
+            mapPropsToArgs: () => [null, Date.now()],
+            promise: () => delay(100),
+            maxArgs: 1,
+        };
+
+        const {container} = setupStore({options});
+
+        container._runAsync({isForced: true});
+        expect(container._cache.awaiting).toMatchObject([[null]]);
+
+        await delay(150);
+        expect(container._cache.awaiting).toMatchObject([]);
+
+        container._runAsync({isForced: true});
+        expect(container._cache.awaiting).toMatchObject([[null]]);
+
+        await delay(150);
+        expect(container._cache.awaiting).toMatchObject([]);
+    });
 });

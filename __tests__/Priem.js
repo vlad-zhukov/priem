@@ -1,3 +1,5 @@
+/* eslint-disable react/no-multi-comp */
+
 import React from 'react';
 import delay from 'delay';
 import {mount} from 'enzyme';
@@ -104,7 +106,7 @@ it('should rerender when container state changes', () => {
     expect(onUpdateSpy).toHaveBeenCalledTimes(1);
 });
 
-it('should not keep data after the unmount if "persist: false"', async () => {
+it('should not keep data after the unmount if `persist: false`', async () => {
     const {element, container} = testComponent({options: {persist: false}});
     const wrapper = mount(element);
     await delay(150);
@@ -143,7 +145,7 @@ it('should have a `refresh` method', async () => {
     expect(container.state).toMatchSnapshot(); // fulfilled
 });
 
-it('should rerun promises when cache expires if maxAge is set', async () => {
+it('should rerun promises when cache expires if `maxAge` is set', async () => {
     /**
      * ASYNC UPDATE FLOW.
      * Numbers mean the order of function calls.
@@ -190,7 +192,7 @@ it('should rerun promises when cache expires if maxAge is set', async () => {
     expect(updateSpy).toHaveBeenCalledTimes(4);
     expect(runAsyncSpy).toHaveBeenCalledTimes(5);
 
-    await delay(200);
+    await delay(210);
     wrapper.update();
 
     expect(container.state).toMatchSnapshot(); // fulfilled
@@ -208,7 +210,7 @@ it('should rerun promises when cache expires if maxAge is set', async () => {
     expect(updateSpy).toHaveBeenCalledTimes(7);
     expect(runAsyncSpy).toHaveBeenCalledTimes(8);
 
-    await delay(200);
+    await delay(210);
     wrapper.update();
 
     expect(container.state).toMatchSnapshot(); // fulfilled
@@ -238,11 +240,11 @@ it('should render a nested component', async () => {
     expect(getStore()).toMatchSnapshot();
 });
 
-it('should throw if there is a race condition', async () => {
+it('should throw if `mapPropsToArgs` updates too often due to a race condition', async () => {
     const {AsyncContainer} = createStore();
     const container = new AsyncContainer({
         mapPropsToArgs: ({value}) => [value],
-        promise: value => delay(100, value),
+        promise: () => delay(100),
     });
 
     /* eslint-disable react/no-unused-state */
@@ -273,4 +275,38 @@ it('should throw if there is a race condition', async () => {
     const state = wrapper.state();
     console.info(`Error has been caught in ${state.catchTime - state.initTime}ms`);
     expect(state.hasError).toMatchSnapshot();
+});
+
+it('should not throw if `mapPropsToArgs` updates too often but limited by `maxArgs`', async () => {
+    const {AsyncContainer} = createStore();
+    const container = new AsyncContainer({
+        mapPropsToArgs: ({value}) => [null, value],
+        promise: () => delay(100),
+        maxArgs: 1,
+    });
+
+    class ErrorBoundary extends React.Component {
+        state = {hasError: null};
+
+        componentDidCatch(error) {
+            this.setState({hasError: error});
+        }
+
+        render() {
+            if (this.state.hasError) {
+                return null;
+            }
+            return this.props.children;
+        }
+    }
+
+    const wrapper = mount(
+        <ErrorBoundary>
+            <Priem sources={{container}} value="foo" />
+            <Priem sources={{container}} value="bar" />
+        </ErrorBoundary>
+    );
+    await delay(500);
+
+    expect(wrapper.state().hasError).toBeNull();
 });

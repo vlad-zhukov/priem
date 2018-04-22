@@ -1,11 +1,12 @@
 import moize from 'moize';
 import {shallowEqual} from 'fast-equals';
 import * as promiseState from './promiseState';
-import {isBrowser} from './helpers';
+import {type, isBrowser} from './helpers';
 
 export default class Cache {
     constructor({promise, maxAge, maxArgs, maxSize = Infinity, update, runAsync}) {
         this._update = update;
+        this._maxArgs = type(maxArgs) === 'number' ? maxArgs : null;
 
         this.awaiting = [];
         this.rejected = false;
@@ -45,7 +46,9 @@ export default class Cache {
         }
     }
 
-    run({args, autoRefresh = true, isForced}) {
+    run({args: allArgs, autoRefresh = true, isForced}) {
+        const args = this._maxArgs !== null ? allArgs.slice(0, this._maxArgs) : allArgs;
+
         // Stop auto-refreshing
         if (!autoRefresh && !isForced) {
             return;
