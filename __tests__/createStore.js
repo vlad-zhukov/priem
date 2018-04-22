@@ -387,4 +387,27 @@ describe('AsyncContainer()', () => {
         await delay(150);
         expect(container._cache.awaiting).toMatchObject([]);
     });
+
+    it('should not call `onExpire` for removed cache values', async () => {
+        const options = {
+            mapPropsToArgs: () => ['foo'],
+            promise: () => delay(100),
+            maxAge: 700,
+        };
+
+        const {container, runAsyncSpy} = setupStore({options});
+
+        await container._runAsync({isForced: false});
+        expect(container._cache.memoized.keys()).toEqual([['foo']]);
+
+        container._cache.memoized.remove(['foo']);
+        expect(container._cache.memoized.keys()).toEqual([]);
+
+        await container._runAsync({isForced: false});
+        expect(container._cache.memoized.keys()).toEqual([['foo']]);
+
+        await delay(750);
+
+        expect(runAsyncSpy).toHaveBeenCalledTimes(3);
+    });
 });

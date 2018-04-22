@@ -1,5 +1,5 @@
 export function type(value) {
-    if (value !== value) return 'NaN';
+    if (value !== value) return 'NaN'; // eslint-disable-line no-self-compare
     if (value === null) return 'null';
     if (value === undefined) return 'undefined';
     const typeofValue = typeof value;
