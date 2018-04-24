@@ -1,6 +1,6 @@
 const env = process.env.BABEL_ENV || process.env.NODE_ENV;
 
-const presets = ['@babel/preset-react', '@babel/preset-stage-1'];
+const presets = ['@babel/preset-react', ['@babel/preset-stage-1', {decoratorsLegacy: true}]];
 const plugins = [];
 
 if (env === 'test') {
