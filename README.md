@@ -1,4 +1,4 @@
-# priem · [![npm][1]][2] [![Build Status][3]][4] [![codecov][5]][6]
+# priem · [![npm][1]][2] [![Build Status][3]][4] [![codecov][5]][6] [![bundlephobia][7]][8]
 
 > Rich (a)sync state management.
 
@@ -316,3 +316,5 @@ async values. Most of these are not intended for public usage.
 [4]: https://travis-ci.org/vlad-zhukov/priem
 [5]: https://codecov.io/gh/vlad-zhukov/priem/branch/master/graph/badge.svg
 [6]: https://codecov.io/gh/vlad-zhukov/priem
+[7]: https://img.shields.io/bundlephobia/minzip/priem.svg
+[8]: https://bundlephobia.com/result?p=priem
