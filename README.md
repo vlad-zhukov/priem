@@ -164,7 +164,7 @@ import React from 'react';
 import {withPriem} from 'priem';
 import {redditContainer} from './store';
 
-@withPriem({sources={{reddit: redditContainer}}})
+@withPriem({sources: {reddit: redditContainer}})
 class RedditPosts extends React.Component {
     render() {
         const {pending, refreshing, value} = this.props.reddit;
@@ -182,6 +182,8 @@ class RedditPosts extends React.Component {
         );
     }
 }
+
+export default RedditPosts;
 ```
 
 ## Examples
