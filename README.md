@@ -314,8 +314,8 @@ async values. Most of these are not intended for public usage.
 
 [1]: https://img.shields.io/npm/v/priem.svg
 [2]: https://npm.im/priem
-[3]: https://travis-ci.org/vlad-zhukov/priem.svg?branch=master
-[4]: https://travis-ci.org/vlad-zhukov/priem
+[3]: https://travis-ci.com/vlad-zhukov/priem.svg?branch=master
+[4]: https://travis-ci.com/vlad-zhukov/priem
 [5]: https://codecov.io/gh/vlad-zhukov/priem/branch/master/graph/badge.svg
 [6]: https://codecov.io/gh/vlad-zhukov/priem
 [7]: https://img.shields.io/bundlephobia/minzip/priem.svg
