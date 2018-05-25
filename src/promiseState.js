@@ -50,7 +50,7 @@ export function isPromiseState(maybePromiseState) {
  */
 export function isLoading(promiseState) {
     if (isPromiseState(promiseState) === false) {
-        throw new TypeError(`Priem: Expected a promiseState.`)
+        throw new TypeError('Priem: Expected a promiseState.');
     }
     return promiseState.pending || promiseState.refreshing;
 }
