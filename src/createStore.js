@@ -81,7 +81,7 @@ export default function createStore(initialStore = {}) {
             assertType(options.promise, ['function'], "'promise'");
             assertType(options.mapPropsToArgs, ['function', 'undefined'], "'mapPropsToArgs'");
 
-            super(promiseState.empty(), options);
+            super(promiseState.pending(), options);
 
             this._update = this._update.bind(this);
             this._runAsync = this._runAsync.bind(this);

@@ -20,7 +20,7 @@ exports[`AsyncContainer() should not run promises if both \`autoRefresh\` and \`
 Array [
   Object {
     "fulfilled": false,
-    "pending": false,
+    "pending": true,
     "reason": null,
     "refreshing": false,
     "rejected": false,

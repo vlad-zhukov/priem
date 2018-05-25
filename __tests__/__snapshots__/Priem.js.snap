@@ -47,7 +47,7 @@ Object {
 exports[`should not keep data after the unmount if \`persist: false\` 2`] = `
 Object {
   "fulfilled": false,
-  "pending": false,
+  "pending": true,
   "reason": null,
   "refreshing": false,
   "rejected": false,

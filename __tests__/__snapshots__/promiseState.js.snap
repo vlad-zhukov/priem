@@ -98,14 +98,3 @@ Object {
   "value": null,
 }
 `;
-
-exports[`should create an empty promise state 1`] = `
-Object {
-  "fulfilled": false,
-  "pending": false,
-  "reason": null,
-  "refreshing": false,
-  "rejected": false,
-  "value": null,
-}
-`;
