@@ -1,7 +1,7 @@
 import delay from 'delay';
 import {mount} from 'enzyme';
 import {createSerializer} from 'enzyme-to-json';
-import {withPriem} from '../src/index';
+import withPriem from '../src/withPriem';
 import {testComponentDecorated, testComponentNestedDecorated} from '../__test-helpers__/util';
 
 expect.addSnapshotSerializer(createSerializer({mode: 'deep'}));

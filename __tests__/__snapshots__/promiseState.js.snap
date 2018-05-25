@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`should create a fulfilled promise state 1`] = `
+exports[`fulfilled() 1`] = `
 Object {
   "fulfilled": true,
   "pending": false,
@@ -11,7 +11,7 @@ Object {
 }
 `;
 
-exports[`should create a fulfilled promise state 2`] = `
+exports[`fulfilled() 2`] = `
 Object {
   "fulfilled": true,
   "pending": false,
@@ -22,7 +22,7 @@ Object {
 }
 `;
 
-exports[`should create a fulfilled promise state 3`] = `
+exports[`fulfilled() 3`] = `
 Object {
   "fulfilled": true,
   "pending": false,
@@ -33,7 +33,7 @@ Object {
 }
 `;
 
-exports[`should create a pending promise state 1`] = `
+exports[`pending() 1`] = `
 Object {
   "fulfilled": false,
   "pending": true,
@@ -44,7 +44,7 @@ Object {
 }
 `;
 
-exports[`should create a refreshing promise state 1`] = `
+exports[`refreshing() 1`] = `
 Object {
   "fulfilled": false,
   "pending": true,
@@ -55,7 +55,7 @@ Object {
 }
 `;
 
-exports[`should create a refreshing promise state 2`] = `
+exports[`refreshing() 2`] = `
 Object {
   "fulfilled": true,
   "pending": false,
@@ -66,7 +66,7 @@ Object {
 }
 `;
 
-exports[`should create a rejected promise state 1`] = `
+exports[`rejected() 1`] = `
 Object {
   "fulfilled": false,
   "pending": false,
@@ -77,7 +77,7 @@ Object {
 }
 `;
 
-exports[`should create a rejected promise state 2`] = `
+exports[`rejected() 2`] = `
 Object {
   "fulfilled": false,
   "pending": false,
@@ -88,7 +88,7 @@ Object {
 }
 `;
 
-exports[`should create a rejected promise state 3`] = `
+exports[`rejected() 3`] = `
 Object {
   "fulfilled": false,
   "pending": false,

@@ -301,14 +301,10 @@ on errors.
 
 ### `promiseState`
 
-A set of functions that are used internally to represent states of
-async values. Most of these are not intended for public usage.
+Helper functions for promise states.
 
-- `pending(): PromiseStates`
-- `refreshing(previous?: PromiseState): PromiseState`
-- `fulfilled(valueOrPromiseState: any): PromiseState`
-- `rejected(reason: any): PromiseState`
 - `isPromiseState(maybePromiseState: any): boolean`
+- `isLoading(promiseState: PromiseState): boolean`
 
 ---
 

@@ -7,5 +7,7 @@ describe('import-bundle-esm-as-cjs', () => {
         expect(typeof priem.withPriem).toBe('function');
         expect(typeof priem.getDataFromTree).toBe('function');
         expect(typeof priem.promiseState).toBe('object');
+        expect(typeof priem.promiseState.isPromiseState).toBe('function');
+        expect(typeof priem.promiseState.isLoading).toBe('function');
     });
 });

@@ -44,6 +44,18 @@ export function isPromiseState(maybePromiseState) {
 }
 
 /**
+ * Checks if a passed promiseState is in a loading state.
+ * @param promiseState {*}
+ * @returns {Boolean}
+ */
+export function isLoading(promiseState) {
+    if (isPromiseState(promiseState) === false) {
+        throw new TypeError(`Priem: Expected a promiseState.`)
+    }
+    return promiseState.pending || promiseState.refreshing;
+}
+
+/**
  * Creates a new promiseState that is pending.
  * @returns {Object}
  */

@@ -1,19 +1,19 @@
-import {promiseState} from '../src/index';
+import * as promiseState from '../src/promiseState';
 
-const {pending, refreshing, fulfilled, rejected, isPromiseState} = promiseState;
+const {pending, refreshing, fulfilled, rejected, isPromiseState, isLoading} = promiseState;
 
-it('should create a pending promise state', () => {
+it('pending()', () => {
     expect(pending()).toMatchSnapshot();
 });
 
-it('should create a refreshing promise state', () => {
+it('refreshing()', () => {
     expect(refreshing()).toMatchSnapshot();
 
     const foo = fulfilled('foo');
     expect(refreshing(foo)).toMatchSnapshot();
 });
 
-it('should create a fulfilled promise state', () => {
+it('fulfilled()', () => {
     expect(fulfilled()).toMatchSnapshot();
 
     const foo = fulfilled('foo');
@@ -21,13 +21,13 @@ it('should create a fulfilled promise state', () => {
     expect(fulfilled(foo)).toMatchSnapshot();
 });
 
-it('should create a rejected promise state', () => {
+it('rejected()', () => {
     expect(rejected()).toMatchSnapshot();
     expect(rejected('Test Error!')).toMatchSnapshot();
     expect(rejected(new Error('Test Error!'))).toMatchSnapshot();
 });
 
-it('should check if a value is a promise state', () => {
+it('isPromiseState()', () => {
     expect(isPromiseState()).toBe(false);
     expect(isPromiseState(null)).toBe(false);
     expect(isPromiseState('foo')).toBe(false);
@@ -37,4 +37,17 @@ it('should check if a value is a promise state', () => {
     expect(isPromiseState(refreshing())).toBe(true);
     expect(isPromiseState(fulfilled())).toBe(true);
     expect(isPromiseState(rejected())).toBe(true);
+});
+
+it('isLoading()', () => {
+    expect(isLoading(fulfilled())).toBe(false);
+    expect(isLoading(rejected())).toBe(false);
+
+    expect(isLoading(pending())).toBe(true);
+    expect(isLoading(refreshing())).toBe(true);
+
+    expect(() => isLoading()).toThrow(TypeError);
+    expect(() => isLoading(null)).toThrow(TypeError);
+    expect(() => isLoading('foo')).toThrow(TypeError);
+    expect(() => isLoading({pending: true})).toThrow(TypeError);
 });

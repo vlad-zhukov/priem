@@ -1,5 +1,6 @@
 import delay from 'delay';
-import {createStore, promiseState} from '../src/index';
+import createStore from '../src/createStore';
+import * as promiseState from '../src/promiseState';
 
 function setupStore({options, initialStore} = {}) {
     const {Container, AsyncContainer, getStore} = createStore(initialStore);

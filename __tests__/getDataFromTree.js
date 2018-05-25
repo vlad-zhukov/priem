@@ -7,8 +7,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom/server';
 import delay from 'delay';
-import {getDataFromTree, Priem, createStore} from '../src/index';
-import {walkTree} from '../src/getDataFromTree';
+import Priem from '../src/Priem';
+import createStore from '../src/createStore';
+import getDataFromTree, {walkTree} from '../src/getDataFromTree';
 import {testComponent, testComponentNested, times} from '../__test-helpers__/util';
 
 describe('getDataFromTree()', () => {

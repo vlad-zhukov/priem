@@ -4,7 +4,8 @@ import React from 'react';
 import delay from 'delay';
 import {mount} from 'enzyme';
 import {createSerializer} from 'enzyme-to-json';
-import {Priem, createStore} from '../src/index';
+import Priem from '../src/Priem';
+import createStore from '../src/createStore';
 import {testComponent, testComponentNested} from '../__test-helpers__/util';
 
 expect.addSnapshotSerializer(createSerializer({mode: 'deep'}));
