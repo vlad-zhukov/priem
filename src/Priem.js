@@ -20,23 +20,23 @@ export default class Priem extends React.Component {
 
     componentDidMount() {
         this._isMounted = true;
-        this._updateSubscriptions({instancesToSub: this._sources});
+        this._updateSubscriptions({instancesToSub: Object.values(this._sources)});
     }
 
     componentDidUpdate() {
         const {sources: nextSources} = this.props;
 
-        const instancesToUnsub = {};
+        const instancesToUnsub = [];
         Object.keys(this._sources).forEach((key) => {
             if (this._sources[key] !== nextSources[key]) {
-                instancesToUnsub[key] = this._sources[key];
+                instancesToUnsub.push(this._sources[key]);
             }
         });
 
-        const instancesToSub = {};
+        const instancesToSub = [];
         Object.keys(nextSources).forEach((key) => {
             if (nextSources[key] !== this._sources[key]) {
-                instancesToSub[key] = nextSources[key];
+                instancesToSub.push(nextSources[key]);
             }
         });
 
@@ -46,7 +46,7 @@ export default class Priem extends React.Component {
 
     componentWillUnmount() {
         this._isMounted = false;
-        this._updateSubscriptions({instancesToUnsub: this._sources});
+        this._updateSubscriptions({instancesToUnsub: Object.values(this._sources)});
     }
 
     refresh = () => {
@@ -56,8 +56,7 @@ export default class Priem extends React.Component {
     _getProps() {
         const {render, component, children, sources, ...props} = this.props;
         Object.keys(this._sources).forEach((key) => {
-            const instance = this._sources[key];
-            props[key] = instance.state;
+            props[key] = this._sources[key].state;
         });
         props.refresh = this.refresh;
         return props;
@@ -65,16 +64,14 @@ export default class Priem extends React.Component {
 
     _updateSubscriptions({instancesToSub, instancesToUnsub, isForced = false}) {
         if (instancesToSub) {
-            const instanceToSubKeys = Object.keys(instancesToSub);
-            instanceToSubKeys.forEach((key) => {
-                instancesToSub[key]._subscribe(this._onUpdate);
+            instancesToSub.forEach((instanceToSub) => {
+                instanceToSub._subscribe(this._onUpdate);
             });
         }
 
         if (instancesToUnsub) {
-            const instanceToUnsubKeys = Object.keys(instancesToUnsub);
-            instanceToUnsubKeys.forEach((key) => {
-                instancesToUnsub[key]._unsubscribe(this._onUpdate);
+            instancesToUnsub.forEach((instanceToUnsub) => {
+                instanceToUnsub._unsubscribe(this._onUpdate);
             });
         }
 
