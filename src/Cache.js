@@ -47,7 +47,10 @@ export default class Cache {
     }
 
     run({args: allArgs, autoRefresh = true, isForced}) {
-        const args = this._maxArgs !== null ? allArgs.slice(0, this._maxArgs) : allArgs;
+        // Prevent the update if mapPropsToArgs returned null (useful for waiting for async actions)
+        if (allArgs === null) {
+            return;
+        }
 
         // Stop auto-refreshing
         if (!autoRefresh && !isForced) {
@@ -58,6 +61,8 @@ export default class Cache {
         if (this.rejected && !isForced) {
             return;
         }
+
+        const args = this._maxArgs !== null ? allArgs.slice(0, this._maxArgs) : allArgs;
 
         if (this.isAwaiting(args)) {
             return;

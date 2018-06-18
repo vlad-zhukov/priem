@@ -138,7 +138,7 @@ export default function createStore(initialStore = {}) {
             this._prevProps = props;
 
             const args = this._mapPropsToArgs(props);
-            assertType(args, ['array'], "The result of 'mapPropsToArgs(props)'");
+            assertType(args, ['array', 'null'], "The result of 'mapPropsToArgs(props)'");
 
             return this._cache.run({
                 args,

@@ -118,7 +118,7 @@ describe('Container()', () => {
 });
 
 describe('AsyncContainer()', () => {
-    it('should default mapPropsToArgs to a function that returns an empty array', () => {
+    it('should default `mapPropsToArgs` to a function that returns an empty array', () => {
         const {AsyncContainer} = setupStore();
         const container = new AsyncContainer({promise: () => delay(100, {})});
 
@@ -295,6 +295,39 @@ describe('AsyncContainer()', () => {
         expect(updateSpy).toHaveBeenCalledTimes(3);
         expect(runAsyncSpy).toHaveBeenCalledTimes(2);
         expect([container.state, container._meta]).toMatchSnapshot();
+    });
+
+    it('should not run promises if `mapPropsToArgs` returns null', async () => {
+        const date = Date.now();
+
+        const options = {
+            mapPropsToArgs: () => {
+                if (Date.now() - date < 500) {
+                    return null;
+                }
+                return ['foo'];
+            },
+            promise: value => delay(200, {value}),
+        };
+
+        const {container, updateSpy, runAsyncSpy} = setupStore({options});
+
+        container._runAsync({isForced: false});
+        expect(container._cache.awaiting).toMatchObject([]);
+
+        await delay(250);
+        expect(updateSpy).toHaveBeenCalledTimes(0);
+        expect(runAsyncSpy).toHaveBeenCalledTimes(1);
+        expect([container.state, container._meta]).toMatchSnapshot(); // pending
+
+        await delay(300);
+        container._runAsync({isForced: false});
+        expect(container._cache.awaiting).toMatchObject([['foo']]);
+
+        await delay(250);
+        expect(updateSpy).toHaveBeenCalledTimes(2);
+        expect(runAsyncSpy).toHaveBeenCalledTimes(2);
+        expect([container.state, container._meta]).toMatchSnapshot(); // fulfilled
     });
 
     it('should rehydrate ssr data', async () => {
