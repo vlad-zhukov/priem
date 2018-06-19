@@ -262,8 +262,12 @@ it('should throw if `mapPropsToArgs` updates too often due to a race condition',
 
     const wrapper = mount(
         <ErrorBoundary>
-            <Priem sources={{container}} value="foo">{() => null}</Priem>
-            <Priem sources={{container}} value="bar">{() => null}</Priem>
+            <Priem sources={{container}} value="foo">
+                {() => null}
+            </Priem>
+            <Priem sources={{container}} value="bar">
+                {() => null}
+            </Priem>
         </ErrorBoundary>
     );
     await delay(500);
@@ -283,8 +287,12 @@ it('should not throw if `mapPropsToArgs` updates too often but limited by `maxAr
 
     const wrapper = mount(
         <ErrorBoundary>
-            <Priem sources={{container}} value="foo">{() => null}</Priem>
-            <Priem sources={{container}} value="bar">{() => null}</Priem>
+            <Priem sources={{container}} value="foo">
+                {() => null}
+            </Priem>
+            <Priem sources={{container}} value="bar">
+                {() => null}
+            </Priem>
         </ErrorBoundary>
     );
     await delay(500);
