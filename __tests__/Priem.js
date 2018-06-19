@@ -30,41 +30,31 @@ it('should render a simple component', async () => {
     expect(setStateSpy).toHaveBeenCalledTimes(2);
 });
 
-it('should use `render`, `component` and `children` props', () => {
+it('should use `children` and `component` props', () => {
     const {Container} = createStore();
 
     const container = new Container({value: 'foo'});
 
-    const renderSpy = jest.fn(p => <div>{p.container.value}</div>);
-    const componentSpy = jest.fn(p => <div>{p.container.value}</div>);
-    const childrenSpy = jest.fn(p => <div>{p.container.value}</div>);
+    const childrenSpy = jest.fn(p => <div>children {p.container.value}</div>);
+    const componentSpy = jest.fn(p => <div>component {p.container.value}</div>);
 
     const element = (
-        <Priem sources={{container}} render={renderSpy} component={componentSpy}>
-            {React.createElement(childrenSpy)}
+        <Priem sources={{container}} component={componentSpy}>
+            {childrenSpy}
         </Priem>
     );
 
     const wrapper = mount(element);
 
-    expect(renderSpy).toHaveBeenCalledTimes(1);
-    expect(componentSpy).toHaveBeenCalledTimes(0);
-    expect(childrenSpy).toHaveBeenCalledTimes(0);
-    expect(wrapper.html()).toBe('<div>foo</div>');
-
-    wrapper.setProps({render: undefined});
-
-    expect(renderSpy).toHaveBeenCalledTimes(1);
-    expect(componentSpy).toHaveBeenCalledTimes(1);
-    expect(childrenSpy).toHaveBeenCalledTimes(0);
-    expect(wrapper.html()).toBe('<div>foo</div>');
-
-    wrapper.setProps({component: undefined});
-
-    expect(renderSpy).toHaveBeenCalledTimes(1);
-    expect(componentSpy).toHaveBeenCalledTimes(1);
     expect(childrenSpy).toHaveBeenCalledTimes(1);
-    expect(wrapper.html()).toBe('<div>foo</div>');
+    expect(componentSpy).toHaveBeenCalledTimes(0);
+    expect(wrapper.html()).toBe('<div>children foo</div>');
+
+    wrapper.setProps({children: undefined});
+
+    expect(childrenSpy).toHaveBeenCalledTimes(1);
+    expect(componentSpy).toHaveBeenCalledTimes(1);
+    expect(wrapper.html()).toBe('<div>component foo</div>');
 });
 
 it('should resubscribe when `sources` change', () => {
@@ -78,7 +68,7 @@ it('should resubscribe when `sources` change', () => {
     const subscribeSpy2 = jest.spyOn(container2, '_subscribe');
     const unsubscribeSpy2 = jest.spyOn(container2, '_unsubscribe');
 
-    const wrapper = mount(<Priem sources={{container1}} render={() => null} />);
+    const wrapper = mount(<Priem sources={{container1}}>{() => null}</Priem>);
 
     expect(subscribeSpy1).toHaveBeenCalledTimes(1);
     expect(unsubscribeSpy1).toHaveBeenCalledTimes(0);
@@ -97,7 +87,7 @@ it('should rerender when container state changes', () => {
     const {Container} = createStore();
 
     const container = new Container({value: 1});
-    const wrapper = mount(<Priem sources={{}} render={() => null} />);
+    const wrapper = mount(<Priem sources={{}}>{() => null}</Priem>);
     const onUpdateSpy = jest.spyOn(wrapper.instance(), '_onUpdate');
 
     wrapper.setProps({sources: {container}});
@@ -267,8 +257,8 @@ it('should throw if `mapPropsToArgs` updates too often due to a race condition',
 
     const wrapper = mount(
         <ErrorBoundary>
-            <Priem sources={{container}} value="foo" />
-            <Priem sources={{container}} value="bar" />
+            <Priem sources={{container}} value="foo">{() => null}</Priem>
+            <Priem sources={{container}} value="bar">{() => null}</Priem>
         </ErrorBoundary>
     );
     await delay(500);
@@ -303,8 +293,8 @@ it('should not throw if `mapPropsToArgs` updates too often but limited by `maxAr
 
     const wrapper = mount(
         <ErrorBoundary>
-            <Priem sources={{container}} value="foo" />
-            <Priem sources={{container}} value="bar" />
+            <Priem sources={{container}} value="foo">{() => null}</Priem>
+            <Priem sources={{container}} value="bar">{() => null}</Priem>
         </ErrorBoundary>
     );
     await delay(500);

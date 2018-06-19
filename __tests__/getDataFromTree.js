@@ -76,7 +76,7 @@ describe('getDataFromTree()', () => {
             },
             promise: () => delay(100),
         });
-        const element1 = <Priem sources={{container1}} render={() => null} />;
+        const element1 = <Priem sources={{container1}}>{() => null}</Priem>;
         await expect(getDataFromTree(element1)).rejects.toThrow('bar');
 
         const container2 = new AsyncContainer({
@@ -85,7 +85,7 @@ describe('getDataFromTree()', () => {
             },
             promise: () => delay(100),
         });
-        const element2 = <Priem sources={{container1, container2}} render={() => null} />;
+        const element2 = <Priem sources={{container1, container2}}>{() => null}</Priem>;
         await expect(getDataFromTree(element2)).rejects.toThrow('2 errors were thrown when fetching containers.');
     });
 });

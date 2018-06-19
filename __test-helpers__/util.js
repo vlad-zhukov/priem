@@ -20,7 +20,7 @@ export function testComponent({initialStore, options} = {}) {
 
     setStateSpy.mockClear();
 
-    const element = <Priem sources={{container}} render={p => <div>{p.container.value}</div>} />;
+    const element = <Priem sources={{container}}>{p => <div>{p.container.value}</div>}</Priem>;
 
     return {element, container, getStore, updateSpy, runAsyncSpy, setStateSpy};
 }
@@ -57,9 +57,8 @@ export function testComponentNested({initialStore, syncContainerProps, container
     });
 
     const element = (
-        <Priem
-            sources={{syncContainer, container1}}
-            render={({container1: c1}) => {
+        <Priem sources={{syncContainer, container1}}>
+            {({container1: c1}) => {
                 if (!c1.value) {
                     return null;
                 }
@@ -67,10 +66,8 @@ export function testComponentNested({initialStore, syncContainerProps, container
                 const onClick = () => syncContainer.setState(s => ({counter: s.counter + 1}));
 
                 return (
-                    <Priem
-                        sources={{container2}}
-                        container1value={c1.value}
-                        render={({container2: c2}) => {
+                    <Priem sources={{container2}} container1value={c1.value}>
+                        {({container2: c2}) => {
                             if (!c2.value) {
                                 return null;
                             }
@@ -82,10 +79,10 @@ export function testComponentNested({initialStore, syncContainerProps, container
                                 </div>
                             );
                         }}
-                    />
+                    </Priem>
                 );
             }}
-        />
+        </Priem>
     );
 
     return {element, getStore};
