@@ -134,7 +134,7 @@ describe('AsyncContainer()', () => {
 
         const {container, updateSpy, runAsyncSpy} = setupStore({options});
 
-        container._runAsync({isForced: false});
+        container._runAsync();
         expect(container._cache.awaiting).toMatchObject([]);
 
         await delay(250);
@@ -173,13 +173,13 @@ describe('AsyncContainer()', () => {
 
         const {container, updateSpy, runAsyncSpy} = setupStore({options});
 
-        container._runAsync({isForced: false});
+        container._runAsync();
         expect(container._cache.awaiting).toMatchObject([['foo']]);
 
-        container._runAsync({isForced: false});
+        container._runAsync();
         expect(container._cache.awaiting).toMatchObject([['foo']]);
 
-        container._runAsync({isForced: false});
+        container._runAsync();
         expect(container._cache.awaiting).toMatchObject([['foo']]);
 
         await delay(250);
@@ -202,7 +202,7 @@ describe('AsyncContainer()', () => {
 
         const {container, updateSpy} = setupStore({options});
 
-        await container._runAsync({isForced: false});
+        await container._runAsync();
         expect([container.state, container._meta]).toMatchSnapshot();
 
         container._runAsync({isForced: true});
@@ -229,13 +229,13 @@ describe('AsyncContainer()', () => {
 
         const {container, updateSpy, runAsyncSpy} = setupStore({options});
 
-        container._runAsync({isForced: false});
+        container._runAsync();
         expect(container._cache.awaiting).toMatchObject([['foo']]);
 
         await delay(250);
         expect(container._cache.awaiting).toMatchObject([]);
 
-        container._runAsync({isForced: false});
+        container._runAsync();
         expect(container._cache.awaiting).toMatchObject([]);
 
         expect(updateSpy).toHaveBeenCalledTimes(2);
@@ -283,13 +283,13 @@ describe('AsyncContainer()', () => {
 
         const {container, updateSpy, runAsyncSpy} = setupStore({options});
 
-        container._runAsync({isForced: false});
+        container._runAsync();
         expect(container._cache.awaiting).toMatchObject([[null]]);
 
         await delay(150);
         expect(container._cache.awaiting).toMatchObject([]);
 
-        container._runAsync({isForced: false});
+        container._runAsync();
         expect(container._cache.awaiting).toMatchObject([]);
 
         expect(updateSpy).toHaveBeenCalledTimes(3);
@@ -312,7 +312,7 @@ describe('AsyncContainer()', () => {
 
         const {container, updateSpy, runAsyncSpy} = setupStore({options});
 
-        container._runAsync({isForced: false});
+        container._runAsync();
         expect(container._cache.awaiting).toMatchObject([]);
 
         await delay(250);
@@ -321,7 +321,7 @@ describe('AsyncContainer()', () => {
         expect([container.state, container._meta]).toMatchSnapshot(); // pending
 
         await delay(300);
-        container._runAsync({isForced: false});
+        container._runAsync();
         expect(container._cache.awaiting).toMatchObject([['foo']]);
 
         await delay(250);
@@ -348,7 +348,7 @@ describe('AsyncContainer()', () => {
 
         const {container, updateSpy, runAsyncSpy} = setupStore({options, initialStore});
 
-        await container._runAsync({isForced: false});
+        await container._runAsync();
 
         expect([container.state, container._meta]).toMatchSnapshot();
         expect(await container._cache.memoized.get(['foo'])).toBe('foo');
@@ -370,8 +370,8 @@ describe('AsyncContainer()', () => {
 
         const {container, updateSpy} = setupStore({options});
 
-        await container._runAsync({isForced: false});
-        await container._runAsync({isForced: false});
+        await container._runAsync();
+        await container._runAsync();
 
         expect(await container._cache.memoized.keys()).toEqual([['foo1', 'bar1'], ['foo0', 'bar0']]);
 
@@ -390,13 +390,13 @@ describe('AsyncContainer()', () => {
 
         const {container} = setupStore({options});
 
-        await container._runAsync({isForced: false});
+        await container._runAsync();
         expect([container.state, container._meta]).toMatchSnapshot(); // foo-false
 
-        await container._runAsync({isForced: false});
+        await container._runAsync();
         expect([container.state, container._meta]).toMatchSnapshot(); // foo-true
 
-        await container._runAsync({isForced: false});
+        await container._runAsync();
         expect([container.state, container._meta]).toMatchSnapshot(); // foo-false
     });
 
@@ -431,13 +431,13 @@ describe('AsyncContainer()', () => {
 
         const {container, runAsyncSpy} = setupStore({options});
 
-        await container._runAsync({isForced: false});
+        await container._runAsync();
         expect(container._cache.memoized.keys()).toEqual([['foo']]);
 
         container._cache.memoized.remove(['foo']);
         expect(container._cache.memoized.keys()).toEqual([]);
 
-        await container._runAsync({isForced: false});
+        await container._runAsync();
         expect(container._cache.memoized.keys()).toEqual([['foo']]);
 
         await delay(750);
