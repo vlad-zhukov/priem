@@ -96,14 +96,12 @@ export default class Priem extends React.Component {
 
         const props = this._getProps();
 
-        if (type(children) === 'function') {
-            return children(props);
-        }
-
         if (component) {
             return React.createElement(component, props);
         }
 
         assertType(children, ['function'], "<Priem />'s 'children'");
+
+        return children(props);
     }
 }

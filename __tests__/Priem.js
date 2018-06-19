@@ -44,15 +44,15 @@ it('should use `children` and `component` props', () => {
         </Priem>
     );
 
-    expect(childrenSpy).toHaveBeenCalledTimes(1);
-    expect(componentSpy).toHaveBeenCalledTimes(0);
-    expect(wrapper.html()).toBe('<div>children foo</div>');
+    expect(childrenSpy).toHaveBeenCalledTimes(0);
+    expect(componentSpy).toHaveBeenCalledTimes(1);
+    expect(wrapper.html()).toBe('<div>component foo</div>');
 
-    wrapper.setProps({children: undefined});
+    wrapper.setProps({component: undefined});
 
     expect(childrenSpy).toHaveBeenCalledTimes(1);
     expect(componentSpy).toHaveBeenCalledTimes(1);
-    expect(wrapper.html()).toBe('<div>component foo</div>');
+    expect(wrapper.html()).toBe('<div>children foo</div>');
 });
 
 it('should throw if neither `children` nor `component` have been passed', async () => {
