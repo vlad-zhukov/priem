@@ -97,7 +97,7 @@ export default function createStore(initialStore = {}) {
             });
             this._recentCallCount = 0;
             this._lastCallTime = 0;
-            this._prevProps = null;
+            this._prevProps = {};
         }
 
         _update(updater) {

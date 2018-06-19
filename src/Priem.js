@@ -1,11 +1,10 @@
 import React from 'react';
-import {type} from './helpers';
+import {type, assertType} from './helpers';
 
 const DUMMY_STATE = {};
 
 export default class Priem extends React.Component {
     static defaultProps = {
-        render: null,
         component: null,
         children: null,
     };
@@ -54,7 +53,7 @@ export default class Priem extends React.Component {
     };
 
     _getProps() {
-        const {render, component, children, sources, ...props} = this.props;
+        const {component, children, sources, ...props} = this.props;
         Object.keys(this._sources).forEach((key) => {
             props[key] = this._sources[key].state;
         });
@@ -93,18 +92,16 @@ export default class Priem extends React.Component {
     };
 
     render() {
-        const {render, component, children} = this.props;
+        const {component, children} = this.props;
 
         const props = this._getProps();
-
-        if (type(render) === 'function') {
-            return render(props);
-        }
 
         if (component) {
             return React.createElement(component, props);
         }
 
-        return React.Children.toArray(children).map(child => React.cloneElement(child, props));
+        assertType(children, ['function'], "<Priem />'s 'children'");
+
+        return children(props);
     }
 }

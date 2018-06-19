@@ -125,6 +125,20 @@ describe('AsyncContainer()', () => {
         expect(container._mapPropsToArgs()).toEqual([]);
     });
 
+    it('should always call `mapPropsToArgs` with an object', async () => {
+        const options = {
+            mapPropsToArgs: (props) => {
+                expect(props).toEqual({});
+                return null;
+            },
+            promise: () => delay(200, {}),
+        };
+
+        const {container} = setupStore({options});
+
+        container._runAsync();
+    });
+
     it('should not run promises if both `autoRefresh` and `isForced` are false', async () => {
         const options = {
             mapPropsToArgs: () => ['foo'],

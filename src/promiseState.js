@@ -11,21 +11,14 @@ import {type} from './helpers';
  * @param [options.reason] {String|Null}
  * @returns {Object}
  */
-function create({
-    pending = false, // eslint-disable-line no-shadow
-    refreshing = false, // eslint-disable-line no-shadow
-    fulfilled = false, // eslint-disable-line no-shadow
-    rejected = false, // eslint-disable-line no-shadow
-    value = null,
-    reason = null,
-}) {
+function create(options) {
     return {
-        pending,
-        refreshing,
-        fulfilled,
-        rejected,
-        value,
-        reason,
+        pending: options.pending || false,
+        refreshing: options.refreshing || false,
+        fulfilled: options.fulfilled || false,
+        rejected: options.rejected || false,
+        value: options.value || null,
+        reason: options.reason || null,
     };
 }
 

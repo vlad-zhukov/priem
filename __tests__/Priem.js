@@ -6,7 +6,7 @@ import {mount} from 'enzyme';
 import {createSerializer} from 'enzyme-to-json';
 import Priem from '../src/Priem';
 import createStore from '../src/createStore';
-import {testComponent, testComponentNested} from '../__test-helpers__/util';
+import {testComponent, testComponentNested, ErrorBoundary} from '../__test-helpers__/util';
 
 expect.addSnapshotSerializer(createSerializer({mode: 'deep'}));
 
@@ -30,41 +30,53 @@ it('should render a simple component', async () => {
     expect(setStateSpy).toHaveBeenCalledTimes(2);
 });
 
-it('should use `render`, `component` and `children` props', () => {
+it('should use `children` and `component` props', () => {
     const {Container} = createStore();
 
     const container = new Container({value: 'foo'});
 
-    const renderSpy = jest.fn(p => <div>{p.container.value}</div>);
-    const componentSpy = jest.fn(p => <div>{p.container.value}</div>);
-    const childrenSpy = jest.fn(p => <div>{p.container.value}</div>);
+    const childrenSpy = jest.fn(p => <div>children {p.container.value}</div>);
+    const componentSpy = jest.fn(p => <div>component {p.container.value}</div>);
 
-    const element = (
-        <Priem sources={{container}} render={renderSpy} component={componentSpy}>
-            {React.createElement(childrenSpy)}
+    const wrapper = mount(
+        <Priem sources={{container}} component={componentSpy}>
+            {childrenSpy}
         </Priem>
     );
 
-    const wrapper = mount(element);
-
-    expect(renderSpy).toHaveBeenCalledTimes(1);
-    expect(componentSpy).toHaveBeenCalledTimes(0);
     expect(childrenSpy).toHaveBeenCalledTimes(0);
-    expect(wrapper.html()).toBe('<div>foo</div>');
-
-    wrapper.setProps({render: undefined});
-
-    expect(renderSpy).toHaveBeenCalledTimes(1);
     expect(componentSpy).toHaveBeenCalledTimes(1);
-    expect(childrenSpy).toHaveBeenCalledTimes(0);
-    expect(wrapper.html()).toBe('<div>foo</div>');
+    expect(wrapper.html()).toBe('<div>component foo</div>');
 
     wrapper.setProps({component: undefined});
 
-    expect(renderSpy).toHaveBeenCalledTimes(1);
-    expect(componentSpy).toHaveBeenCalledTimes(1);
     expect(childrenSpy).toHaveBeenCalledTimes(1);
-    expect(wrapper.html()).toBe('<div>foo</div>');
+    expect(componentSpy).toHaveBeenCalledTimes(1);
+    expect(wrapper.html()).toBe('<div>children foo</div>');
+});
+
+it('should throw if neither `children` nor `component` have been passed', async () => {
+    const {Container} = createStore();
+
+    const container = new Container({value: 'foo'});
+
+    const wrapper = mount(
+        <ErrorBoundary>
+            <Priem sources={{container}} />
+        </ErrorBoundary>
+    );
+
+    expect(wrapper.state().hasError).toMatchSnapshot();
+});
+
+it('should throw if `sources` is not an object', async () => {
+    const wrapper = mount(
+        <ErrorBoundary>
+            <Priem>{() => null}</Priem>
+        </ErrorBoundary>
+    );
+
+    expect(wrapper.state().hasError).toMatchSnapshot();
 });
 
 it('should resubscribe when `sources` change', () => {
@@ -78,7 +90,7 @@ it('should resubscribe when `sources` change', () => {
     const subscribeSpy2 = jest.spyOn(container2, '_subscribe');
     const unsubscribeSpy2 = jest.spyOn(container2, '_unsubscribe');
 
-    const wrapper = mount(<Priem sources={{container1}} render={() => null} />);
+    const wrapper = mount(<Priem sources={{container1}}>{() => null}</Priem>);
 
     expect(subscribeSpy1).toHaveBeenCalledTimes(1);
     expect(unsubscribeSpy1).toHaveBeenCalledTimes(0);
@@ -97,7 +109,7 @@ it('should rerender when container state changes', () => {
     const {Container} = createStore();
 
     const container = new Container({value: 1});
-    const wrapper = mount(<Priem sources={{}} render={() => null} />);
+    const wrapper = mount(<Priem sources={{}}>{() => null}</Priem>);
     const onUpdateSpy = jest.spyOn(wrapper.instance(), '_onUpdate');
 
     wrapper.setProps({sources: {container}});
@@ -248,27 +260,14 @@ it('should throw if `mapPropsToArgs` updates too often due to a race condition',
         promise: () => delay(100),
     });
 
-    /* eslint-disable react/no-unused-state */
-    class ErrorBoundary extends React.Component {
-        state = {initTime: Date.now(), hasError: null};
-
-        componentDidCatch(error) {
-            this.setState({hasError: error, catchTime: Date.now()});
-        }
-
-        render() {
-            if (this.state.hasError) {
-                return null;
-            }
-            return this.props.children;
-        }
-    }
-    /* eslint-enable react/no-unused-state */
-
     const wrapper = mount(
         <ErrorBoundary>
-            <Priem sources={{container}} value="foo" />
-            <Priem sources={{container}} value="bar" />
+            <Priem sources={{container}} value="foo">
+                {() => null}
+            </Priem>
+            <Priem sources={{container}} value="bar">
+                {() => null}
+            </Priem>
         </ErrorBoundary>
     );
     await delay(500);
@@ -286,25 +285,14 @@ it('should not throw if `mapPropsToArgs` updates too often but limited by `maxAr
         maxArgs: 1,
     });
 
-    class ErrorBoundary extends React.Component {
-        state = {hasError: null};
-
-        componentDidCatch(error) {
-            this.setState({hasError: error});
-        }
-
-        render() {
-            if (this.state.hasError) {
-                return null;
-            }
-            return this.props.children;
-        }
-    }
-
     const wrapper = mount(
         <ErrorBoundary>
-            <Priem sources={{container}} value="foo" />
-            <Priem sources={{container}} value="bar" />
+            <Priem sources={{container}} value="foo">
+                {() => null}
+            </Priem>
+            <Priem sources={{container}} value="bar">
+                {() => null}
+            </Priem>
         </ErrorBoundary>
     );
     await delay(500);
