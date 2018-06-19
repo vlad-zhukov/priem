@@ -6,7 +6,7 @@ import {mount} from 'enzyme';
 import {createSerializer} from 'enzyme-to-json';
 import Priem from '../src/Priem';
 import createStore from '../src/createStore';
-import {testComponent, testComponentNested} from '../__test-helpers__/util';
+import {testComponent, testComponentNested, ErrorBoundary} from '../__test-helpers__/util';
 
 expect.addSnapshotSerializer(createSerializer({mode: 'deep'}));
 
@@ -38,13 +38,11 @@ it('should use `children` and `component` props', () => {
     const childrenSpy = jest.fn(p => <div>children {p.container.value}</div>);
     const componentSpy = jest.fn(p => <div>component {p.container.value}</div>);
 
-    const element = (
+    const wrapper = mount(
         <Priem sources={{container}} component={componentSpy}>
             {childrenSpy}
         </Priem>
     );
-
-    const wrapper = mount(element);
 
     expect(childrenSpy).toHaveBeenCalledTimes(1);
     expect(componentSpy).toHaveBeenCalledTimes(0);
@@ -55,6 +53,30 @@ it('should use `children` and `component` props', () => {
     expect(childrenSpy).toHaveBeenCalledTimes(1);
     expect(componentSpy).toHaveBeenCalledTimes(1);
     expect(wrapper.html()).toBe('<div>component foo</div>');
+});
+
+it('should throw if neither `children` nor `component` have been passed', async () => {
+    const {Container} = createStore();
+
+    const container = new Container({value: 'foo'});
+
+    const wrapper = mount(
+        <ErrorBoundary>
+            <Priem sources={{container}} />
+        </ErrorBoundary>
+    );
+
+    expect(wrapper.state().hasError).toMatchSnapshot();
+});
+
+it('should throw if `sources` is not an object', async () => {
+    const wrapper = mount(
+        <ErrorBoundary>
+            <Priem>{() => null}</Priem>
+        </ErrorBoundary>
+    );
+
+    expect(wrapper.state().hasError).toMatchSnapshot();
 });
 
 it('should resubscribe when `sources` change', () => {
@@ -238,23 +260,6 @@ it('should throw if `mapPropsToArgs` updates too often due to a race condition',
         promise: () => delay(100),
     });
 
-    /* eslint-disable react/no-unused-state */
-    class ErrorBoundary extends React.Component {
-        state = {initTime: Date.now(), hasError: null};
-
-        componentDidCatch(error) {
-            this.setState({hasError: error, catchTime: Date.now()});
-        }
-
-        render() {
-            if (this.state.hasError) {
-                return null;
-            }
-            return this.props.children;
-        }
-    }
-    /* eslint-enable react/no-unused-state */
-
     const wrapper = mount(
         <ErrorBoundary>
             <Priem sources={{container}} value="foo">{() => null}</Priem>
@@ -275,21 +280,6 @@ it('should not throw if `mapPropsToArgs` updates too often but limited by `maxAr
         promise: () => delay(100),
         maxArgs: 1,
     });
-
-    class ErrorBoundary extends React.Component {
-        state = {hasError: null};
-
-        componentDidCatch(error) {
-            this.setState({hasError: error});
-        }
-
-        render() {
-            if (this.state.hasError) {
-                return null;
-            }
-            return this.props.children;
-        }
-    }
 
     const wrapper = mount(
         <ErrorBoundary>

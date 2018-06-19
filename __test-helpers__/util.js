@@ -125,6 +125,23 @@ export function testComponentNestedDecorated({initialStore} = {}) {
     return {element: <TestComponent1 />, getStore};
 }
 
+/* eslint-disable react/no-unused-state */
+export class ErrorBoundary extends React.Component {
+    state = {initTime: Date.now(), hasError: null};
+
+    componentDidCatch(error) {
+        this.setState({hasError: error, catchTime: Date.now()});
+    }
+
+    render() {
+        if (this.state.hasError) {
+            return null;
+        }
+        return this.props.children;
+    }
+}
+/* eslint-enable react/no-unused-state */
+
 export function times(n, fn) {
     const out = [];
     for (let i = 0; i < n; i++) {
