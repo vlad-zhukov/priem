@@ -239,11 +239,14 @@ base `Container` and also allows to set the following:
    resolving the state of this container updates with
    [`promiseState`s](#promisestate).
    * `[mapPropsToArgs]` _(Function)_: A function that takes React props
-   and must return an array of values that will be passed to the `promise`
-   function as arguments. During caching args are compared using a
-   shallow equality algorithm, so to avoid unnecessary rerenders
-   make sure you use either immutable values (booleans, numbers,
-   strings or symbols) or pass the same objects. Defaults to `() => []`.
+   and must return an array of values that will be passed to the
+   `promise` function as arguments. During caching args are compared
+   using a shallow equality algorithm, so to avoid unnecessary rerenders
+   make sure you use either immutable values (such as numbers and
+   strings) or pass the same exactily same objects. Returning `null`
+   from this function will prevent the update which can be utilized for
+   waiting for async tasks or user interactions to finish. Defaults to
+   `() => []`.
    * `[autoRefresh]` _(Boolean)_: A property that defines if  this
    container resolve the `promise` on initial mounting  and when props
    change. Setting it to `false` makes it only possible to refresh
