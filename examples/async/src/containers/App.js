@@ -29,36 +29,37 @@ export default class App extends React.Component {
 
     render() {
         return (
-            <Priem sources={{redditPicker, reddit}} render={({redditPicker, reddit, refresh}) => {
-                const {value, lastUpdated} = reddit;
-                const isFetching = reddit.pending || reddit.refreshing;
+            <Priem sources={{redditPicker, reddit}}>
+                {({redditPicker, reddit, refresh}) => {
+                    const {value, lastUpdated} = reddit;
+                    const isFetching = reddit.pending || reddit.refreshing;
 
-                return (
-                    <div>
-                        <Picker
-                            value={redditPicker.reddit}
-                            onChange={this.handleChange}
-                            options={['reactjs', 'frontend']}
-                        />
-                        <p>
-                            {lastUpdated && <span>Last updated at {new Date(lastUpdated).toLocaleTimeString()}. </span>}
-                            {!isFetching && <button onClick={refresh}>Refresh</button>}
-                        </p>
-                        {!value ? ( // eslint-disable-line no-nested-ternary
-                            isFetching ? (
-                                <h2>Loading...</h2>
+                    return (
+                        <div>
+                            <Picker
+                                value={redditPicker.reddit}
+                                onChange={this.handleChange}
+                                options={['reactjs', 'frontend']}
+                            />
+                            <p>
+                                {lastUpdated && <span>Last updated at {new Date(lastUpdated).toLocaleTimeString()}. </span>}
+                                {!isFetching && <button onClick={refresh}>Refresh</button>}
+                            </p>
+                            {!value ? ( // eslint-disable-line no-nested-ternary
+                                isFetching ? (
+                                    <h2>Loading...</h2>
+                                ) : (
+                                    <h2>Empty.</h2>
+                                )
                             ) : (
-                                <h2>Empty.</h2>
-                            )
-                        ) : (
-                            <div style={{opacity: isFetching ? 0.5 : 1}}>
-                                <Posts posts={value} />
-                            </div>
-                        )}
-                    </div>
-                );
-            }} />
-
+                                <div style={{opacity: isFetching ? 0.5 : 1}}>
+                                    <Posts posts={value} />
+                                </div>
+                            )}
+                        </div>
+                    );
+                }}
+            </Priem>
         );
     }
 }

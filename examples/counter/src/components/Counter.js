@@ -26,10 +26,9 @@ class CounterContainer extends Container {
 export const counterContainer = new CounterContainer({value: 0});
 
 export default () => (
-    <Priem
-        sources={{counter: counterContainer}}
-        render={({counter}) => {
-            return <div>
+    <Priem sources={{counter: counterContainer}}>
+        {({counter}) => (
+            <div>
                 <span>Clicked: {counter.value} times </span>
                 <button onClick={counterContainer.increment}>+</button>
                 {' '}
@@ -39,6 +38,6 @@ export default () => (
                 {' '}
                 <button onClick={counterContainer.incrementAsync}>Increment async</button>
             </div>
-        }}
-    />
+        )}
+    </Priem>
 );

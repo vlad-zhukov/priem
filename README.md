@@ -46,16 +46,15 @@ class CounterContainer extends Continer {
 const counterContainer = new CounterContainer({value: 1});
 
 export default () => (
-    <Priem
-        sources={{counter: counterContainer}}
-        render={({counter}) => (
+    <Priem sources={{counter: counterContainer}}>
+        {({counter}) => (
             <div>
                 <p>{counter.value}</p>
                 <button onClick={counterContainer.increment}>Increment</button>
                 <button onClick={counterContainer.decrement}>Decrement</button>
             </div>
         )}
-    />
+    </Priem>
 );
 ```
 
@@ -93,9 +92,8 @@ import {Priem} from 'priem';
 import {redditContainer} from './store';
 
 export default () => (
-    <Priem
-        sources={{reddit: redditContainer}}
-        render=(({reddit}) => {
+    <Priem sources={{reddit: redditContainer}}>
+        {({reddit}) => {
             const {pending, refreshing, value} = reddit;
 
             if (!value) {
@@ -109,8 +107,8 @@ export default () => (
                     </ul>
                 </div>
             );
-        })
-    />
+        })}
+    </Priem>
 );
 ```
 
@@ -269,13 +267,11 @@ A component for subscribing to containers.
 __Props__
 
 1. `sources` _(Object)_: An object of containers to subscribe to.
-2. `[render]` _(Function)_: One of three ways to render components.
+2. `[children]` _(Function)_: One of two ways to render components.
 Must be a function that takes [props](#passed-props) and returns
 React component(s).
 3. `[component]` _(React.Element)_: A React element that can be
 rendered using `React.createElement` with [props](#passed-props).
-4. `[children]` _(React.Component)_: A React component or an array of
-components, all of which will be rendered with [props](#passed-props).
 
 __Passed props__
 
@@ -289,7 +285,7 @@ The following props will be passed down:
 ### `withPriem(props)`
 
 A simple decorator to create a [`Priem`](#priem) instance. It the same
-as `Priem` with a single exception that 'render', 'component' and
+as `Priem` with a single exception that 'component' and
 'children' props are not supported, use decorator syntax instead.
 
 ---
