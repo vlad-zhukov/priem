@@ -14,7 +14,7 @@
     "build": "rimraf dist/ && cross-env NODE_ENV=production rollup -c",
     "test": "jest",
     "lint": "eslint \"**/*.js\"",
-    "prettier": "prettier-eslint \"**/*.js\" --write",
+    "prettier": "prettier-eslint \"**/*.{js,md}\" --write",
     "prepublishOnly": "yarn build && yarn lint && yarn test"
   },
   "dependencies": {
