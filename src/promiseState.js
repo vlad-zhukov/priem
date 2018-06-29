@@ -64,7 +64,7 @@ export function pending() {
  */
 export function refreshing(previous) {
     const previousPromiseState = isPromiseState(previous) ? previous : pending();
-    return create({...previousPromiseState, refreshing: true});
+    return create(Object.assign({}, previousPromiseState, {refreshing: true}));
 }
 
 /**

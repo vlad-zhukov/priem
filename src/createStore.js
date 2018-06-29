@@ -57,7 +57,7 @@ export default function createStore(initialStore = {}) {
         setState(updater) {
             const nextState = type(updater) === 'function' ? updater(this._state) : updater;
             if (nextState != null) {
-                this._state = {...this._state, ...nextState};
+                this._state = Object.assign({}, this._state, nextState);
                 this._listeners.forEach(fn => fn());
             }
         }
@@ -105,10 +105,10 @@ export default function createStore(initialStore = {}) {
                 const updaterResult = type(updater) === 'function' ? updater(state, this._meta) : updater;
 
                 if (updaterResult != null) {
-                    this._meta = {...this._meta, ...updaterResult.meta};
+                    this._meta = Object.assign({}, this._meta, updaterResult.meta);
 
                     if (updaterResult.state) {
-                        return {...state, ...updaterResult.state};
+                        return Object.assign({}, state, updaterResult.state);
                     }
                 }
 
