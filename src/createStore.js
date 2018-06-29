@@ -101,7 +101,7 @@ export default function createStore(initialStore = {}) {
         }
 
         _update(updater) {
-            this.setState((state) => {
+            this.setState(state => {
                 const updaterResult = type(updater) === 'function' ? updater(state, this._meta) : updater;
 
                 if (updaterResult != null) {
@@ -128,8 +128,7 @@ export default function createStore(initialStore = {}) {
                     );
                 }
                 this._recentCallCount += 1;
-            }
-            else {
+            } else {
                 this._recentCallCount = 1;
             }
             this._lastCallTime = now;

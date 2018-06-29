@@ -26,14 +26,14 @@ export default class Priem extends React.Component {
         const {sources: nextSources} = this.props;
 
         const instancesToUnsub = [];
-        Object.keys(this._sources).forEach((key) => {
+        Object.keys(this._sources).forEach(key => {
             if (this._sources[key] !== nextSources[key]) {
                 instancesToUnsub.push(this._sources[key]);
             }
         });
 
         const instancesToSub = [];
-        Object.keys(nextSources).forEach((key) => {
+        Object.keys(nextSources).forEach(key => {
             if (nextSources[key] !== this._sources[key]) {
                 instancesToSub.push(nextSources[key]);
             }
@@ -54,7 +54,7 @@ export default class Priem extends React.Component {
 
     _getProps() {
         const {component, children, sources, ...props} = this.props;
-        Object.keys(this._sources).forEach((key) => {
+        Object.keys(this._sources).forEach(key => {
             props[key] = this._sources[key].state;
         });
         props.refresh = this.refresh;
@@ -63,20 +63,20 @@ export default class Priem extends React.Component {
 
     _updateSubscriptions({instancesToSub, instancesToUnsub, isForced = false}) {
         if (instancesToSub) {
-            instancesToSub.forEach((instanceToSub) => {
+            instancesToSub.forEach(instanceToSub => {
                 instanceToSub._subscribe(this._onUpdate);
             });
         }
 
         if (instancesToUnsub) {
-            instancesToUnsub.forEach((instanceToUnsub) => {
+            instancesToUnsub.forEach(instanceToUnsub => {
                 instanceToUnsub._unsubscribe(this._onUpdate);
             });
         }
 
         if (this._isMounted) {
             const props = this._getProps();
-            Object.keys(this._sources).forEach((key) => {
+            Object.keys(this._sources).forEach(key => {
                 const source = this._sources[key];
                 if (type(source._runAsync) === 'function') {
                     source._runAsync({props, isForced});

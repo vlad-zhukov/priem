@@ -17,7 +17,7 @@ export default class Cache {
             maxAge,
             maxArgs,
             maxSize,
-            onExpire: (args) => {
+            onExpire: args => {
                 if (shallowEqual(args, this.prevArgs)) {
                     runAsync();
                 }
@@ -80,8 +80,7 @@ export default class Cache {
                     shouldUpdateState = false;
                     return null;
                 }
-            }
-            else if (isSsr) {
+            } else if (isSsr) {
                 shouldUpdateState = false;
                 this.memoized.add(args, Promise.resolve(s.value));
                 this.prevArgs = args;
@@ -116,14 +115,14 @@ export default class Cache {
 
         // eslint-disable-next-line consistent-return
         return this.memoized(...args)
-            .then((result) => {
+            .then(result => {
                 this.removeAwaiting(args);
                 this._update({
                     state: promiseState.fulfilled(result),
                     meta: {ssr: !isBrowser},
                 });
             })
-            .catch((e) => {
+            .catch(e => {
                 this.removeAwaiting(args);
                 this.rejected = true;
                 this.prevArgs = null;

@@ -22,7 +22,7 @@ export default class App extends React.Component {
     constructor(props, context) {
         super(props, context);
 
-        this.handleChange = (nextReddit) => {
+        this.handleChange = nextReddit => {
             redditPicker.setState({reddit: nextReddit});
         };
     }
@@ -42,7 +42,9 @@ export default class App extends React.Component {
                                 options={['reactjs', 'frontend']}
                             />
                             <p>
-                                {lastUpdated && <span>Last updated at {new Date(lastUpdated).toLocaleTimeString()}. </span>}
+                                {lastUpdated && (
+                                    <span>Last updated at {new Date(lastUpdated).toLocaleTimeString()}. </span>
+                                )}
                                 {!isFetching && <button onClick={refresh}>Refresh</button>}
                             </p>
                             {!value ? ( // eslint-disable-line no-nested-ternary

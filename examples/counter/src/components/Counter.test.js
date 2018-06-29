@@ -76,7 +76,7 @@ describe('Counter component', () => {
         expect(setStateSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('fourth button should call incrementAsyncSpy in a second', (done) => {
+    it('fourth button should call incrementAsyncSpy in a second', done => {
         const {buttons} = setup();
         buttons.at(3).simulate('click');
         setTimeout(() => {

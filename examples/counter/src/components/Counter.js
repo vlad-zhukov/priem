@@ -5,7 +5,7 @@ const {Container} = createStore();
 
 class CounterContainer extends Container {
     increment = () => {
-        this.setState({value: this.state.value + 1})
+        this.setState({value: this.state.value + 1});
     };
 
     decrement = () => {
@@ -30,12 +30,9 @@ export default () => (
         {({counter}) => (
             <div>
                 <span>Clicked: {counter.value} times </span>
-                <button onClick={counterContainer.increment}>+</button>
-                {' '}
-                <button onClick={counterContainer.decrement}>-</button>
-                {' '}
-                <button onClick={counterContainer.incrementIfOdd}>Increment if odd</button>
-                {' '}
+                <button onClick={counterContainer.increment}>+</button>{' '}
+                <button onClick={counterContainer.decrement}>-</button>{' '}
+                <button onClick={counterContainer.incrementIfOdd}>Increment if odd</button>{' '}
                 <button onClick={counterContainer.incrementAsync}>Increment async</button>
             </div>
         )}

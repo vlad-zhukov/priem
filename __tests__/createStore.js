@@ -127,7 +127,7 @@ describe('AsyncContainer()', () => {
 
     it('should always call `mapPropsToArgs` with an object', async () => {
         const options = {
-            mapPropsToArgs: (props) => {
+            mapPropsToArgs: props => {
                 expect(props).toEqual({});
                 return null;
             },

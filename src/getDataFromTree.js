@@ -52,7 +52,7 @@ export function walkTree(element, visitor) {
             //   (we can't do the default React thing as we aren't mounted "properly"
             //   however, we don't need to re-render as well only support setState in
             //   componentWillMount, which happens *before* render).
-            instance.setState = (newState) => {
+            instance.setState = newState => {
                 if (type(newState) === 'function') {
                     // eslint-disable-next-line no-param-reassign
                     newState = newState(instance.state, instance.props);
@@ -74,8 +74,7 @@ export function walkTree(element, visitor) {
             }
 
             child = instance.render();
-        }
-        else {
+        } else {
             // just a stateless functional
             if (visitor(element, null) === false) {
                 return;
@@ -89,15 +88,14 @@ export function walkTree(element, visitor) {
         }
 
         walkTree(child, visitor);
-    }
-    else {
+    } else {
         // a basic string or dom element, just get children
         if (visitor(element, null) === false) {
             return;
         }
 
         if (element.props && element.props.children) {
-            React.Children.forEach(element.props.children, (child) => {
+            React.Children.forEach(element.props.children, child => {
                 if (child) {
                     walkTree(child, visitor);
                 }
@@ -120,11 +118,14 @@ function getPromisesFromTree(rootElement) {
         if (instance && isReactElement(element) && isPriemComponent(instance)) {
             // todo: filter added sources
 
-            const p = Object.keys(instance._sources).map((key) => {
+            const p = Object.keys(instance._sources).map(key => {
                 const source = instance._sources[key];
 
                 if (type(source._runAsync) === 'function') {
-                    const opts = {props: instance._getProps(), isForced: false};
+                    const opts = {
+                        props: instance._getProps(),
+                        isForced: false,
+                    };
                     const promise = Promise.resolve()
                         .then(() => source._runAsync(opts))
                         .then(() => source);
@@ -152,8 +153,7 @@ export default function getDataFromTree(rootElement) {
 
     try {
         queries = getPromisesFromTree(rootElement);
-    }
-    catch (e) {
+    } catch (e) {
         return Promise.reject(e);
     }
 

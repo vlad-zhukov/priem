@@ -8,7 +8,7 @@ if (env === 'test') {
         '@babel/preset-env',
         {
             targets: {node: 'current'},
-        }
+        },
     ]);
 }
 
@@ -19,7 +19,7 @@ if (env === 'production') {
             targets: {node: '6.6'},
             modules: false,
             loose: true,
-        }
+        },
     ]);
 }
 
