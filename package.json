@@ -1,6 +1,6 @@
 {
   "name": "priem",
-  "version": "1.0.0-beta.3",
+  "version": "1.0.0-beta.4",
   "description": "Rich (a)sync state management.",
   "author": "Vlad Zhukov (http://github.com/Vlad-Zhukov)",
   "license": "MIT",
