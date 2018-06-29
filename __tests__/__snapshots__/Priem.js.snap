@@ -71,6 +71,7 @@ exports[`should render a nested component 1`] = `
   2-foobar
   <button
     onClick={[Function]}
+    type="button"
   />
 </div>
 `;
@@ -122,6 +123,7 @@ exports[`should render a nested component 3`] = `
   2-foobar
   <button
     onClick={[Function]}
+    type="button"
   />
 </div>
 `;

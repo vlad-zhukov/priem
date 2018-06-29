@@ -36,7 +36,7 @@ describe('getDataFromTree()', () => {
 
         const content = ReactDOM.renderToStaticMarkup(element);
 
-        expect(content).toBe('<div>2-foobar<button></button></div>');
+        expect(content).toBe('<div>2-foobar<button type="button"></button></div>');
     });
 
     it('should rehydrate data from initial store', async () => {
@@ -58,7 +58,7 @@ describe('getDataFromTree()', () => {
         });
         const content = ReactDOM.renderToStaticMarkup(clientElement);
 
-        expect(content).toBe('<div>2-foobar<button></button></div>');
+        expect(content).toBe('<div>2-foobar<button type="button"></button></div>');
     });
 
     it('should catch all errors and reject the promise', async () => {
