@@ -233,6 +233,91 @@ it('should rerun promises when cache expires if `maxAge` is set', async () => {
     expect(runAsyncSpy).toHaveBeenCalledTimes(9);
 });
 
+it('should pass a `refresh` method as a render prop', async () => {
+    const {AsyncContainer} = createStore();
+
+    let shouldReject = false;
+    const container = new AsyncContainer({
+        mapPropsToArgs: () => [`foo`],
+        promise: value => {
+            if (shouldReject) {
+                return delay.reject(100, new Error('error!'));
+            }
+            shouldReject = true;
+            return delay(100, value);
+        },
+    });
+
+    const element = (
+        <Priem sources={{container}}>
+            {p => {
+                expect(typeof p.refresh).toBe('function');
+                return <button onClick={p.refresh} />;
+            }}
+        </Priem>
+    );
+
+    const wrapper = mount(element);
+
+    expect(container.state).toMatchSnapshot(); // pending
+
+    await delay(200);
+    expect(container.state).toMatchSnapshot(); // fulfilled
+
+    wrapper.find('button').simulate('click');
+    expect(container.state).toMatchSnapshot(); // refreshing
+
+    await delay(200);
+    expect(container.state).toMatchSnapshot(); // rejected
+});
+
+it('should pass a `refresh` method as a property into every AsyncContainer render prop', async () => {
+    const {Container, AsyncContainer} = createStore();
+
+    let shouldReject = false;
+    const container1 = new AsyncContainer({
+        mapPropsToArgs: () => ['foo'],
+        promise: value => {
+            if (shouldReject) {
+                return delay.reject(100, new Error('error!'));
+            }
+            shouldReject = true;
+            return delay(100, value);
+        },
+    });
+
+    const container2 = new AsyncContainer({
+        mapPropsToArgs: () => ['bar'],
+        promise: value => delay(100, value),
+    });
+
+    const syncContainer = new Container({value: 'baz'});
+
+    const element = (
+        <Priem sources={{container1, container2, syncContainer}}>
+            {p => {
+                expect(typeof p.container1.refresh).toBe('function');
+                expect(typeof p.container2.refresh).toBe('function');
+                expect(typeof p.syncContainer.refresh).toBe('undefined');
+                return <button onClick={p.container2.refresh} />;
+            }}
+        </Priem>
+    );
+
+    const wrapper = mount(element);
+
+    expect([container1.state, container2.state, syncContainer.state]).toMatchSnapshot();
+
+    await delay(200);
+    expect([container1.state, container2.state, syncContainer.state]).toMatchSnapshot(); // fulfilled
+
+    wrapper.find('button').simulate('click');
+    expect([container1.state, container2.state, syncContainer.state]).toMatchSnapshot(); // refreshing
+
+    await delay(200);
+    expect([container1.state, container2.state, syncContainer.state]).toMatchSnapshot(); // not rejected
+});
+
 it('should render a nested component', async () => {
     const {element, getStore} = testComponentNested({
         syncContainerProps: {ssrKey: 'unique-key-1'},

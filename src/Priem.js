@@ -72,7 +72,7 @@ export default class Priem extends React.Component {
         }
 
         if (this._isMounted) {
-            const props = this._getProps();
+            const props = this._getProps(false);
             Object.keys(this._sources).forEach(key => {
                 const source = this._sources[key];
                 if (type(source._runAsync) === 'function') {
@@ -82,19 +82,29 @@ export default class Priem extends React.Component {
         }
     }
 
-    _getProps() {
+    _getProps(populateWithRefresh) {
         const {component, children, sources, ...props} = this.props;
         Object.keys(this._sources).forEach(key => {
-            props[key] = this._sources[key].state;
+            const source = this._sources[key];
+            props[key] = source.state;
+            if (type(source._runAsync) === 'function') {
+                props[key].refresh = () => {
+                    source._runAsync({props, isForced: true});
+                };
+            }
         });
-        props.refresh = this.refresh;
+
+        if (populateWithRefresh) {
+            props.refresh = this.refresh;
+        }
+
         return props;
     }
 
     render() {
         const {component, children} = this.props;
 
-        const props = this._getProps();
+        const props = this._getProps(true);
 
         if (component) {
             return React.createElement(component, props);
