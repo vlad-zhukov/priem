@@ -458,4 +458,24 @@ describe('AsyncContainer()', () => {
 
         expect(runAsyncSpy).toHaveBeenCalledTimes(3);
     });
+
+    it('should have a `refresh` method', async () => {
+        const options = {
+            mapPropsToArgs: ({bar}) => ['foo' + bar],
+            promise: value => {
+                return delay(100, {value});
+            },
+            maxSize: 1,
+            autoRefresh: false,
+        };
+
+        const {container} = setupStore({options});
+
+        const refreshResult = container.refresh({bar: 'bar-1'});
+        expect(refreshResult).toBeInstanceOf(Promise);
+        expect(await refreshResult).toMatchSnapshot();
+
+        const state = await container.refresh({bar: 'bar-2'});
+        expect(state).toMatchSnapshot();
+    });
 });

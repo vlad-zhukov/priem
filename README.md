@@ -198,7 +198,7 @@ rendered store. Return an object with the following properties:
 
 A base class that should be used to create sync containers. It's also a good idea to extend it with custom functions.
 
-**Arguments:**
+**Constructor arguments:**
 
 1.  `[initialState]` _(Object)_: A state object this container will be created with.
 2.  `[options]` _(Object)_: An options object, that can have the following properties:
@@ -207,16 +207,20 @@ A base class that should be used to create sync containers. It's also a good ide
     -   `[ssrKey]` _(String)_: A unique key that will be used to place this container to the store. Required for
         server-side rendering.
 
-Similarly to React instances, containers have a `state` property and a `setState` method. However unlike in React, the
-state changes are _synchronous_.
+**Instance:**
+
+1.  `state` _(Object)_: An instance current state.
+2.  `setState(updater)` _(Function)_: Similarly to React instances, a method to update this container's state, where
+    `updater` argument can be either a function or an object. However unlike in React, the state changes are
+    _synchronous_ and there is no a second callback argument.
 
 #### `AsyncContainer`
 
-A class that extends the `Container` class. It was designed to efficiently handle async jobs and never trigger unwanted
-updates of subscribed React components. It also caches results of promises using
+A class that extends the basic `Container` class. It was designed to efficiently handle async jobs and never trigger
+unwanted updates of subscribed React components. It also has a built-in cache of promise results using
 [`moize`](https://github.com/planttheidea/moize).
 
-**Arguments:**
+**Constructor arguments:**
 
 1.  `options` _(Object)_: An object that inherits all options from the base `Container` and also allows to set the
     following:
@@ -233,6 +237,11 @@ updates of subscribed React components. It also caches results of promises using
     -   `[maxAge]` _(Number)_: See [`moize` documentation](https://github.com/planttheidea/moize#advanced-usage).
     -   `[maxArgs]` _(Number)_: See [`moize` documentation](https://github.com/planttheidea/moize#advanced-usage).
     -   `[maxSize]` _(Number)_: See [`moize` documentation](https://github.com/planttheidea/moize#advanced-usage).
+
+**Instance:**
+
+1.  `refresh(props)` _(Function)_: An instance method to imperatively trigger an update. Returns a promise that resolves
+    into the next state.
 
 #### `getStore`
 

@@ -1,5 +1,31 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`AsyncContainer() should have a \`refresh\` method 1`] = `
+Object {
+  "fulfilled": true,
+  "pending": false,
+  "reason": null,
+  "refreshing": false,
+  "rejected": false,
+  "value": Object {
+    "value": "foobar-1",
+  },
+}
+`;
+
+exports[`AsyncContainer() should have a \`refresh\` method 2`] = `
+Object {
+  "fulfilled": true,
+  "pending": false,
+  "reason": null,
+  "refreshing": false,
+  "rejected": false,
+  "value": Object {
+    "value": "foobar-2",
+  },
+}
+`;
+
 exports[`AsyncContainer() should not rerun promises if previous promise was rejected 1`] = `
 Array [
   Object {

@@ -71,8 +71,8 @@ export default class Cache {
         let shouldUpdateState = true;
 
         this._update((s, m) => {
-            const isFulfilled = !!s.fulfilled;
-            const isSsr = !!(isFulfilled && m.ssr);
+            const isFulfilled = s.fulfilled;
+            const isSsr = isFulfilled && m.ssr;
 
             if (this.memoized.has(args)) {
                 // Do not recall memoized promises unless forced

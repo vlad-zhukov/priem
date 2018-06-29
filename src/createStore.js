@@ -152,6 +152,12 @@ export default function createStore(initialStore = {}) {
                 this._cache.memoized.clear();
             }
         }
+
+        refresh(props) {
+            return Promise.resolve()
+                .then(() => this._runAsync({props, isForced: true}))
+                .then(() => this._state);
+        }
     }
 
     return {Container, AsyncContainer, getStore};
