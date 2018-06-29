@@ -260,6 +260,7 @@ describe('walkTree()', () => {
             constructor() {
                 super(null); // note doesn't pass props or context
             }
+
             render() {
                 return <div>{times(this.props.n, i => <span key={i} />)}</div>;
             }

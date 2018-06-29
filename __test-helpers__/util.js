@@ -75,7 +75,7 @@ export function testComponentNested({initialStore, syncContainerProps, container
                             return (
                                 <div>
                                     {c2.value}
-                                    <button onClick={onClick} />
+                                    <button onClick={onClick} type="button" />
                                 </div>
                             );
                         }}

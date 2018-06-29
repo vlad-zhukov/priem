@@ -52,14 +52,11 @@ export default class Priem extends React.Component {
         this._updateSubscriptions({isForced: true});
     };
 
-    _getProps() {
-        const {component, children, sources, ...props} = this.props;
-        Object.keys(this._sources).forEach(key => {
-            props[key] = this._sources[key].state;
-        });
-        props.refresh = this.refresh;
-        return props;
-    }
+    _onUpdate = () => {
+        if (this._isMounted) {
+            this.setState(DUMMY_STATE);
+        }
+    };
 
     _updateSubscriptions({instancesToSub, instancesToUnsub, isForced = false}) {
         if (instancesToSub) {
@@ -85,11 +82,14 @@ export default class Priem extends React.Component {
         }
     }
 
-    _onUpdate = () => {
-        if (this._isMounted) {
-            this.setState(DUMMY_STATE);
-        }
-    };
+    _getProps() {
+        const {component, children, sources, ...props} = this.props;
+        Object.keys(this._sources).forEach(key => {
+            props[key] = this._sources[key].state;
+        });
+        props.refresh = this.refresh;
+        return props;
+    }
 
     render() {
         const {component, children} = this.props;
