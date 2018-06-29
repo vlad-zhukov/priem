@@ -252,7 +252,7 @@ it('should pass a `refresh` method as a render prop', async () => {
         <Priem sources={{container}}>
             {p => {
                 expect(typeof p.refresh).toBe('function');
-                return <button onClick={p.refresh} />;
+                return <button type="button" onClick={p.refresh} />;
             }}
         </Priem>
     );
@@ -299,7 +299,7 @@ it('should pass a `refresh` method as a property into every AsyncContainer rende
                 expect(typeof p.container1.refresh).toBe('function');
                 expect(typeof p.container2.refresh).toBe('function');
                 expect(typeof p.syncContainer.refresh).toBe('undefined');
-                return <button onClick={p.container2.refresh} />;
+                return <button type="button" onClick={p.container2.refresh} />;
             }}
         </Priem>
     );

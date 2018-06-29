@@ -116,8 +116,6 @@ function getPromisesFromTree(rootElement) {
     // eslint-disable-next-line consistent-return
     walkTree(rootElement, (element, instance) => {
         if (instance && isReactElement(element) && isPriemComponent(instance)) {
-            // todo: filter added sources
-
             const p = Object.keys(instance._sources).map(key => {
                 const source = instance._sources[key];
 
