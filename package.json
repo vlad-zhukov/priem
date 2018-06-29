@@ -15,7 +15,7 @@
     "test": "jest",
     "lint": "eslint \"**/*.js\"",
     "prettier": "prettier \"**/*.{js,md}\" --write --loglevel warn",
-    "prepublishOnly": "yarn build && yarn lint && yarn test"
+    "prepublishOnly": "yarn build && yarn lint && prettier \"**/*.{js,md}\" -l && yarn test"
   },
   "dependencies": {
     "fast-equals": "^1.5.3",

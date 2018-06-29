@@ -461,10 +461,8 @@ describe('AsyncContainer()', () => {
 
     it('should have a `refresh` method', async () => {
         const options = {
-            mapPropsToArgs: ({bar}) => ['foo' + bar],
-            promise: value => {
-                return delay(100, {value});
-            },
+            mapPropsToArgs: ({bar}) => [`foo${bar}`],
+            promise: value => delay(100, {value}),
             maxSize: 1,
             autoRefresh: false,
         };
