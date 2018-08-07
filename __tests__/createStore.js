@@ -476,4 +476,43 @@ describe('AsyncContainer()', () => {
         const state = await container.refresh({bar: 'bar-2'});
         expect(state).toMatchSnapshot();
     });
+
+    it('should debounce async calls if `debounceMs` is set', async () => {
+        const options = {
+            mapPropsToArgs: () => ['foo'],
+            promise: value => delay(200, {value}),
+            debounceMs: 300,
+        };
+
+        const {container, updateSpy, runAsyncSpy} = setupStore({options});
+
+        container._runAsync();
+        expect(container._cache.awaiting).toMatchObject([]);
+
+        await delay(350);
+        expect(container._cache.awaiting).toMatchObject([["foo"]]);
+
+        expect(updateSpy).toHaveBeenCalledTimes(1);
+        expect(runAsyncSpy).toHaveBeenCalledTimes(1);
+        expect([container.state, container._meta]).toMatchSnapshot();
+
+        await delay(250);
+        expect(container._cache.awaiting).toMatchObject([]);
+        expect(updateSpy).toHaveBeenCalledTimes(2);
+        expect(runAsyncSpy).toHaveBeenCalledTimes(1);
+        expect([container.state, container._meta]).toMatchSnapshot();
+
+        container._runAsync();
+        container._runAsync();
+        container._runAsync();
+        container._runAsync();
+        container._runAsync();
+
+        await delay(600);
+        expect(container._cache.awaiting).toMatchObject([]);
+        expect(updateSpy).toHaveBeenCalledTimes(3);
+        expect(runAsyncSpy).toHaveBeenCalledTimes(6);
+        expect([container.state, container._meta]).toMatchSnapshot();
+
+    });
 });
