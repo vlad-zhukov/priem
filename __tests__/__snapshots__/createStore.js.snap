@@ -1,5 +1,57 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`AsyncContainer() should debounce async calls if \`debounceMs\` is set 1`] = `
+Array [
+  Object {
+    "fulfilled": false,
+    "pending": true,
+    "reason": null,
+    "refreshing": false,
+    "rejected": false,
+    "value": null,
+  },
+  Object {
+    "ssr": false,
+  },
+]
+`;
+
+exports[`AsyncContainer() should debounce async calls if \`debounceMs\` is set 2`] = `
+Array [
+  Object {
+    "fulfilled": true,
+    "pending": false,
+    "reason": null,
+    "refreshing": false,
+    "rejected": false,
+    "value": Object {
+      "value": "foo",
+    },
+  },
+  Object {
+    "ssr": false,
+  },
+]
+`;
+
+exports[`AsyncContainer() should debounce async calls if \`debounceMs\` is set 3`] = `
+Array [
+  Object {
+    "fulfilled": true,
+    "pending": false,
+    "reason": null,
+    "refreshing": false,
+    "rejected": false,
+    "value": Object {
+      "value": "foo",
+    },
+  },
+  Object {
+    "ssr": false,
+  },
+]
+`;
+
 exports[`AsyncContainer() should have a \`refresh\` method 1`] = `
 Object {
   "fulfilled": true,

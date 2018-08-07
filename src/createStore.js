@@ -1,5 +1,5 @@
 import Cache from './Cache';
-import {type, assertType, isBrowser} from './helpers';
+import {type, assertType, isBrowser, debounce} from './helpers';
 import * as promiseState from './promiseState';
 
 export default function createStore(initialStore = {}) {
@@ -98,6 +98,20 @@ export default function createStore(initialStore = {}) {
             this._recentCallCount = 0;
             this._lastCallTime = 0;
             this._prevProps = {};
+
+            this._debouncedRunAsync = debounce(function(opts) {
+                const props = (opts && opts.props) || this._prevProps;
+                this._prevProps = props;
+
+                const args = this._mapPropsToArgs(props);
+                assertType(args, ['array', 'null'], "The result of 'mapPropsToArgs(props)'");
+
+                return this._cache.run({
+                    args,
+                    autoRefresh: this._options.autoRefresh,
+                    isForced: (opts && opts.isForced) || false,
+                });
+            }, options.debounceMs);
         }
 
         _update(updater) {
@@ -133,17 +147,7 @@ export default function createStore(initialStore = {}) {
             }
             this._lastCallTime = now;
 
-            const props = (options && options.props) || this._prevProps;
-            this._prevProps = props;
-
-            const args = this._mapPropsToArgs(props);
-            assertType(args, ['array', 'null'], "The result of 'mapPropsToArgs(props)'");
-
-            return this._cache.run({
-                args,
-                autoRefresh: this._options.autoRefresh,
-                isForced: (options && options.isForced) || false,
-            });
+            return this._debouncedRunAsync(options);
         }
 
         _unsubscribe(fn) {

@@ -1,4 +1,5 @@
-import {type, assertType} from '../src/helpers';
+import delay from 'delay';
+import {type, assertType, debounce} from '../src/helpers';
 
 describe('type', () => {
     it('should return types of values', () => {
@@ -27,5 +28,20 @@ describe('assertType', () => {
         expect(() => assertType('foo', ['string'])).not.toThrow();
         expect(() => assertType(NaN, ['NaN'])).not.toThrow();
         expect(() => assertType({}, ['object'], "'myProps'")).not.toThrow();
+    });
+});
+
+describe('debounce', () => {
+    it('should debounce function calls', async () => {
+        const func = jest.fn();
+        const debouncedFunc = debounce(func, 300);
+
+        debouncedFunc();
+        debouncedFunc();
+
+        expect(func).toHaveBeenCalledTimes(0);
+
+        await delay(400);
+        expect(func).toHaveBeenCalledTimes(1);
     });
 });

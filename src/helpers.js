@@ -1,3 +1,5 @@
+export const isBrowser = typeof window === 'object' && typeof document === 'object' && document.nodeType === 9;
+
 export function type(value) {
     if (value !== value) return 'NaN'; // eslint-disable-line no-self-compare
     if (value === null) return 'null';
@@ -33,4 +35,28 @@ export function assertType(variable, types, variableName = 'The value') {
     }
 }
 
-export const isBrowser = typeof window === 'object' && typeof document === 'object' && document.nodeType === 9;
+export function debounce(func, ms) {
+    let timer = null;
+
+    return function(...args) {
+        const _this = this;
+
+        // eslint-disable-next-line consistent-return
+        return new Promise(resolve => {
+            if (!ms) {
+                return resolve(func.apply(_this, args));
+            }
+
+            const onComplete = () => {
+                resolve(func.apply(_this, args));
+                timer = null;
+            };
+
+            if (timer) {
+                clearTimeout(timer);
+            }
+
+            timer = setTimeout(onComplete, ms);
+        });
+    };
+}
