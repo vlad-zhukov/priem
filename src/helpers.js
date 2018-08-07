@@ -38,14 +38,17 @@ export function assertType(variable, types, variableName = 'The value') {
 export function debounce(func, ms) {
     let timer = null;
 
-    return function (...args) {
-        return new Promise((resolve) => {
+    return function(...args) {
+        const _this = this;
+
+        // eslint-disable-next-line consistent-return
+        return new Promise(resolve => {
             if (!ms) {
-                return resolve(func.apply(this, args));
+                return resolve(func.apply(_this, args));
             }
 
             const onComplete = () => {
-                resolve(func.apply(this, args));
+                resolve(func.apply(_this, args));
                 timer = null;
             };
 

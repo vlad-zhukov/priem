@@ -99,8 +99,8 @@ export default function createStore(initialStore = {}) {
             this._lastCallTime = 0;
             this._prevProps = {};
 
-            this._debouncedRunAsync = debounce(function(options) {
-                const props = (options && options.props) || this._prevProps;
+            this._debouncedRunAsync = debounce(function(opts) {
+                const props = (opts && opts.props) || this._prevProps;
                 this._prevProps = props;
 
                 const args = this._mapPropsToArgs(props);
@@ -109,7 +109,7 @@ export default function createStore(initialStore = {}) {
                 return this._cache.run({
                     args,
                     autoRefresh: this._options.autoRefresh,
-                    isForced: (options && options.isForced) || false,
+                    isForced: (opts && opts.isForced) || false,
                 });
             }, options.debounceMs);
         }

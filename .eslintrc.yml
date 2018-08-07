@@ -4,12 +4,11 @@ extends: [airbnb, plugin:jest/recommended, prettier]
 
 env:
     browser: true
-    node: true
+    node: false
 
 rules:
     no-underscore-dangle: off
     no-plusplus: [error, {allowForLoopAfterthoughts: true}]
-    no-use-before-define: [error, {variables: false}]
     no-console: off
 
     react/jsx-filename-extension: [warn, {extensions: [.js]}]

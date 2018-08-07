@@ -490,7 +490,7 @@ describe('AsyncContainer()', () => {
         expect(container._cache.awaiting).toMatchObject([]);
 
         await delay(350);
-        expect(container._cache.awaiting).toMatchObject([["foo"]]);
+        expect(container._cache.awaiting).toMatchObject([['foo']]);
 
         expect(updateSpy).toHaveBeenCalledTimes(1);
         expect(runAsyncSpy).toHaveBeenCalledTimes(1);
@@ -513,6 +513,5 @@ describe('AsyncContainer()', () => {
         expect(updateSpy).toHaveBeenCalledTimes(3);
         expect(runAsyncSpy).toHaveBeenCalledTimes(6);
         expect([container.state, container._meta]).toMatchSnapshot();
-
     });
 });
