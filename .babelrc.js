@@ -1,7 +1,7 @@
 const env = process.env.BABEL_ENV || process.env.NODE_ENV;
 
-const presets = ['@babel/preset-react', ['@babel/preset-stage-1', {decoratorsLegacy: true}]];
-const plugins = [];
+const presets = ['@babel/preset-react'];
+const plugins = ['@babel/plugin-proposal-class-properties', ['@babel/plugin-proposal-decorators', {legacy: true}]];
 
 if (env === 'test') {
     presets.unshift([

@@ -149,7 +149,13 @@ describe('walkTree()', () => {
     });
 
     it('traverses functional stateless components', () => {
-        const MyComponent = ({n}) => <div>{times(n, i => <span key={i} />)}</div>;
+        const MyComponent = ({n}) => (
+            <div>
+                {times(n, i => (
+                    <span key={i} />
+                ))}
+            </div>
+        );
         const {visitorSpy} = setupWalkTree(<MyComponent n={5} />);
 
         expect(visitorSpy).toHaveBeenCalledTimes(7);
@@ -158,7 +164,9 @@ describe('walkTree()', () => {
     it('traverses functional stateless components with children', () => {
         const MyComponent = ({n, children}) => (
             <div>
-                {times(n, i => <span key={i} />)}
+                {times(n, i => (
+                    <span key={i} />
+                ))}
                 {children}
             </div>
         );
@@ -174,7 +182,9 @@ describe('walkTree()', () => {
     it('traverses functional stateless components with null children', () => {
         const MyComponent = ({n, children = null}) => (
             <div>
-                {times(n, i => <span key={i} />)}
+                {times(n, i => (
+                    <span key={i} />
+                ))}
                 {children}
             </div>
         );
@@ -214,7 +224,13 @@ describe('walkTree()', () => {
     it('traverses classes', () => {
         class MyComponent extends React.Component {
             render() {
-                return <div>{times(this.props.n, i => <span key={i} />)}</div>;
+                return (
+                    <div>
+                        {times(this.props.n, i => (
+                            <span key={i} />
+                        ))}
+                    </div>
+                );
             }
         }
         const {visitorSpy} = setupWalkTree(<MyComponent n={5} />);
@@ -262,7 +278,13 @@ describe('walkTree()', () => {
             }
 
             render() {
-                return <div>{times(this.props.n, i => <span key={i} />)}</div>;
+                return (
+                    <div>
+                        {times(this.props.n, i => (
+                            <span key={i} />
+                        ))}
+                    </div>
+                );
             }
         }
         const {visitorSpy} = setupWalkTree(<MyComponent n={5} />);
@@ -275,7 +297,9 @@ describe('walkTree()', () => {
             render() {
                 return (
                     <div>
-                        {times(this.props.n, i => <span key={i} />)}
+                        {times(this.props.n, i => (
+                            <span key={i} />
+                        ))}
                         {this.props.children}
                     </div>
                 );
@@ -293,7 +317,13 @@ describe('walkTree()', () => {
     it('traverses classes with render on instance', () => {
         class MyComponent extends React.Component {
             render() {
-                return <div>{times(this.props.n, i => <span key={i} />)}</div>;
+                return (
+                    <div>
+                        {times(this.props.n, i => (
+                            <span key={i} />
+                        ))}
+                    </div>
+                );
             }
         }
         const {visitorSpy} = setupWalkTree(<MyComponent n={5} />);
@@ -302,14 +332,26 @@ describe('walkTree()', () => {
     });
 
     it('should stop traversing if `visitor` returns false', () => {
-        const element = <div>{times(5, i => <span key={i} />)}</div>;
+        const element = (
+            <div>
+                {times(5, i => (
+                    <span key={i} />
+                ))}
+            </div>
+        );
         const {visitorSpy} = setupWalkTree(element, () => false);
 
         expect(visitorSpy).toHaveBeenCalledTimes(1);
     });
 
     it('should stop traversing classes if `visitor` returns false', () => {
-        const MyComponent = ({n}) => <div>{times(n, i => <span key={i} />)}</div>;
+        const MyComponent = ({n}) => (
+            <div>
+                {times(n, i => (
+                    <span key={i} />
+                ))}
+            </div>
+        );
         const {visitorSpy} = setupWalkTree(<MyComponent n={5} />, () => false);
 
         expect(visitorSpy).toHaveBeenCalledTimes(1);

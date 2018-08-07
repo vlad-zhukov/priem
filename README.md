@@ -170,7 +170,11 @@ class RedditPosts extends React.Component {
 
         return (
             <div style={{opacity: pending || refreshing ? 0.5 : 1}}>
-                <ul>{value.map((post, i) => <li key={i}>{post.data.title}</li>)}</ul>
+                <ul>
+                    {value.map((post, i) => (
+                        <li key={i}>{post.data.title}</li>
+                    ))}
+                </ul>
             </div>
         );
     }
