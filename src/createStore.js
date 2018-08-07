@@ -122,8 +122,8 @@ export default function createStore(initialStore = {}) {
                 if (this._recentCallCount > 100) {
                     throw new Error(
                         "Priem: the amount of updates of 'AsyncContainer' exceeded the safe threshold, which means " +
-                            "it has stuck in an infinite rerender loop. This happens when 'mapPropsToArgs' returns " +
-                            'different results on consecutive calls. For example, this might be caused by ' +
+                            "it has stuck in an infinite rerendering loop. This happens when 'mapPropsToArgs' " +
+                            'returns different results on consecutive calls. For example, this might be caused by ' +
                             'a race condition between 2 or more Priem components. Please, fix.'
                     );
                 }
