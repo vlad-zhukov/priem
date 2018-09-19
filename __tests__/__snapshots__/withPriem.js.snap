@@ -1,13 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`should render a nested decorated component 1`] = `
-<div>
-  foobar
-</div>
-`;
+exports[`should render a nested decorated component 1`] = `"<div>foobar</div>"`;
 
-exports[`should render a simple decorated component 1`] = `
-<div>
-  foo
-</div>
-`;
+exports[`should render a simple decorated component 1`] = `"<div>foo</div>"`;

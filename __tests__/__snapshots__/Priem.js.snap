@@ -224,15 +224,7 @@ Object {
 }
 `;
 
-exports[`should render a nested component 1`] = `
-<div>
-  2-foobar
-  <button
-    onClick={[Function]}
-    type="button"
-  />
-</div>
-`;
+exports[`should render a nested component 1`] = `"<div>2-foobar<button type=\\"button\\"></button></div>"`;
 
 exports[`should render a nested component 2`] = `
 Object {
@@ -278,15 +270,7 @@ Object {
 }
 `;
 
-exports[`should render a nested component 3`] = `
-<div>
-  2-foobar
-  <button
-    onClick={[Function]}
-    type="button"
-  />
-</div>
-`;
+exports[`should render a nested component 3`] = `"<div>2-foobar<button type=\\"button\\"></button></div>"`;
 
 exports[`should render a nested component 4`] = `
 Object {

@@ -1,25 +1,20 @@
 import delay from 'delay';
-import {mount} from 'enzyme';
-import {createSerializer} from 'enzyme-to-json';
 import withPriem from '../src/withPriem';
+import render from '../__test-helpers__/render';
 import {testComponentDecorated, testComponentNestedDecorated} from '../__test-helpers__/util';
-
-expect.addSnapshotSerializer(createSerializer({mode: 'deep'}));
 
 it('should render a simple decorated component', async () => {
     const {element} = testComponentDecorated();
-    const wrapper = mount(element);
+    const {container} = render(element);
     await delay(150);
-    wrapper.update();
-    expect(wrapper).toMatchSnapshot();
+    expect(container.innerHTML).toMatchSnapshot();
 });
 
 it('should render a nested decorated component', async () => {
     const {element} = testComponentNestedDecorated();
-    const wrapper = mount(element);
+    const {container} = render(element);
     await delay(300);
-    wrapper.update();
-    expect(wrapper).toMatchSnapshot();
+    expect(container.innerHTML).toMatchSnapshot();
 });
 
 it("should throw if 'component' prop exists", () => {

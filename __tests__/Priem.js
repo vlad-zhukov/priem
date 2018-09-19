@@ -2,29 +2,27 @@
 
 import React from 'react';
 import delay from 'delay';
-import {mount} from 'enzyme';
-import {createSerializer} from 'enzyme-to-json';
+import {cleanup, fireEvent} from 'react-testing-library';
 import Priem from '../src/Priem';
 import createStore from '../src/createStore';
+import render from '../__test-helpers__/render';
 import {testComponent, testComponentNested, ErrorBoundary} from '../__test-helpers__/util';
 
-expect.addSnapshotSerializer(createSerializer({mode: 'deep'}));
+afterEach(cleanup);
 
 it('should render a simple component', async () => {
     const {element, setStateSpy} = testComponent();
-    const wrapper = mount(element);
-    const instance = wrapper.instance();
+    const {container, instance} = render(element);
 
     expect(instance).toHaveProperty('_isPriemComponent', true);
     expect(instance).toHaveProperty('_isMounted', true);
 
     await delay(150);
-    wrapper.update();
 
-    expect(wrapper.html()).toBe('<div>foo</div>');
+    expect(container.innerHTML).toBe('<div>foo</div>');
     expect(setStateSpy).toHaveBeenCalledTimes(2);
 
-    wrapper.unmount();
+    cleanup();
     instance._onUpdate();
     expect(instance).toHaveProperty('_isMounted', false);
     expect(setStateSpy).toHaveBeenCalledTimes(2);
@@ -33,26 +31,27 @@ it('should render a simple component', async () => {
 it('should use `children` and `component` props', () => {
     const {Container} = createStore();
 
-    const container = new Container({value: 'foo'});
+    const ctr = new Container({value: 'foo'});
 
     const childrenSpy = jest.fn(p => <div>children {p.container.value}</div>);
     const componentSpy = jest.fn(p => <div>component {p.container.value}</div>);
 
-    const wrapper = mount(
-        <Priem sources={{container}} component={componentSpy}>
+    const createElement = (props = {}) => (
+        <Priem sources={{container: ctr}} component={componentSpy} {...props}>
             {childrenSpy}
         </Priem>
     );
+    const {container, rerender} = render(createElement());
 
     expect(childrenSpy).toHaveBeenCalledTimes(0);
     expect(componentSpy).toHaveBeenCalledTimes(1);
-    expect(wrapper.html()).toBe('<div>component foo</div>');
+    expect(container.innerHTML).toBe('<div>component foo</div>');
 
-    wrapper.setProps({component: undefined});
+    rerender(createElement({component: undefined}));
 
     expect(childrenSpy).toHaveBeenCalledTimes(1);
     expect(componentSpy).toHaveBeenCalledTimes(1);
-    expect(wrapper.html()).toBe('<div>children foo</div>');
+    expect(container.innerHTML).toBe('<div>children foo</div>');
 });
 
 it('should throw if neither `children` nor `component` have been passed', async () => {
@@ -60,23 +59,23 @@ it('should throw if neither `children` nor `component` have been passed', async 
 
     const container = new Container({value: 'foo'});
 
-    const wrapper = mount(
+    const {instance} = render(
         <ErrorBoundary>
             <Priem sources={{container}} />
         </ErrorBoundary>
     );
 
-    expect(wrapper.state().hasError).toMatchSnapshot();
+    expect(instance.state.hasError).toMatchSnapshot();
 });
 
 it('should throw if `sources` is not an object', async () => {
-    const wrapper = mount(
+    const {instance} = render(
         <ErrorBoundary>
             <Priem>{() => null}</Priem>
         </ErrorBoundary>
     );
 
-    expect(wrapper.state().hasError).toMatchSnapshot();
+    expect(instance.state.hasError).toMatchSnapshot();
 });
 
 it('should resubscribe when `sources` change', () => {
@@ -90,14 +89,19 @@ it('should resubscribe when `sources` change', () => {
     const subscribeSpy2 = jest.spyOn(container2, '_subscribe');
     const unsubscribeSpy2 = jest.spyOn(container2, '_unsubscribe');
 
-    const wrapper = mount(<Priem sources={{container1}}>{() => null}</Priem>);
+    const createElement = (props = {}) => (
+        <Priem sources={{container1}} {...props}>
+            {() => null}
+        </Priem>
+    );
+    const {rerender} = render(createElement());
 
     expect(subscribeSpy1).toHaveBeenCalledTimes(1);
     expect(unsubscribeSpy1).toHaveBeenCalledTimes(0);
     expect(subscribeSpy2).toHaveBeenCalledTimes(0);
     expect(unsubscribeSpy2).toHaveBeenCalledTimes(0);
 
-    wrapper.setProps({sources: {container2}});
+    rerender(createElement({sources: {container2}}));
 
     expect(subscribeSpy1).toHaveBeenCalledTimes(1);
     expect(unsubscribeSpy1).toHaveBeenCalledTimes(1);
@@ -109,10 +113,15 @@ it('should rerender when container state changes', () => {
     const {Container} = createStore();
 
     const container = new Container({value: 1});
-    const wrapper = mount(<Priem sources={{}}>{() => null}</Priem>);
-    const onUpdateSpy = jest.spyOn(wrapper.instance(), '_onUpdate');
+    const createElement = (props = {}) => (
+        <Priem sources={{}} {...props}>
+            {() => null}
+        </Priem>
+    );
+    const {instance, rerender} = render(createElement());
+    const onUpdateSpy = jest.spyOn(instance, '_onUpdate');
 
-    wrapper.setProps({sources: {container}});
+    rerender(createElement({sources: {container}}));
     expect(onUpdateSpy).toHaveBeenCalledTimes(0);
 
     container.setState({value: 2});
@@ -121,21 +130,19 @@ it('should rerender when container state changes', () => {
 
 it('should not keep data after the unmount if `persist: false`', async () => {
     const {element, container} = testComponent({options: {persist: false}});
-    const wrapper = mount(element);
+    const {rerender} = render(element);
     await delay(150);
-    wrapper.update();
 
     expect(container.state).toMatchSnapshot(); // fulfilled
     expect(container._cache.memoized.keys()).toEqual([['foo']]);
 
-    wrapper.unmount();
+    cleanup();
 
     expect(container.state).toMatchSnapshot(); // empty
     expect(container._cache.memoized.keys()).toEqual([]);
 
-    wrapper.mount();
+    rerender(element);
     await delay(150);
-    wrapper.update();
 
     expect(container.state).toMatchSnapshot(); // fulfilled
     expect(container._cache.memoized.keys()).toEqual([['foo']]);
@@ -143,18 +150,15 @@ it('should not keep data after the unmount if `persist: false`', async () => {
 
 it('should have a `refresh` method', async () => {
     const {element, container} = testComponent();
-    const wrapper = mount(element);
-    const instance = wrapper.instance();
+    const {instance} = render(element);
 
     await delay(150);
-    wrapper.update();
     expect(container.state).toMatchSnapshot(); // fulfilled
 
     instance.refresh();
     expect(container.state).toMatchSnapshot(); // refreshing
 
     await delay(150);
-    wrapper.update();
     expect(container.state).toMatchSnapshot(); // fulfilled
 });
 
@@ -180,7 +184,7 @@ it('should rerun promises when cache expires if `maxAge` is set', async () => {
     };
 
     const {element, container, updateSpy, runAsyncSpy, setStateSpy} = testComponent({options});
-    const wrapper = mount(element);
+    const {rerender} = render(element);
 
     expect(container.state).toMatchSnapshot(); // pending
     expect(container._cache.awaiting).toMatchObject([['foo1']]);
@@ -189,7 +193,6 @@ it('should rerun promises when cache expires if `maxAge` is set', async () => {
     expect(runAsyncSpy).toHaveBeenCalledTimes(2);
 
     await delay(250);
-    wrapper.update();
 
     expect(container.state).toMatchSnapshot(); // fulfilled
     expect(container._cache.awaiting).toMatchObject([]);
@@ -197,7 +200,7 @@ it('should rerun promises when cache expires if `maxAge` is set', async () => {
     expect(updateSpy).toHaveBeenCalledTimes(3);
     expect(runAsyncSpy).toHaveBeenCalledTimes(3);
 
-    wrapper.setProps({count: 2});
+    rerender(React.cloneElement(element, {count: 2}));
 
     expect(container.state).toMatchSnapshot(); // refreshing
     expect(container._cache.awaiting).toMatchObject([['foo2']]);
@@ -206,7 +209,6 @@ it('should rerun promises when cache expires if `maxAge` is set', async () => {
     expect(runAsyncSpy).toHaveBeenCalledTimes(5);
 
     await delay(210);
-    wrapper.update();
 
     expect(container.state).toMatchSnapshot(); // fulfilled
     expect(container._cache.awaiting).toMatchObject([]);
@@ -215,7 +217,6 @@ it('should rerun promises when cache expires if `maxAge` is set', async () => {
     expect(runAsyncSpy).toHaveBeenCalledTimes(6);
 
     await delay(800);
-    wrapper.update();
 
     expect(container.state).toMatchSnapshot(); // refreshing
     expect(container._cache.awaiting).toMatchObject([['foo2']]);
@@ -224,7 +225,6 @@ it('should rerun promises when cache expires if `maxAge` is set', async () => {
     expect(runAsyncSpy).toHaveBeenCalledTimes(8);
 
     await delay(210);
-    wrapper.update();
 
     expect(container.state).toMatchSnapshot(); // fulfilled
     expect(container._cache.awaiting).toMatchObject([]);
@@ -237,7 +237,7 @@ it('should pass a `refresh` method as a render prop', async () => {
     const {AsyncContainer} = createStore();
 
     let shouldReject = false;
-    const container = new AsyncContainer({
+    const ctr = new AsyncContainer({
         mapPropsToArgs: () => [`foo`],
         promise: value => {
             if (shouldReject) {
@@ -249,7 +249,7 @@ it('should pass a `refresh` method as a render prop', async () => {
     });
 
     const element = (
-        <Priem sources={{container}}>
+        <Priem sources={{container: ctr}}>
             {p => {
                 expect(typeof p.refresh).toBe('function');
                 return <button type="button" onClick={p.refresh} />;
@@ -257,18 +257,18 @@ it('should pass a `refresh` method as a render prop', async () => {
         </Priem>
     );
 
-    const wrapper = mount(element);
+    const {container} = render(element);
 
-    expect(container.state).toMatchSnapshot(); // pending
-
-    await delay(200);
-    expect(container.state).toMatchSnapshot(); // fulfilled
-
-    wrapper.find('button').simulate('click');
-    expect(container.state).toMatchSnapshot(); // refreshing
+    expect(ctr.state).toMatchSnapshot(); // pending
 
     await delay(200);
-    expect(container.state).toMatchSnapshot(); // rejected
+    expect(ctr.state).toMatchSnapshot(); // fulfilled
+
+    fireEvent.click(container.querySelector('button'));
+    expect(ctr.state).toMatchSnapshot(); // refreshing
+
+    await delay(200);
+    expect(ctr.state).toMatchSnapshot(); // rejected
 });
 
 it('should pass a `refresh` method as a property into every AsyncContainer render prop', async () => {
@@ -304,14 +304,14 @@ it('should pass a `refresh` method as a property into every AsyncContainer rende
         </Priem>
     );
 
-    const wrapper = mount(element);
+    const {container} = render(element);
 
     expect([container1.state, container2.state, syncContainer.state]).toMatchSnapshot();
 
     await delay(200);
     expect([container1.state, container2.state, syncContainer.state]).toMatchSnapshot(); // fulfilled
 
-    wrapper.find('button').simulate('click');
+    fireEvent.click(container.querySelector('button'));
     expect([container1.state, container2.state, syncContainer.state]).toMatchSnapshot(); // refreshing
 
     await delay(200);
@@ -324,17 +324,15 @@ it('should render a nested component', async () => {
         container1Props: {ssrKey: 'unique-key-2'},
         container2Props: {ssrKey: 'unique-key-3'},
     });
-    const wrapper = mount(element);
+    const {container} = render(element);
     await delay(300);
-    wrapper.update();
 
-    expect(wrapper).toMatchSnapshot();
+    expect(container.innerHTML).toMatchSnapshot();
     expect(getStore()).toMatchSnapshot();
 
-    wrapper.find('button').simulate('click');
-    wrapper.update();
+    fireEvent.click(container.querySelector('button'));
 
-    expect(wrapper).toMatchSnapshot();
+    expect(container.innerHTML).toMatchSnapshot();
     expect(getStore()).toMatchSnapshot();
 });
 
@@ -345,7 +343,7 @@ it('should throw if `mapPropsToArgs` updates too often due to a race condition',
         promise: () => delay(100),
     });
 
-    const wrapper = mount(
+    const {instance} = render(
         <ErrorBoundary>
             <Priem sources={{container}} value="foo">
                 {() => null}
@@ -357,9 +355,9 @@ it('should throw if `mapPropsToArgs` updates too often due to a race condition',
     );
     await delay(500);
 
-    const state = wrapper.state();
-    console.info(`Error has been caught in ${state.catchTime - state.initTime}ms`);
-    expect(state.hasError).toMatchSnapshot();
+    const {catchTime, initTime, hasError} = instance.state;
+    console.info(`Error has been caught in ${catchTime - initTime}ms`);
+    expect(hasError).toMatchSnapshot();
 });
 
 it('should not throw if `mapPropsToArgs` updates too often but limited by `maxArgs`', async () => {
@@ -370,7 +368,7 @@ it('should not throw if `mapPropsToArgs` updates too often but limited by `maxAr
         maxArgs: 1,
     });
 
-    const wrapper = mount(
+    const {instance} = render(
         <ErrorBoundary>
             <Priem sources={{container}} value="foo">
                 {() => null}
@@ -382,5 +380,5 @@ it('should not throw if `mapPropsToArgs` updates too often but limited by `maxAr
     );
     await delay(500);
 
-    expect(wrapper.state().hasError).toBeNull();
+    expect(instance.state.hasError).toBeNull();
 });

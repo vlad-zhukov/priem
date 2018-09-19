@@ -29,8 +29,7 @@ export default () => (
     <Priem sources={{counter: counterContainer}}>
         {({counter}) => (
             <div>
-                <span>Clicked: {counter.value} times </span>
-                <button onClick={counterContainer.increment}>+</button>{' '}
+                <span>Clicked: {counter.value} times</span> <button onClick={counterContainer.increment}>+</button>{' '}
                 <button onClick={counterContainer.decrement}>-</button>{' '}
                 <button onClick={counterContainer.incrementIfOdd}>Increment if odd</button>{' '}
                 <button onClick={counterContainer.incrementAsync}>Increment async</button>
