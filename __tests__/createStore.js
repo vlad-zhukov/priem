@@ -120,7 +120,7 @@ describe('Container()', () => {
 describe('AsyncContainer()', () => {
     it('should default `mapPropsToArgs` to a function that returns an empty array', () => {
         const {AsyncContainer} = setupStore();
-        const container = new AsyncContainer({promise: () => delay(100, {})});
+        const container = new AsyncContainer({promise: () => delay(100, {value: {}})});
 
         expect(container._mapPropsToArgs()).toEqual([]);
     });
@@ -131,7 +131,7 @@ describe('AsyncContainer()', () => {
                 expect(props).toEqual({});
                 return null;
             },
-            promise: () => delay(200, {}),
+            promise: () => delay(200, {value: {}}),
         };
 
         const {container} = setupStore({options});
@@ -162,7 +162,7 @@ describe('AsyncContainer()', () => {
     it('should run promises if `autoRefresh` is false but `isForced` is true', async () => {
         const options = {
             mapPropsToArgs: () => ['foo'],
-            promise: value => delay(200, {value}),
+            promise: value => delay(200, {value: {value}}),
             autoRefresh: false,
         };
 
@@ -182,7 +182,7 @@ describe('AsyncContainer()', () => {
     it('should not run promises when awaiting', async () => {
         const options = {
             mapPropsToArgs: () => ['foo'],
-            promise: value => delay(200, {value}),
+            promise: value => delay(200, {value: {value}}),
         };
 
         const {container, updateSpy, runAsyncSpy} = setupStore({options});
@@ -210,7 +210,7 @@ describe('AsyncContainer()', () => {
             mapPropsToArgs: () => ['foo'],
             promise(value) {
                 counter += 1;
-                return delay(200, value + counter);
+                return delay(200, {value: value + counter});
             },
         };
 
@@ -235,7 +235,7 @@ describe('AsyncContainer()', () => {
             promise(value) {
                 if (!called) {
                     called = true;
-                    return delay.reject(200, new Error('foo'));
+                    return delay.reject(200, {value: new Error('foo')});
                 }
                 return delay(200, {value});
             },
@@ -264,9 +264,9 @@ describe('AsyncContainer()', () => {
             promise(value) {
                 if (!called) {
                     called = true;
-                    return delay.reject(200, new Error('foo'));
+                    return delay.reject(200, {value: new Error('foo')});
                 }
-                return delay(200, {value});
+                return delay(200, {value: {value}});
             },
         };
 
@@ -292,7 +292,7 @@ describe('AsyncContainer()', () => {
     it('should not try to rerun fulfilled promises if `value` is null', async () => {
         const options = {
             mapPropsToArgs: () => [null],
-            promise: value => delay(100, value),
+            promise: value => delay(100, {value}),
         };
 
         const {container, updateSpy, runAsyncSpy} = setupStore({options});
@@ -321,7 +321,7 @@ describe('AsyncContainer()', () => {
                 }
                 return ['foo'];
             },
-            promise: value => delay(200, {value}),
+            promise: value => delay(200, {value: {value}}),
         };
 
         const {container, updateSpy, runAsyncSpy} = setupStore({options});
@@ -378,7 +378,7 @@ describe('AsyncContainer()', () => {
             mapPropsToArgs: () => [`foo${id}`, `bar${id}`],
             promise(foo, bar) {
                 id += 1;
-                return delay(200, {foo, bar});
+                return delay(200, {value: {foo, bar}});
             },
         };
 
@@ -398,7 +398,7 @@ describe('AsyncContainer()', () => {
             mapPropsToArgs: () => [`foo-${check}`],
             promise(value) {
                 check = !check;
-                return delay(200, {value});
+                return delay(200, {value: {value}});
             },
         };
 
@@ -462,7 +462,7 @@ describe('AsyncContainer()', () => {
     it('should have a `refresh` method', async () => {
         const options = {
             mapPropsToArgs: ({bar}) => [`foo${bar}`],
-            promise: value => delay(100, {value}),
+            promise: value => delay(100, {value: {value}}),
             maxSize: 1,
             autoRefresh: false,
         };
@@ -480,7 +480,7 @@ describe('AsyncContainer()', () => {
     it('should debounce async calls if `debounceMs` is set', async () => {
         const options = {
             mapPropsToArgs: () => ['foo'],
-            promise: value => delay(200, {value}),
+            promise: value => delay(200, {value: {value}}),
             debounceMs: 300,
         };
 

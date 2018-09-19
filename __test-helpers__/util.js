@@ -14,7 +14,7 @@ export function testComponent({initialStore, options} = {}) {
 
     const container = new AsyncContainer({
         mapPropsToArgs: () => ['foo'],
-        promise: value => delay(100, value),
+        promise: value => delay(100, {value}),
         ...options,
     });
 
@@ -30,7 +30,7 @@ export function testComponentDecorated({initialStore, options} = {}) {
 
     const container = new AsyncContainer({
         mapPropsToArgs: () => ['foo'],
-        promise: value => delay(100, value),
+        promise: value => delay(100, {value}),
         ...options,
     });
 
@@ -46,13 +46,13 @@ export function testComponentNested({initialStore, syncContainerProps, container
 
     const container1 = new AsyncContainer({
         mapPropsToArgs: ({syncContainer: sC}) => [sC.counter, 'foo'],
-        promise: (counter, value) => delay(100, `${counter}-${value}`),
+        promise: (counter, value) => delay(100, {value: `${counter}-${value}`}),
         ...container1Props,
     });
 
     const container2 = new AsyncContainer({
         mapPropsToArgs: ({container1value}) => [container1value, 'bar'],
-        promise: (c1value, value) => delay(100, c1value + value),
+        promise: (c1value, value) => delay(100, {value: c1value + value}),
         ...container2Props,
     });
 
@@ -93,12 +93,12 @@ export function testComponentNestedDecorated({initialStore} = {}) {
 
     const container1 = new AsyncContainer({
         mapPropsToArgs: () => ['foo'],
-        promise: value => delay(100, value),
+        promise: value => delay(100, {value}),
     });
 
     const container2 = new AsyncContainer({
         mapPropsToArgs: ({component1value}) => [component1value, 'bar'],
-        promise: (c1value, value) => delay(100, c1value + value),
+        promise: (c1value, value) => delay(100, {value: c1value + value}),
     });
 
     @withPriem({sources: {container1}})

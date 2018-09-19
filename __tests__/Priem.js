@@ -175,7 +175,7 @@ it('should rerun promises when cache expires if `maxAge` is set', async () => {
 
     const options = {
         mapPropsToArgs: ({count = 1}) => [`foo${count}`],
-        promise: value => delay(200, value),
+        promise: value => delay(200, {value}),
         maxAge: 1000,
     };
 
@@ -241,10 +241,10 @@ it('should pass a `refresh` method as a render prop', async () => {
         mapPropsToArgs: () => [`foo`],
         promise: value => {
             if (shouldReject) {
-                return delay.reject(100, new Error('error!'));
+                return delay.reject(100, {value: new Error('error!')});
             }
             shouldReject = true;
-            return delay(100, value);
+            return delay(100, {value});
         },
     });
 
@@ -279,16 +279,16 @@ it('should pass a `refresh` method as a property into every AsyncContainer rende
         mapPropsToArgs: () => ['foo'],
         promise: value => {
             if (shouldReject) {
-                return delay.reject(100, new Error('error!'));
+                return delay.reject(100, {value: new Error('error!')});
             }
             shouldReject = true;
-            return delay(100, value);
+            return delay(100, {value});
         },
     });
 
     const container2 = new AsyncContainer({
         mapPropsToArgs: () => ['bar'],
-        promise: value => delay(100, value),
+        promise: value => delay(100, {value}),
     });
 
     const syncContainer = new Container({value: 'baz'});
