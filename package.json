@@ -18,8 +18,8 @@
     "prepublishOnly": "yarn build && yarn lint && prettier \"**/*.{js,md}\" -l && yarn test"
   },
   "dependencies": {
-    "fast-equals": "^1.6.0",
-    "moize": "^5.4.0"
+    "fast-equals": "^1.6.1",
+    "moize": "^5.4.1"
   },
   "devDependencies": {
     "@babel/core": "7.1.0",
@@ -36,18 +36,18 @@
     "eslint-config-airbnb": "^17.1.0",
     "eslint-config-prettier": "^3.0.1",
     "eslint-plugin-import": "^2.14.0",
-    "eslint-plugin-jest": "^21.22.0",
+    "eslint-plugin-jest": "^21.22.1",
     "eslint-plugin-jsx-a11y": "^6.1.1",
     "eslint-plugin-react": "^7.11.1",
     "jest": "^23.6.0",
     "jest-circus": "^23.6.0",
-    "prettier": "^1.14.2",
+    "prettier": "^1.14.3",
     "raf": "^3.4.0",
     "react": "16.5.2",
     "react-dom": "16.5.2",
     "react-testing-library": "^5.1.0",
     "rimraf": "^2.6.2",
-    "rollup": "^0.66.0",
+    "rollup": "^0.66.2",
     "rollup-plugin-babel": "4.0.3"
   },
   "peerDependencies": {
