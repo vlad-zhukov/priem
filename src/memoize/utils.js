@@ -73,8 +73,9 @@ export const isSameValueZero = (object1, object2) =>
  */
 export const orderByLru = (array, value, startingIndex) => {
     let index = startingIndex;
-    while (index--) { // eslint-disable-line no-plusplus
+    // eslint-disable-next-line no-plusplus
+    while (index--) {
         array[index + 1] = array[index]; // eslint-disable-line no-param-reassign
     }
-    array[0] = value;  // eslint-disable-line no-param-reassign
+    array[0] = value; // eslint-disable-line no-param-reassign
 };
