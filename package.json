@@ -67,7 +67,6 @@
     "dist"
   ],
   "jest": {
-    "testURL": "http://localhost/",
     "testRunner": "jest-circus/runner",
     "roots": [
       "<rootDir>/__tests__/"
