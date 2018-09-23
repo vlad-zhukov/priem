@@ -49,7 +49,7 @@ export default class Priem extends React.Component {
     }
 
     refresh = () => {
-        this._updateSubscriptions({isForced: true});
+        this._getProps(false, true);
     };
 
     _onUpdate = () => {
@@ -58,7 +58,7 @@ export default class Priem extends React.Component {
         }
     };
 
-    _updateSubscriptions({instancesToSub, instancesToUnsub, isForced = false}) {
+    _updateSubscriptions({instancesToSub, instancesToUnsub}) {
         if (instancesToSub) {
             instancesToSub.forEach(instanceToSub => {
                 instanceToSub._subscribe(this._onUpdate);
@@ -70,28 +70,12 @@ export default class Priem extends React.Component {
                 instanceToUnsub._unsubscribe(this._onUpdate);
             });
         }
-
-        if (this._isMounted) {
-            const props = this._getProps(false);
-            Object.keys(this._sources).forEach(key => {
-                const source = this._sources[key];
-                if (type(source._runAsync) === 'function') {
-                    source._runAsync({props, isForced});
-                }
-            });
-        }
     }
 
-    _getProps(populateWithRefresh) {
+    _getProps(populateWithRefresh, isForced) {
         const {component, children, sources, ...props} = this.props;
         Object.keys(this._sources).forEach(key => {
-            const source = this._sources[key];
-            props[key] = source.state;
-            if (type(source._runAsync) === 'function') {
-                props[key].refresh = () => {
-                    source._runAsync({props, isForced: true});
-                };
-            }
+            props[key] = this._sources[key]._get(props, isForced);
         });
 
         if (populateWithRefresh) {

@@ -1,0 +1,239 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`should export the internal cache 1`] = `
+Object {
+  "keys": Array [],
+  "size": 0,
+  "values": Array [],
+}
+`;
+
+exports[`should export the internal cache 2`] = `
+Object {
+  "keys": Array [
+    Array [
+      "world",
+    ],
+  ],
+  "size": 1,
+  "values": Array [
+    Object {
+      "promise": Promise {},
+      "reason": null,
+      "status": 0,
+      "value": null,
+    },
+  ],
+}
+`;
+
+exports[`should export the internal cache 3`] = `
+Object {
+  "keys": Array [
+    Array [
+      "world",
+    ],
+  ],
+  "size": 1,
+  "values": Array [
+    Object {
+      "promise": Promise {},
+      "reason": null,
+      "status": 1,
+      "value": "Hello world!",
+    },
+  ],
+}
+`;
+
+exports[`should have a \`maxAge\` option 1`] = `
+Object {
+  "keys": Array [
+    Array [
+      "SpongeBob",
+    ],
+  ],
+  "size": 1,
+  "values": Array [
+    Object {
+      "promise": Promise {},
+      "reason": null,
+      "status": 0,
+      "value": null,
+    },
+  ],
+}
+`;
+
+exports[`should have a \`maxAge\` option 2`] = `
+Object {
+  "keys": Array [
+    Array [
+      "SpongeBob",
+    ],
+  ],
+  "size": 1,
+  "values": Array [
+    Object {
+      "promise": Promise {},
+      "reason": null,
+      "status": 1,
+      "value": undefined,
+    },
+  ],
+}
+`;
+
+exports[`should have a \`maxAge\` option 3`] = `
+Object {
+  "keys": Array [
+    Array [
+      "Patrick",
+    ],
+    Array [
+      "SpongeBob",
+    ],
+  ],
+  "size": 2,
+  "values": Array [
+    Object {
+      "promise": Promise {},
+      "reason": null,
+      "status": 0,
+      "value": null,
+    },
+    Object {
+      "promise": Promise {},
+      "reason": null,
+      "status": 1,
+      "value": undefined,
+    },
+  ],
+}
+`;
+
+exports[`should have a \`maxAge\` option 4`] = `
+Object {
+  "keys": Array [
+    Array [
+      "Patrick",
+    ],
+  ],
+  "size": 1,
+  "values": Array [
+    Object {
+      "promise": Promise {},
+      "reason": null,
+      "status": 1,
+      "value": undefined,
+    },
+  ],
+}
+`;
+
+exports[`should have a \`maxAge\` option 5`] = `
+Object {
+  "keys": Array [],
+  "size": 0,
+  "values": Array [],
+}
+`;
+
+exports[`should memoize promises 1`] = `
+Object {
+  "promise": Promise {},
+  "reason": null,
+  "status": 0,
+  "value": null,
+}
+`;
+
+exports[`should memoize promises 2`] = `
+Object {
+  "promise": Promise {},
+  "reason": null,
+  "status": 1,
+  "value": "Hello world!",
+}
+`;
+
+exports[`should memoize promises 3`] = `
+Object {
+  "promise": Promise {},
+  "reason": null,
+  "status": 1,
+  "value": "Hello world!",
+}
+`;
+
+exports[`should memoize promises 4`] = `
+Object {
+  "promise": Promise {},
+  "reason": null,
+  "status": 0,
+  "value": null,
+}
+`;
+
+exports[`should memoize promises 5`] = `
+Object {
+  "promise": Promise {},
+  "reason": null,
+  "status": 1,
+  "value": "Hello SpongeBob!",
+}
+`;
+
+exports[`should memoize promises 6`] = `
+Object {
+  "promise": Promise {},
+  "reason": null,
+  "status": 1,
+  "value": "Hello world!",
+}
+`;
+
+exports[`should not throw on rejected promises 1`] = `
+Object {
+  "promise": Promise {},
+  "reason": null,
+  "status": 0,
+  "value": null,
+}
+`;
+
+exports[`should not throw on rejected promises 2`] = `
+Object {
+  "promise": Promise {},
+  "reason": [Error: Hello world!],
+  "status": 2,
+  "value": null,
+}
+`;
+
+exports[`should not throw on rejected promises 3`] = `
+Object {
+  "promise": Promise {},
+  "reason": [Error: Hello world!],
+  "status": 2,
+  "value": null,
+}
+`;
+
+exports[`should not throw on rejected promises 4`] = `
+Object {
+  "promise": Promise {},
+  "reason": null,
+  "status": 0,
+  "value": null,
+}
+`;
+
+exports[`should not throw on rejected promises 5`] = `
+Object {
+  "promise": Promise {},
+  "reason": [Error: Hello SpongeBob!],
+  "status": 2,
+  "value": null,
+}
+`;
