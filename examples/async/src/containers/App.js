@@ -1,43 +1,41 @@
 import React from 'react';
-import {Priem, createStore} from 'priem';
+import {Priem, Container} from 'priem';
 import Picker from '../components/Picker';
 import Posts from '../components/Posts';
 
-const {Container, AsyncContainer} = createStore();
-
-const redditPicker = new Container({reddit: 'reactjs'});
-
-const reddit = new AsyncContainer({
-    mapPropsToArgs: props => [props.redditPicker.reddit],
+const reddit = new Container({
+    mapPropsToArgs: props => [props.reddit],
     promise: reddit => {
         return fetch(`https://www.reddit.com/r/${reddit}.json`)
             .then(res => res.json())
             .then(res => res.data.children);
     },
+    maxSize: 2,
     maxAge: 20000,
-    maxArgs: 1,
 });
 
 export default class App extends React.Component {
-    constructor(props, context) {
-        super(props, context);
+    constructor(props) {
+        super(props);
+
+        this.state = {reddit: 'reactjs'};
 
         this.handleChange = nextReddit => {
-            redditPicker.setState({reddit: nextReddit});
+            this.setState({reddit: nextReddit});
         };
     }
 
     render() {
         return (
-            <Priem sources={{redditPicker, reddit}}>
-                {({redditPicker, reddit, refresh}) => {
+            <Priem reddit={this.state.reddit} sources={{reddit}}>
+                {({reddit, refresh}) => {
                     const {value, lastUpdated} = reddit;
                     const isFetching = reddit.pending || reddit.refreshing;
 
                     return (
                         <div>
                             <Picker
-                                value={redditPicker.reddit}
+                                value={this.state.reddit}
                                 onChange={this.handleChange}
                                 options={['reactjs', 'frontend']}
                             />
