@@ -1,6 +1,5 @@
-import {createGetKeyIndex, isSameValueZero, orderByLru} from './utils';
-
-const noop = () => {};
+import {noop, createGetKeyIndex, isSameValueZero, orderByLru} from './utils';
+import {getMaxAgeOptions} from './maxAge';
 
 export const PENDING = 0;
 export const FULFILLED = 1;
@@ -22,30 +21,41 @@ export default function memoize(fn, options = {}) {
     const {
         isEqual = isSameValueZero,
         maxSize = 1,
-        onCacheAdd = noop,
+        maxAge = Infinity,
         onCacheChange = noop,
-        onCacheHit = noop,
+        onExpire = noop,
+        updateExpire = false,
         ...extraOptions
     } = options;
+
+    const getKeyIndex = createGetKeyIndex(isEqual);
+    const expirations = [];
+    const {onCacheAdd, onCacheHit} = getMaxAgeOptions(
+        expirations,
+        {onCacheChange, maxAge, onExpire, updateExpire},
+        isEqual
+    );
 
     const normalizedOptions = Object.assign({}, extraOptions, {
         isEqual,
         maxSize,
+        maxAge,
         onCacheAdd,
         onCacheChange,
         onCacheHit,
+        onExpire,
+        updateExpire,
     });
 
-    const getKeyIndex = createGetKeyIndex(isEqual);
-
+    const keys = [];
+    const values = [];
     const cache = {
-        keys: [],
+        keys,
+        values,
         get size() {
-            return this.keys.length;
+            return keys.length;
         },
-        values: [],
     };
-    const {keys, values} = cache;
 
     /**
      * @function memoized
@@ -59,7 +69,6 @@ export default function memoize(fn, options = {}) {
     function memoized(...args) {
         const keyIndex = getKeyIndex(keys, args);
 
-        // eslint-disable-next-line no-bitwise
         if (~keyIndex) {
             onCacheHit(cache, normalizedOptions, memoized);
 

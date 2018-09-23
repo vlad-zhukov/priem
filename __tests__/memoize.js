@@ -33,7 +33,7 @@ Object {
 }
 `);
 
-    expect(memoized('Spoungebob')).toMatchInlineSnapshot(`
+    expect(memoized('SpongeBob')).toMatchInlineSnapshot(`
 Object {
   "promise": Promise {},
   "reason": null,
@@ -44,12 +44,12 @@ Object {
 
     await delay(300);
 
-    expect(memoized('Spoungebob')).toMatchInlineSnapshot(`
+    expect(memoized('SpongeBob')).toMatchInlineSnapshot(`
 Object {
   "promise": Promise {},
   "reason": null,
   "status": 1,
-  "value": "Hello Spoungebob!",
+  "value": "Hello SpongeBob!",
 }
 `);
 
@@ -95,7 +95,7 @@ Object {
 }
 `);
 
-    expect(memoized('Spoungebob')).toMatchInlineSnapshot(`
+    expect(memoized('SpongeBob')).toMatchInlineSnapshot(`
 Object {
   "promise": Promise {},
   "reason": null,
@@ -106,10 +106,10 @@ Object {
 
     await delay(300);
 
-    expect(memoized('Spoungebob')).toMatchInlineSnapshot(`
+    expect(memoized('SpongeBob')).toMatchInlineSnapshot(`
 Object {
   "promise": Promise {},
-  "reason": [Error: Hello Spoungebob!],
+  "reason": [Error: Hello SpongeBob!],
   "status": 2,
   "value": null,
 }
@@ -181,20 +181,101 @@ it('should default `maxSize` to 1', async () => {
         })
     );
 
-    memoized('Spoungebob');
+    memoized('SpongeBob');
     await delay(300);
-    expect(memoized.cache.keys).toEqual([['Spoungebob']]);
+    expect(memoized.cache.keys).toEqual([['SpongeBob']]);
 
-    memoized('Spoungebob', 'Patrick');
+    memoized('SpongeBob', 'Patrick');
     await delay(300);
-    expect(memoized.cache.keys).toEqual([['Spoungebob', 'Patrick']]);
+    expect(memoized.cache.keys).toEqual([['SpongeBob', 'Patrick']]);
 });
 
 it('should properly match equal keys', async () => {
-    const memoized = memoize(() => delay(200), {});
+    const memoized = memoize(() => delay(200));
 
     memoized(NaN, NaN);
     memoized(NaN, NaN);
+});
+
+it('should have a `maxAge` option', async () => {
+    const onCacheChange = jest.fn();
+    const onExpire = jest.fn();
+    const memoized = memoize(() => delay(200), {maxSize: 2, onCacheChange, maxAge: 500, onExpire});
+
+    memoized('SpongeBob');
+    expect(memoized.cache.keys).toEqual([['SpongeBob']]);
+    expect(onCacheChange).toHaveBeenCalledTimes(1);
+
+    await delay(300);
+    expect(onCacheChange).toHaveBeenCalledTimes(2);
+
+    memoized('Patrick');
+    expect(onCacheChange).toHaveBeenCalledTimes(3);
+    expect(memoized.cache.keys).toEqual([['Patrick'], ['SpongeBob']]);
+
+    await delay(300);
+    expect(memoized.cache.keys).toEqual([['Patrick']]);
+    expect(onCacheChange).toHaveBeenCalledTimes(5);
+
+    await delay(300);
+    expect(memoized.cache.keys).toEqual([]);
+    expect(onCacheChange).toHaveBeenCalledTimes(6);
+    expect(onExpire).toHaveBeenCalledTimes(2);
+});
+
+it('should not expire keys if `onExpire` returns false', async () => {
+    const onCacheChange = jest.fn();
+    const onExpire = jest.fn(() => false);
+    const memoized = memoize(() => delay(200), {onCacheChange, maxAge: 500, onExpire});
+
+    memoized('SpongeBob');
+    expect(onCacheChange).toHaveBeenCalledTimes(1);
+    await delay(300);
+    expect(memoized.cache.keys).toEqual([['SpongeBob']]);
+    expect(onCacheChange).toHaveBeenCalledTimes(2);
+
+    await delay(300);
+    expect(memoized.cache.keys).toEqual([['SpongeBob']]);
+    expect(onCacheChange).toHaveBeenCalledTimes(4);
+    expect(onExpire).toHaveBeenCalledTimes(1);
+});
+
+it('should not expire keys if the key has been hit recently and `updateExpire` is true', async () => {
+    const onCacheChange = jest.fn();
+    const onExpire = jest.fn();
+    const memoized = memoize(() => delay(200), {onCacheChange, maxAge: 500, onExpire, updateExpire: true});
+
+    memoized('SpongeBob');
+    expect(onCacheChange).toHaveBeenCalledTimes(1);
+    await delay(300);
+    expect(memoized.cache.keys).toEqual([['SpongeBob']]);
+    expect(onCacheChange).toHaveBeenCalledTimes(2);
+
+    await delay(300);
+    expect(memoized.cache.keys).toEqual([['SpongeBob']]);
+    expect(onCacheChange).toHaveBeenCalledTimes(2);
+    expect(onExpire).toHaveBeenCalledTimes(0);
+});
+
+it('should not fail to expire if the key does not exist', async () => {
+    const onCacheChange = jest.fn();
+    const onExpire = jest.fn();
+    const memoized = memoize(() => delay(200), {onCacheChange, maxAge: 500, onExpire});
+
+    memoized('SpongeBob');
+    expect(onCacheChange).toHaveBeenCalledTimes(1);
+    await delay(300);
+    expect(memoized.cache.keys).toEqual([['SpongeBob']]);
+    expect(onCacheChange).toHaveBeenCalledTimes(2);
+
+    memoized.cache.keys.pop();
+    memoized.cache.values.pop();
+    expect(memoized.cache.keys).toEqual([]);
+
+    await delay(300);
+    expect(memoized.cache.keys).toEqual([]);
+    expect(onCacheChange).toHaveBeenCalledTimes(2);
+    expect(onExpire).toHaveBeenCalledTimes(1);
 });
 
 it('should export `isMemoized` and `options`', async () => {
@@ -204,10 +285,13 @@ it('should export `isMemoized` and `options`', async () => {
     expect(memoized.options).toMatchInlineSnapshot(`
 Object {
   "isEqual": [Function],
+  "maxAge": Infinity,
   "maxSize": 1,
   "onCacheAdd": [Function],
   "onCacheChange": [Function],
   "onCacheHit": [Function],
+  "onExpire": [Function],
+  "updateExpire": false,
 }
 `);
 });

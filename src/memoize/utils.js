@@ -1,3 +1,5 @@
+export const noop = () => {};
+
 export const createAreKeysEqual = isEqual =>
     /**
      * @function areKeysEqual
