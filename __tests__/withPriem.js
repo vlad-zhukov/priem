@@ -7,14 +7,14 @@ it('should render a simple decorated component', async () => {
     const {element} = testComponentDecorated();
     const {container} = render(element);
     await delay(150);
-    expect(container.innerHTML).toMatchSnapshot();
+    expect(container.innerHTML).toMatchInlineSnapshot(`"<div>foo</div>"`);
 });
 
 it('should render a nested decorated component', async () => {
     const {element} = testComponentNestedDecorated();
     const {container} = render(element);
     await delay(300);
-    expect(container.innerHTML).toMatchSnapshot();
+    expect(container.innerHTML).toMatchInlineSnapshot(`"<div>foobar</div>"`);
 });
 
 it("should throw if 'component' prop exists", () => {
