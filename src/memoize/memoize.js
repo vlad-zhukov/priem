@@ -21,7 +21,7 @@ export const REJECTED = 2;
 export default function memoize(fn, options = {}) {
     const {
         isEqual = isSameValueZero,
-        maxSize = 10,
+        maxSize = 1,
         onCacheAdd = noop,
         onCacheChange = noop,
         onCacheHit = noop,
@@ -41,7 +41,7 @@ export default function memoize(fn, options = {}) {
     const cache = {
         keys: [],
         get size() {
-            return cache.keys.length;
+            return this.keys.length;
         },
         values: [],
     };
