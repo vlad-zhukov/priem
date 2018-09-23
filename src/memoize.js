@@ -67,7 +67,13 @@ export default function memoize(fn, options = {}) {
      * @returns {any} the value of the method called with the arguments
      */
     function memoized(...args) {
-        const keyIndex = getKeyIndex(keys, args);
+        let keyIndex = getKeyIndex(keys, args);
+
+        if (this.isForced && ~keyIndex) {
+            keys.splice(keyIndex, 1);
+            values.splice(keyIndex, 1);
+            keyIndex = -1;
+        }
 
         if (~keyIndex) {
             onCacheHit(cache, normalizedOptions, memoized);

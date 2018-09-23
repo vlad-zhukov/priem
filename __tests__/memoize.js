@@ -1,176 +1,46 @@
 import delay from 'delay';
-import memoize from '../src/memoize/memoize';
+import memoize from '../src/memoize';
 
 it('should memoize promises', async () => {
     const memoized = memoize(name => delay(200, {value: `Hello ${name}!`}), {maxSize: 2});
 
-    expect(memoized('world')).toMatchInlineSnapshot(`
-Object {
-  "promise": Promise {},
-  "reason": null,
-  "status": 0,
-  "value": null,
-}
-`);
+    expect(memoized('world')).toMatchSnapshot();
 
     await delay(300);
-
-    expect(memoized('world')).toMatchInlineSnapshot(`
-Object {
-  "promise": Promise {},
-  "reason": null,
-  "status": 1,
-  "value": "Hello world!",
-}
-`);
-
-    expect(memoized('world')).toMatchInlineSnapshot(`
-Object {
-  "promise": Promise {},
-  "reason": null,
-  "status": 1,
-  "value": "Hello world!",
-}
-`);
-
-    expect(memoized('SpongeBob')).toMatchInlineSnapshot(`
-Object {
-  "promise": Promise {},
-  "reason": null,
-  "status": 0,
-  "value": null,
-}
-`);
+    expect(memoized('world')).toMatchSnapshot();
+    expect(memoized('world')).toMatchSnapshot();
+    expect(memoized('SpongeBob')).toMatchSnapshot();
 
     await delay(300);
-
-    expect(memoized('SpongeBob')).toMatchInlineSnapshot(`
-Object {
-  "promise": Promise {},
-  "reason": null,
-  "status": 1,
-  "value": "Hello SpongeBob!",
-}
-`);
-
-    expect(memoized('world')).toMatchInlineSnapshot(`
-Object {
-  "promise": Promise {},
-  "reason": null,
-  "status": 1,
-  "value": "Hello world!",
-}
-`);
+    expect(memoized('SpongeBob')).toMatchSnapshot();
+    expect(memoized('world')).toMatchSnapshot();
 });
 
 it('should not throw on rejected promises', async () => {
     const memoized = memoize(name => delay.reject(200, {value: new Error(`Hello ${name}!`)}), {maxSize: 2});
 
-    expect(memoized('world')).toMatchInlineSnapshot(`
-Object {
-  "promise": Promise {},
-  "reason": null,
-  "status": 0,
-  "value": null,
-}
-`);
+    expect(memoized('world')).toMatchSnapshot();
 
     await delay(300);
-
-    expect(memoized('world')).toMatchInlineSnapshot(`
-Object {
-  "promise": Promise {},
-  "reason": [Error: Hello world!],
-  "status": 2,
-  "value": null,
-}
-`);
-
-    expect(memoized('world')).toMatchInlineSnapshot(`
-Object {
-  "promise": Promise {},
-  "reason": [Error: Hello world!],
-  "status": 2,
-  "value": null,
-}
-`);
-
-    expect(memoized('SpongeBob')).toMatchInlineSnapshot(`
-Object {
-  "promise": Promise {},
-  "reason": null,
-  "status": 0,
-  "value": null,
-}
-`);
+    expect(memoized('world')).toMatchSnapshot();
+    expect(memoized('world')).toMatchSnapshot();
+    expect(memoized('SpongeBob')).toMatchSnapshot();
 
     await delay(300);
-
-    expect(memoized('SpongeBob')).toMatchInlineSnapshot(`
-Object {
-  "promise": Promise {},
-  "reason": [Error: Hello SpongeBob!],
-  "status": 2,
-  "value": null,
-}
-`);
+    expect(memoized('SpongeBob')).toMatchSnapshot();
 });
 
 it('should export the internal cache', async () => {
     const memoized = memoize(name => delay(200, {value: `Hello ${name}!`}));
 
-    expect(memoized.cache).toMatchInlineSnapshot(`
-Object {
-  "keys": Array [],
-  "size": 0,
-  "values": Array [],
-}
-`);
-
+    expect(memoized.cache).toMatchSnapshot();
     expect(memoized.cache.size).toBe(0);
 
     memoized('world');
-
-    expect(memoized.cache).toMatchInlineSnapshot(`
-Object {
-  "keys": Array [
-    Array [
-      "world",
-    ],
-  ],
-  "size": 1,
-  "values": Array [
-    Object {
-      "promise": Promise {},
-      "reason": null,
-      "status": 0,
-      "value": null,
-    },
-  ],
-}
-`);
+    expect(memoized.cache).toMatchSnapshot();
 
     await delay(300);
-
-    expect(memoized.cache).toMatchInlineSnapshot(`
-Object {
-  "keys": Array [
-    Array [
-      "world",
-    ],
-  ],
-  "size": 1,
-  "values": Array [
-    Object {
-      "promise": Promise {},
-      "reason": null,
-      "status": 1,
-      "value": "Hello world!",
-    },
-  ],
-}
-`);
-
+    expect(memoized.cache).toMatchSnapshot();
     expect(memoized.cache.size).toBe(1);
 });
 
@@ -204,21 +74,26 @@ it('should have a `maxAge` option', async () => {
 
     memoized('SpongeBob');
     expect(memoized.cache.keys).toEqual([['SpongeBob']]);
+    expect(memoized.cache).toMatchSnapshot();
     expect(onCacheChange).toHaveBeenCalledTimes(1);
 
     await delay(300);
+    expect(memoized.cache).toMatchSnapshot();
     expect(onCacheChange).toHaveBeenCalledTimes(2);
 
     memoized('Patrick');
-    expect(onCacheChange).toHaveBeenCalledTimes(3);
     expect(memoized.cache.keys).toEqual([['Patrick'], ['SpongeBob']]);
+    expect(memoized.cache).toMatchSnapshot();
+    expect(onCacheChange).toHaveBeenCalledTimes(3);
 
     await delay(300);
     expect(memoized.cache.keys).toEqual([['Patrick']]);
+    expect(memoized.cache).toMatchSnapshot();
     expect(onCacheChange).toHaveBeenCalledTimes(5);
 
     await delay(300);
     expect(memoized.cache.keys).toEqual([]);
+    expect(memoized.cache).toMatchSnapshot();
     expect(onCacheChange).toHaveBeenCalledTimes(6);
     expect(onExpire).toHaveBeenCalledTimes(2);
 });
