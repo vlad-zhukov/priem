@@ -17,10 +17,18 @@ describe('type', () => {
 
 describe('assertType', () => {
     it('should throw if type is wrong', () => {
-        expect(() => assertType(null, ['object'])).toThrowErrorMatchingSnapshot();
-        expect(() => assertType(NaN, ['number'])).toThrowErrorMatchingSnapshot();
-        expect(() => assertType('foo', ['number', 'function'])).toThrowErrorMatchingSnapshot();
-        expect(() => assertType({}, ['number'], "'myProps'")).toThrowErrorMatchingSnapshot();
+        expect(() => assertType(null, ['object'])).toThrowErrorMatchingInlineSnapshot(
+            `"Priem: The value must be one of the following: 'object', but got: 'null'."`
+        );
+        expect(() => assertType(NaN, ['number'])).toThrowErrorMatchingInlineSnapshot(
+            `"Priem: The value must be one of the following: 'number', but got: 'NaN'."`
+        );
+        expect(() => assertType('foo', ['number', 'function'])).toThrowErrorMatchingInlineSnapshot(
+            `"Priem: The value must be one of the following: 'number, function', but got: 'string'."`
+        );
+        expect(() => assertType({}, ['number'], "'myProps'")).toThrowErrorMatchingInlineSnapshot(
+            `"Priem: 'myProps' must be one of the following: 'number', but got: 'object'."`
+        );
     });
 
     it('should not throw if type is correct', () => {
