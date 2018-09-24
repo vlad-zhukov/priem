@@ -1,4 +1,4 @@
-import {createGetKeyIndex, noop} from './utils';
+import {noop, createAreKeysEqual} from './utils';
 
 /**
  * @private
@@ -46,7 +46,7 @@ export const clearExpiration = (expirations, expirationIndex, shouldRemove) => {
 export const createOnCacheAddSetExpiration = (expirations, options, isEqual) => {
     const {maxAge, onCacheChange, onExpire} = options;
 
-    const findKeyIndex = createGetKeyIndex(isEqual);
+    const areKeysEqual = createAreKeysEqual(isEqual);
 
     /**
      * @private
@@ -64,26 +64,21 @@ export const createOnCacheAddSetExpiration = (expirations, options, isEqual) => 
      * @returns {void}
      */
     return function onCacheAdd(cache, moizedOptions, moized) {
-        const key = cache.keys[0];
+        const key = cache.head.key;
 
         if (!~findExpirationIndex(expirations, key)) {
             const expirationMethod = () => {
-                const keyIndex = findKeyIndex(cache.keys, key);
-                const value = cache.values[keyIndex];
+                const result = cache.deleteBy(node => areKeysEqual(node.key, key));
 
-                if (~keyIndex) {
-                    cache.keys.splice(keyIndex, 1);
-                    cache.values.splice(keyIndex, 1);
-
+                if (result) {
                     onCacheChange(cache, moizedOptions, moized);
                 }
 
                 const expirationIndex = findExpirationIndex(expirations, key);
                 clearExpiration(expirations, expirationIndex, true);
 
-                if (onExpire(key) === false) {
-                    cache.keys.unshift(key);
-                    cache.values.unshift(value);
+                if (result && onExpire(key) === false) {
+                    cache.prepend(result);
 
                     createOnCacheAddSetExpiration(expirations, options, isEqual)(cache, moizedOptions, moized);
                     onCacheChange(cache, moizedOptions, moized);
@@ -116,8 +111,7 @@ export const createOnCacheHitResetExpiration = (expirations, options) => {
      * @returns {void}
      */
     return function onCacheHit(cache) {
-        const key = cache.keys[0];
-        const expirationIndex = findExpirationIndex(expirations, key);
+        const expirationIndex = findExpirationIndex(expirations, cache.head.key);
 
         if (~expirationIndex) {
             clearExpiration(expirations, expirationIndex, false);
