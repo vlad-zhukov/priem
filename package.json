@@ -17,10 +17,6 @@
     "prettier": "prettier \"**/*.{js,md}\" --write --loglevel warn",
     "prepublishOnly": "yarn build && yarn lint && prettier \"**/*.{js,md}\" -l && yarn test"
   },
-  "dependencies": {
-    "fast-equals": "^1.6.1",
-    "moize": "^5.4.1"
-  },
   "devDependencies": {
     "@babel/core": "7.1.0",
     "@babel/plugin-proposal-class-properties": "7.1.0",
