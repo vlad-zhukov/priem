@@ -1,4 +1,5 @@
-import {noop, createGetKeyIndex, isSameValueZero, orderByLru} from './utils';
+import {LinkedList, LinkedListNode} from './LinkedList';
+import {noop, isSameValueZero, createAreKeysEqual} from './utils';
 import {getMaxAgeOptions} from './maxAge';
 
 export const PENDING = 0;
@@ -28,7 +29,7 @@ export default function memoize(fn, options = {}) {
         ...extraOptions
     } = options;
 
-    const getKeyIndex = createGetKeyIndex(isEqual);
+    const areKeysEqual = createAreKeysEqual(isEqual);
     const expirations = [];
     const {onCacheAdd, onCacheHit} = getMaxAgeOptions(
         expirations,
@@ -47,15 +48,7 @@ export default function memoize(fn, options = {}) {
         updateExpire,
     });
 
-    const keys = [];
-    const values = [];
-    const cache = {
-        keys,
-        values,
-        get size() {
-            return keys.length;
-        },
-    };
+    const cache = new LinkedList();
 
     /**
      * @function memoized
@@ -67,44 +60,35 @@ export default function memoize(fn, options = {}) {
      * @returns {any} the value of the method called with the arguments
      */
     function memoized(...args) {
-        let keyIndex = getKeyIndex(keys, args);
+        const isForced = (this && this.isForced) || false;
 
-        if (this.isForced && ~keyIndex) {
-            keys.splice(keyIndex, 1);
-            values.splice(keyIndex, 1);
-            keyIndex = -1;
-        }
+        let result = cache.findBy(node => areKeysEqual(node.key, args));
 
-        if (~keyIndex) {
-            onCacheHit(cache, normalizedOptions, memoized);
-
-            if (keyIndex) {
-                orderByLru(keys, keys[keyIndex], keyIndex);
-                orderByLru(values, values[keyIndex], keyIndex);
-
+        if (result) {
+            if (isForced) {
+                cache.deleteBy(node => node === result);
+                result = null;
+            } else if (result !== cache.head) {
+                cache.deleteBy(node => node === result);
+                cache.prepend(result);
+                onCacheHit(cache, normalizedOptions, memoized);
                 onCacheChange(cache, normalizedOptions, memoized);
             }
-        } else {
-            if (keys.length >= maxSize) {
-                keys.pop();
-                values.pop();
+        }
+
+        if (!result) {
+            if (cache.size >= maxSize) {
+                cache.deleteBy(node => node['@next'] === null);
             }
 
-            const item = {
-                status: PENDING,
-                value: null,
-                reason: null,
-            };
+            const nodeValue = {status: PENDING, value: null, reason: null};
+            const node = new LinkedListNode(args, nodeValue);
+            cache.prepend(node);
 
-            orderByLru(keys, args, keys.length);
-            orderByLru(values, item, values.length);
-
-            item.promise = fn
+            nodeValue.promise = fn
                 .apply(this, args)
                 .then(result => {
-                    item.status = FULFILLED;
-                    item.value = result;
-                    item.reason = null;
+                    Object.assign(nodeValue, {status: FULFILLED, value: result, reason: null});
 
                     onCacheHit(cache, normalizedOptions, memoized);
                     onCacheChange(cache, normalizedOptions, memoized);
@@ -112,9 +96,7 @@ export default function memoize(fn, options = {}) {
                     return result;
                 })
                 .catch(error => {
-                    item.status = REJECTED;
-                    item.value = null;
-                    item.reason = error;
+                    Object.assign(nodeValue, {status: REJECTED, value: null, reason: error});
 
                     onCacheHit(cache, normalizedOptions, memoized);
                     onCacheChange(cache, normalizedOptions, memoized);
@@ -124,7 +106,7 @@ export default function memoize(fn, options = {}) {
             onCacheChange(cache, normalizedOptions, memoized);
         }
 
-        return values[0];
+        return cache.head.value;
     }
 
     Object.defineProperties(memoized, {

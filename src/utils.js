@@ -25,30 +25,6 @@ export const createAreKeysEqual = isEqual =>
         return true;
     };
 
-export const createGetKeyIndex = isEqual => {
-    const areKeysEqual = createAreKeysEqual(isEqual);
-
-    /**
-     * @function getKeyIndex
-     *
-     * @description
-     * get the index of the matching key
-     *
-     * @param {Array<Array<any>>} allKeys the list of all available keys
-     * @param {Array<any>} keysToMatch the key to try to match
-     *
-     * @returns {number} the index of the matching key value, or -1
-     */
-    return (allKeys, keysToMatch) => {
-        for (let index = 0; index < allKeys.length; index++) {
-            if (areKeysEqual(allKeys[index], keysToMatch)) {
-                return index;
-            }
-        }
-        return -1;
-    };
-};
-
 /**
  * @function isSameValueZero
  *
@@ -62,22 +38,3 @@ export const createGetKeyIndex = isEqual => {
 export const isSameValueZero = (object1, object2) =>
     // eslint-disable-next-line no-self-compare
     object1 === object2 || (object1 !== object1 && object2 !== object2);
-
-/**
- * @function orderByLru
- *
- * @description
- * order the array based on a Least-Recently-Used basis
- *
- * @param {Array<any>} array the array to order
- * @param {any} value the value to assign at the beginning of the array
- * @param {number} startingIndex the index of the item to move to the front
- */
-export const orderByLru = (array, value, startingIndex) => {
-    let index = startingIndex;
-    // eslint-disable-next-line no-plusplus
-    while (index--) {
-        array[index + 1] = array[index]; // eslint-disable-line no-param-reassign
-    }
-    array[0] = value; // eslint-disable-line no-param-reassign
-};
