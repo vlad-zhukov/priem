@@ -1,4 +1,4 @@
-import {LinkedList, LinkedListNode} from './LinkedList';
+import {Cache, CacheItem} from './Cache';
 import {noop, isSameValueZero, createAreKeysEqual} from './utils';
 
 export const PENDING = 0;
@@ -29,7 +29,7 @@ export default function memoize(fn, options = {}) {
 
     const areKeysEqual = createAreKeysEqual(isEqual);
 
-    const cache = new LinkedList(null, {
+    const cache = new Cache(null, {
         maxAge,
         onExpire,
         onDelete() {
@@ -49,7 +49,7 @@ export default function memoize(fn, options = {}) {
     function memoized(...args) {
         const isForced = (this && this.isForced) || false;
 
-        let result = cache.findBy(node => areKeysEqual(node.key, args));
+        let result = cache.findBy(item => areKeysEqual(item.key, args));
 
         if (result) {
             if (isForced) {
@@ -71,18 +71,19 @@ export default function memoize(fn, options = {}) {
                 cache.delete(cache.tail);
             }
 
-            const nodeValue = {status: PENDING, value: null, reason: null};
-            const node = new LinkedListNode({key: args, value: nodeValue});
-            cache.prepend(node);
+            const itemValue = {status: PENDING, value: null, reason: null};
+            const item = new CacheItem(args, itemValue);
+
+            cache.prepend(item);
             onCacheChange();
 
-            nodeValue.promise = fn
+            itemValue.promise = fn
                 .apply(this, args)
                 .then(value => {
-                    Object.assign(nodeValue, {status: FULFILLED, value, reason: null});
+                    Object.assign(itemValue, {status: FULFILLED, value, reason: null});
 
                     if (updateExpire) {
-                        cache.hit(node);
+                        cache.hit(item);
                     }
 
                     onCacheChange();
@@ -90,10 +91,10 @@ export default function memoize(fn, options = {}) {
                     return value;
                 })
                 .catch(error => {
-                    Object.assign(nodeValue, {status: REJECTED, value: null, reason: error});
+                    Object.assign(itemValue, {status: REJECTED, value: null, reason: error});
 
                     if (updateExpire) {
-                        cache.hit(node);
+                        cache.hit(item);
                     }
 
                     onCacheChange();
