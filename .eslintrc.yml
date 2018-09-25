@@ -10,7 +10,6 @@ rules:
     no-underscore-dangle: off
     no-plusplus: [error, {allowForLoopAfterthoughts: true}]
     no-console: off
-    no-bitwise: [error, {allow: ['~']}]
 
     react/jsx-filename-extension: [warn, {extensions: [.js]}]
     react/jsx-indent: off
