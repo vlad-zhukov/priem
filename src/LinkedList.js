@@ -1,19 +1,22 @@
+import {noop} from './utils';
+
 const NEXT = '@next';
 const PREV = '@prev';
 
-function createTimeout(node, maxAge, onExpire, deleteNode) {
+function createTimeout(node, list) {
     // eslint-disable-next-line no-param-reassign
     node.timeoutId = setTimeout(() => {
-        if (typeof onExpire === 'function' && onExpire(node.key) === false) {
-            createTimeout(node, maxAge, onExpire, deleteNode);
+        if (list.onExpire(node.key) === false) {
+            createTimeout(node, list);
         } else {
-            deleteNode(node);
+            list.delete(node);
+            list.onDelete();
         }
-    }, maxAge);
+    }, list.maxAge);
 }
 
 export class LinkedListNode {
-    constructor({key, value, maxAge = null, onExpire, deleteNode}) {
+    constructor({key, value}) {
         this.key = key;
         this.value = value;
 
@@ -26,45 +29,17 @@ export class LinkedListNode {
                 value: null,
                 writable: true,
             },
-            maxAge: {
-                value: maxAge,
-            },
-            onExpire: {
-                value: onExpire,
-                writable: true,
-            },
-            deleteNode: {
-                value: deleteNode,
-                writable: true,
-            },
             timeoutId: {
                 value: null,
                 writable: true,
             },
         });
-
-        // eslint-disable-next-line no-restricted-globals
-        if (maxAge && isFinite(maxAge)) {
-            createTimeout(this, maxAge, onExpire, deleteNode);
-        }
-    }
-
-    hit() {
-        // eslint-disable-next-line no-restricted-globals
-        if (this.maxAge && isFinite(this.maxAge)) {
-            clearTimeout(this.timeoutId);
-            createTimeout(this, this.maxAge, this.onExpire, this.deleteNode);
-        }
     }
 
     destroy() {
         this[NEXT] = null;
         this[PREV] = null;
-        if (this.timeoutId) {
-            clearTimeout(this.timeoutId);
-        }
-        // this.onExpire = undefined;
-        // this.deleteNode = undefined;
+        clearTimeout(this.timeoutId);
     }
 }
 
@@ -91,7 +66,7 @@ function reduce(list, ret, predicate) {
 }
 
 export class LinkedList {
-    constructor(nodes) {
+    constructor(nodes, options = {}) {
         this.head = null;
         this.tail = null;
         this.size = 0;
@@ -101,6 +76,19 @@ export class LinkedList {
                 this.prepend(nodes[i - 1]);
             }
         }
+
+        Object.defineProperties(this, {
+            maxAge: {
+                // eslint-disable-next-line no-restricted-globals
+                value: options.maxAge && isFinite(options.maxAge) ? options.maxAge : null,
+            },
+            onExpire: {
+                value: options.onExpire || noop,
+            },
+            onDelete: {
+                value: options.onDelete || noop,
+            },
+        });
     }
 
     prepend(node) {
@@ -113,13 +101,25 @@ export class LinkedList {
             this.tail = node;
         }
         this.size += 1;
+
+        this.hit(node);
+
         return node;
+    }
+
+    hit(node) {
+        if (this.maxAge !== null) {
+            clearTimeout(node.timeoutId);
+            createTimeout(node, this);
+        }
     }
 
     delete(node) {
         const next = node[NEXT];
         const prev = node[PREV];
+
         node.destroy();
+
         if (prev === null) {
             this.head = next;
         } else {

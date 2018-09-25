@@ -29,7 +29,13 @@ export default function memoize(fn, options = {}) {
 
     const areKeysEqual = createAreKeysEqual(isEqual);
 
-    const cache = new LinkedList(null, {});
+    const cache = new LinkedList(null, {
+        maxAge,
+        onExpire,
+        onDelete() {
+            onCacheChange();
+        },
+    });
 
     /**
      * @function memoized
@@ -51,7 +57,7 @@ export default function memoize(fn, options = {}) {
                 result = null;
             } else if (result === cache.head) {
                 if (updateExpire) {
-                    result.hit();
+                    cache.hit(result);
                 }
             } else {
                 cache.delete(result);
@@ -66,16 +72,7 @@ export default function memoize(fn, options = {}) {
             }
 
             const nodeValue = {status: PENDING, value: null, reason: null};
-            const node = new LinkedListNode({
-                key: args,
-                value: nodeValue,
-                maxAge,
-                onExpire,
-                deleteNode(n) {
-                    cache.delete(n);
-                    onCacheChange();
-                },
-            });
+            const node = new LinkedListNode({key: args, value: nodeValue});
             cache.prepend(node);
             onCacheChange();
 
@@ -85,7 +82,7 @@ export default function memoize(fn, options = {}) {
                     Object.assign(nodeValue, {status: FULFILLED, value, reason: null});
 
                     if (updateExpire) {
-                        node.hit();
+                        cache.hit(node);
                     }
 
                     onCacheChange();
@@ -96,7 +93,7 @@ export default function memoize(fn, options = {}) {
                     Object.assign(nodeValue, {status: REJECTED, value: null, reason: error});
 
                     if (updateExpire) {
-                        node.hit();
+                        cache.hit(node);
                     }
 
                     onCacheChange();
