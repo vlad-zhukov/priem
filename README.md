@@ -1,6 +1,6 @@
 # priem · [![npm][1]][2] [![Build Status][3]][4] [![codecov][5]][6] [![bundlephobia][7]][8]
 
-> Rich (a)sync state management.
+> Rich async state management.
 
 ## Table of Contents
 
@@ -24,39 +24,6 @@ yarn add priem
 ```
 
 ## Getting Started
-
-### Sync usage
-
-```jsx
-import React from 'react';
-import {Priem, createStore} from 'priem';
-
-const {Container} = createStore();
-
-class CounterContainer extends Continer {
-    increment = () => {
-        this.setState({value: this.state.value + 1});
-    };
-
-    decrement = () => {
-        this.setState({value: this.state.value - 1});
-    };
-}
-
-const counterContainer = new CounterContainer({value: 1});
-
-export default () => (
-    <Priem sources={{counter: counterContainer}}>
-        {({counter}) => (
-            <div>
-                <p>{counter.value}</p>
-                <button onClick={counterContainer.increment}>Increment</button>
-                <button onClick={counterContainer.decrement}>Decrement</button>
-            </div>
-        )}
-    </Priem>
-);
-```
 
 ### Server-side rendering
 
@@ -185,11 +152,9 @@ export default RedditPosts;
 
 ## Examples
 
-Example apps can be found under the `examples/` directory. They are ported from the official
-[Redux repository](https://github.com/reactjs/redux/tree/master/examples), so you can compare both implementations.
+Example apps can be found under the `examples/` directory.
 
--   [Counter](https://github.com/Vlad-Zhukov/priem/tree/master/examples/counter)
--   [Async](https://github.com/Vlad-Zhukov/priem/tree/master/examples/async)
+-   [Reddit](https://github.com/Vlad-Zhukov/priem/tree/master/examples/reddit)
 
 ## API
 
