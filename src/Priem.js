@@ -1,5 +1,5 @@
 import React from 'react';
-import {type, assertType} from './helpers';
+import {assertType} from './helpers';
 
 const DUMMY_STATE = {};
 

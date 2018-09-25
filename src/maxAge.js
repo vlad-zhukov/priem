@@ -64,7 +64,7 @@ export const createOnCacheAddSetExpiration = (expirations, options, isEqual) => 
      * @returns {void}
      */
     return function onCacheAdd(cache, moizedOptions, moized) {
-        const key = cache.head.key;
+        const {key} = cache.head;
 
         if (!~findExpirationIndex(expirations, key)) {
             const expirationMethod = () => {

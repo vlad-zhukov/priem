@@ -119,7 +119,6 @@ it('should default `maxSize` to 1', async () => {
     expect(memoized.cache).toMatchInlineSnapshot(`
 LinkedList {
   "head": LinkedListNode {
-    "@next": null,
     "key": Array [
       "SpongeBob",
     ],
@@ -132,7 +131,6 @@ LinkedList {
   },
   "size": 1,
   "tail": LinkedListNode {
-    "@next": null,
     "key": Array [
       "SpongeBob",
     ],
@@ -151,7 +149,6 @@ LinkedList {
     expect(memoized.cache).toMatchInlineSnapshot(`
 LinkedList {
   "head": LinkedListNode {
-    "@next": null,
     "key": Array [
       "SpongeBob",
       "Patrick",
@@ -165,7 +162,6 @@ LinkedList {
   },
   "size": 1,
   "tail": LinkedListNode {
-    "@next": null,
     "key": Array [
       "SpongeBob",
       "Patrick",
@@ -190,7 +186,6 @@ it('should properly match equal keys', async () => {
     expect(memoized.cache).toMatchInlineSnapshot(`
 LinkedList {
   "head": LinkedListNode {
-    "@next": null,
     "key": Array [
       NaN,
       NaN,
@@ -204,7 +199,6 @@ LinkedList {
   },
   "size": 1,
   "tail": LinkedListNode {
-    "@next": null,
     "key": Array [
       NaN,
       NaN,
@@ -229,7 +223,6 @@ it('should have a `maxAge` option', async () => {
     expect(memoized.cache).toMatchInlineSnapshot(`
 LinkedList {
   "head": LinkedListNode {
-    "@next": null,
     "key": Array [
       "SpongeBob",
     ],
@@ -242,7 +235,6 @@ LinkedList {
   },
   "size": 1,
   "tail": LinkedListNode {
-    "@next": null,
     "key": Array [
       "SpongeBob",
     ],
@@ -261,7 +253,6 @@ LinkedList {
     expect(memoized.cache).toMatchInlineSnapshot(`
 LinkedList {
   "head": LinkedListNode {
-    "@next": null,
     "key": Array [
       "SpongeBob",
     ],
@@ -274,7 +265,6 @@ LinkedList {
   },
   "size": 1,
   "tail": LinkedListNode {
-    "@next": null,
     "key": Array [
       "SpongeBob",
     ],
@@ -293,18 +283,6 @@ LinkedList {
     expect(memoized.cache).toMatchInlineSnapshot(`
 LinkedList {
   "head": LinkedListNode {
-    "@next": LinkedListNode {
-      "@next": null,
-      "key": Array [
-        "SpongeBob",
-      ],
-      "value": Object {
-        "promise": Promise {},
-        "reason": null,
-        "status": 1,
-        "value": undefined,
-      },
-    },
     "key": Array [
       "Patrick",
     ],
@@ -317,7 +295,6 @@ LinkedList {
   },
   "size": 2,
   "tail": LinkedListNode {
-    "@next": null,
     "key": Array [
       "SpongeBob",
     ],
@@ -336,7 +313,6 @@ LinkedList {
     expect(memoized.cache).toMatchInlineSnapshot(`
 LinkedList {
   "head": LinkedListNode {
-    "@next": null,
     "key": Array [
       "Patrick",
     ],
@@ -349,7 +325,6 @@ LinkedList {
   },
   "size": 1,
   "tail": LinkedListNode {
-    "@next": null,
     "key": Array [
       "Patrick",
     ],
@@ -387,7 +362,6 @@ it('should not expire keys if `onExpire` returns false', async () => {
     expect(memoized.cache).toMatchInlineSnapshot(`
 LinkedList {
   "head": LinkedListNode {
-    "@next": null,
     "key": Array [
       "SpongeBob",
     ],
@@ -400,7 +374,6 @@ LinkedList {
   },
   "size": 1,
   "tail": LinkedListNode {
-    "@next": null,
     "key": Array [
       "SpongeBob",
     ],
@@ -419,7 +392,6 @@ LinkedList {
     expect(memoized.cache).toMatchInlineSnapshot(`
 LinkedList {
   "head": LinkedListNode {
-    "@next": null,
     "key": Array [
       "SpongeBob",
     ],
@@ -432,7 +404,6 @@ LinkedList {
   },
   "size": 1,
   "tail": LinkedListNode {
-    "@next": null,
     "key": Array [
       "SpongeBob",
     ],
@@ -460,7 +431,6 @@ it('should not expire keys if the key has been hit recently and `updateExpire` i
     expect(memoized.cache).toMatchInlineSnapshot(`
 LinkedList {
   "head": LinkedListNode {
-    "@next": null,
     "key": Array [
       "SpongeBob",
     ],
@@ -473,7 +443,6 @@ LinkedList {
   },
   "size": 1,
   "tail": LinkedListNode {
-    "@next": null,
     "key": Array [
       "SpongeBob",
     ],
@@ -492,7 +461,6 @@ LinkedList {
     expect(memoized.cache).toMatchInlineSnapshot(`
 LinkedList {
   "head": LinkedListNode {
-    "@next": null,
     "key": Array [
       "SpongeBob",
     ],
@@ -505,7 +473,6 @@ LinkedList {
   },
   "size": 1,
   "tail": LinkedListNode {
-    "@next": null,
     "key": Array [
       "SpongeBob",
     ],
@@ -533,7 +500,6 @@ it('should not fail to expire if the key does not exist', async () => {
     expect(memoized.cache).toMatchInlineSnapshot(`
 LinkedList {
   "head": LinkedListNode {
-    "@next": null,
     "key": Array [
       "SpongeBob",
     ],
@@ -546,7 +512,6 @@ LinkedList {
   },
   "size": 1,
   "tail": LinkedListNode {
-    "@next": null,
     "key": Array [
       "SpongeBob",
     ],
