@@ -66,10 +66,10 @@ export default function memoize(fn, options = {}) {
 
         if (result) {
             if (isForced) {
-                cache.deleteBy(node => node === result);
+                cache.delete(result);
                 result = null;
             } else if (result !== cache.head) {
-                cache.deleteBy(node => node === result);
+                cache.delete(result);
                 cache.prepend(result);
                 onCacheHit(cache, normalizedOptions, memoized);
                 onCacheChange(cache, normalizedOptions, memoized);
@@ -78,7 +78,7 @@ export default function memoize(fn, options = {}) {
 
         if (!result) {
             if (cache.size >= maxSize) {
-                cache.deleteBy(node => node['@next'] === null);
+                cache.delete(cache.tail);
             }
 
             const nodeValue = {status: PENDING, value: null, reason: null};
@@ -87,13 +87,13 @@ export default function memoize(fn, options = {}) {
 
             nodeValue.promise = fn
                 .apply(this, args)
-                .then(result => {
-                    Object.assign(nodeValue, {status: FULFILLED, value: result, reason: null});
+                .then(value => {
+                    Object.assign(nodeValue, {status: FULFILLED, value, reason: null});
 
                     onCacheHit(cache, normalizedOptions, memoized);
                     onCacheChange(cache, normalizedOptions, memoized);
 
-                    return result;
+                    return value;
                 })
                 .catch(error => {
                     Object.assign(nodeValue, {status: REJECTED, value: null, reason: error});
