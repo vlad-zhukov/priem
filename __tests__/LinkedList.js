@@ -2,11 +2,11 @@ import {LinkedList, LinkedListNode} from '../src/LinkedList';
 
 const createLinkedList = (size = 5) => {
     const nodes = [
-        new LinkedListNode('foo', 123),
-        new LinkedListNode('bar', 234),
-        new LinkedListNode('baz', 345),
-        new LinkedListNode('qux', 456),
-        new LinkedListNode('quux', 567),
+        new LinkedListNode({key: 'foo', value: 123}),
+        new LinkedListNode({key: 'bar', value: 234}),
+        new LinkedListNode({key: 'baz', value: 345}),
+        new LinkedListNode({key: 'qux', value: 456}),
+        new LinkedListNode({key: 'quux', value: 567}),
     ];
     return new LinkedList(nodes.slice(0, size));
 };
@@ -50,7 +50,7 @@ LinkedList {
 }
 `);
 
-    list.prepend(new LinkedListNode('foo', 123));
+    list.prepend(new LinkedListNode({key: 'foo', value: 123}));
     expect(list).toMatchInlineSnapshot(`
 LinkedList {
   "head": LinkedListNode {
@@ -65,7 +65,7 @@ LinkedList {
 }
 `);
 
-    list.prepend(new LinkedListNode('bar', 234));
+    list.prepend(new LinkedListNode({key: 'bar', value: 234}));
     expect(list).toMatchInlineSnapshot(`
 LinkedList {
   "head": LinkedListNode {
@@ -97,16 +97,20 @@ LinkedList {
 }
 `);
 
-    const res1 = list.findBy(node => node.key === 'foo');
+    const fn1 = jest.fn(node => node.key === 'foo');
+    const res1 = list.findBy(fn1);
     expect(res1).toMatchInlineSnapshot(`
 LinkedListNode {
   "key": "foo",
   "value": 123,
 }
 `);
+    expect(fn1).toHaveBeenCalledTimes(1);
 
-    const res2 = list.findBy(node => node.key === 'baz');
+    const fn2 = jest.fn(node => node.key === 'baz');
+    const res2 = list.findBy(fn2);
     expect(res2).toBeNull();
+    expect(fn2).toHaveBeenCalledTimes(2);
 
     expect(list).toMatchInlineSnapshot(`
 LinkedList {

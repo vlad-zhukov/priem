@@ -1,6 +1,5 @@
 import {LinkedList, LinkedListNode} from './LinkedList';
 import {noop, isSameValueZero, createAreKeysEqual} from './utils';
-import {getMaxAgeOptions} from './maxAge';
 
 export const PENDING = 0;
 export const FULFILLED = 1;
@@ -26,29 +25,11 @@ export default function memoize(fn, options = {}) {
         onCacheChange = noop,
         onExpire = noop,
         updateExpire = false,
-        ...extraOptions
     } = options;
 
     const areKeysEqual = createAreKeysEqual(isEqual);
-    const expirations = [];
-    const {onCacheAdd, onCacheHit} = getMaxAgeOptions(
-        expirations,
-        {onCacheChange, maxAge, onExpire, updateExpire},
-        isEqual
-    );
 
-    const normalizedOptions = Object.assign({}, extraOptions, {
-        isEqual,
-        maxSize,
-        maxAge,
-        onCacheAdd,
-        onCacheChange,
-        onCacheHit,
-        onExpire,
-        updateExpire,
-    });
-
-    const cache = new LinkedList();
+    const cache = new LinkedList(null, {});
 
     /**
      * @function memoized
@@ -68,11 +49,14 @@ export default function memoize(fn, options = {}) {
             if (isForced) {
                 cache.delete(result);
                 result = null;
-            } else if (result !== cache.head) {
+            } else if (result === cache.head) {
+                if (updateExpire) {
+                    result.hit();
+                }
+            } else {
                 cache.delete(result);
                 cache.prepend(result);
-                onCacheHit(cache, normalizedOptions, memoized);
-                onCacheChange(cache, normalizedOptions, memoized);
+                onCacheChange();
             }
         }
 
@@ -82,28 +66,41 @@ export default function memoize(fn, options = {}) {
             }
 
             const nodeValue = {status: PENDING, value: null, reason: null};
-            const node = new LinkedListNode(args, nodeValue);
+            const node = new LinkedListNode({
+                key: args,
+                value: nodeValue,
+                maxAge,
+                onExpire,
+                deleteNode(n) {
+                    cache.delete(n);
+                    onCacheChange();
+                },
+            });
             cache.prepend(node);
+            onCacheChange();
 
             nodeValue.promise = fn
                 .apply(this, args)
                 .then(value => {
                     Object.assign(nodeValue, {status: FULFILLED, value, reason: null});
 
-                    onCacheHit(cache, normalizedOptions, memoized);
-                    onCacheChange(cache, normalizedOptions, memoized);
+                    if (updateExpire) {
+                        node.hit();
+                    }
+
+                    onCacheChange();
 
                     return value;
                 })
                 .catch(error => {
                     Object.assign(nodeValue, {status: REJECTED, value: null, reason: error});
 
-                    onCacheHit(cache, normalizedOptions, memoized);
-                    onCacheChange(cache, normalizedOptions, memoized);
-                });
+                    if (updateExpire) {
+                        node.hit();
+                    }
 
-            onCacheAdd(cache, normalizedOptions, memoized);
-            onCacheChange(cache, normalizedOptions, memoized);
+                    onCacheChange();
+                });
         }
 
         return cache.head.value;
@@ -120,12 +117,6 @@ export default function memoize(fn, options = {}) {
             configurable: true,
             get() {
                 return true;
-            },
-        },
-        options: {
-            configurable: true,
-            get() {
-                return normalizedOptions;
             },
         },
     });

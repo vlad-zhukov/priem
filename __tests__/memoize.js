@@ -4,6 +4,8 @@ import memoize from '../src/memoize';
 it('should memoize promises', async () => {
     const memoized = memoize(name => delay(200, {value: `Hello ${name}!`}), {maxSize: 2});
 
+    expect(memoized.isMemoized).toBe(true);
+
     expect(memoized('world')).toMatchInlineSnapshot(`
 Object {
   "promise": Promise {},
@@ -416,7 +418,7 @@ LinkedList {
   },
 }
 `);
-    expect(onCacheChange).toHaveBeenCalledTimes(4);
+    expect(onCacheChange).toHaveBeenCalledTimes(2);
     expect(onExpire).toHaveBeenCalledTimes(1);
 });
 
@@ -526,7 +528,7 @@ LinkedList {
 `);
     expect(onCacheChange).toHaveBeenCalledTimes(2);
 
-    memoized.cache.deleteBy(node => node['@next'] === null);
+    memoized.cache.delete(memoized.cache.tail);
     expect(memoized.cache).toMatchInlineSnapshot(`
 LinkedList {
   "head": null,
@@ -545,22 +547,4 @@ LinkedList {
 `);
     expect(onCacheChange).toHaveBeenCalledTimes(2);
     expect(onExpire).toHaveBeenCalledTimes(0);
-});
-
-it('should export `isMemoized` and `options`', async () => {
-    const memoized = memoize(() => delay(200));
-
-    expect(memoized.isMemoized).toBe(true);
-    expect(memoized.options).toMatchInlineSnapshot(`
-Object {
-  "isEqual": [Function],
-  "maxAge": Infinity,
-  "maxSize": 1,
-  "onCacheAdd": [Function],
-  "onCacheChange": [Function],
-  "onCacheHit": [Function],
-  "onExpire": [Function],
-  "updateExpire": false,
-}
-`);
 });
