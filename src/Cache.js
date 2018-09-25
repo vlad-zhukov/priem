@@ -3,20 +3,20 @@ import {noop} from './utils';
 const NEXT = '@next';
 const PREV = '@prev';
 
-function createTimeout(node, list) {
+function createTimeout(item, list) {
     // eslint-disable-next-line no-param-reassign
-    node.timeoutId = setTimeout(() => {
-        if (list.onExpire(node.key) === false) {
-            createTimeout(node, list);
+    item.timeoutId = setTimeout(() => {
+        if (list.onExpire(item.key) === false) {
+            createTimeout(item, list);
         } else {
-            list.delete(node);
+            list.delete(item);
             list.onDelete();
         }
     }, list.maxAge);
 }
 
-export class LinkedListNode {
-    constructor({key, value}) {
+export class CacheItem {
+    constructor(key, value) {
         this.key = key;
         this.value = value;
 
@@ -53,27 +53,27 @@ const reduced = value => ({
 });
 
 function reduce(list, ret, predicate) {
-    let node = list.head;
+    let item = list.head;
     let result = ret;
-    while (node !== null) {
-        result = predicate(result, node);
+    while (item !== null) {
+        result = predicate(result, item);
         if (result && REDUCED in result) {
             return result.get();
         }
-        node = node[NEXT];
+        item = item[NEXT];
     }
     return result;
 }
 
-export class LinkedList {
-    constructor(nodes, options = {}) {
+export class Cache {
+    constructor(items, options = {}) {
         this.head = null;
         this.tail = null;
         this.size = 0;
 
-        if (Array.isArray(nodes)) {
-            for (let i = nodes.length; i > 0; i--) {
-                this.prepend(nodes[i - 1]);
+        if (Array.isArray(items)) {
+            for (let i = items.length; i > 0; i--) {
+                this.prepend(items[i - 1]);
             }
         }
 
@@ -91,34 +91,34 @@ export class LinkedList {
         });
     }
 
-    prepend(node) {
-        node[NEXT] = this.head; // eslint-disable-line no-param-reassign
+    prepend(item) {
+        item[NEXT] = this.head; // eslint-disable-line no-param-reassign
         if (this.head !== null) {
-            this.head[PREV] = node;
+            this.head[PREV] = item;
         }
-        this.head = node;
+        this.head = item;
         if (this.tail === null) {
-            this.tail = node;
+            this.tail = item;
         }
         this.size += 1;
 
-        this.hit(node);
+        this.hit(item);
 
-        return node;
+        return item;
     }
 
-    hit(node) {
+    hit(item) {
         if (this.maxAge !== null) {
-            clearTimeout(node.timeoutId);
-            createTimeout(node, this);
+            clearTimeout(item.timeoutId);
+            createTimeout(item, this);
         }
     }
 
-    delete(node) {
-        const next = node[NEXT];
-        const prev = node[PREV];
+    delete(item) {
+        const next = item[NEXT];
+        const prev = item[PREV];
 
-        node.destroy();
+        item.destroy();
 
         if (prev === null) {
             this.head = next;
@@ -131,24 +131,24 @@ export class LinkedList {
             next[PREV] = prev;
         }
         this.size -= 1;
-        return node;
+        return item;
     }
 
     findBy(predicate) {
-        return reduce(this, null, (ret, node) => (predicate(node) ? reduced(node) : ret));
+        return reduce(this, null, (ret, item) => (predicate(item) ? reduced(item) : ret));
     }
 
     deleteBy(predicate) {
-        const node = this.findBy(predicate);
-        if (node !== null) {
-            this.delete(node);
+        const item = this.findBy(predicate);
+        if (item !== null) {
+            this.delete(item);
         }
-        return node;
+        return item;
     }
 
     toArray() {
-        return reduce(this, [], (ret, node) => {
-            ret.push(node);
+        return reduce(this, [], (ret, item) => {
+            ret.push(item);
             return ret;
         });
     }
