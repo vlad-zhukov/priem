@@ -19,8 +19,6 @@ export default class Container {
         this._memoized = memoize(options.promise, {
             maxSize: options.maxSize,
             maxAge: options.maxAge,
-            onExpire() {},
-            updateExpire: false,
             onCacheChange: this._notify,
         });
 

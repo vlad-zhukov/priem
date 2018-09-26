@@ -1,5 +1,44 @@
 import {Cache, CacheItem} from './Cache';
-import {noop, isSameValueZero, createAreKeysEqual} from './utils';
+import {noop} from './helpers';
+
+/**
+ * @function isSameValueZero
+ *
+ * @description
+ * are the objects equal based on SameValueZero
+ *
+ * @param {any} object1 the first object to compare
+ * @param {any} object2 the second object to compare
+ * @returns {boolean} are the two objects equal
+ */
+export const isSameValueZero = (object1, object2) =>
+    // eslint-disable-next-line no-self-compare
+    object1 === object2 || (object1 !== object1 && object2 !== object2);
+
+export const createAreKeysEqual = isEqual =>
+    /**
+     * @function areKeysEqual
+     *
+     * @description
+     * are the keys shallowly equal to one another
+     *
+     * @param {Array<any>} keys1 the keys array to test against
+     * @param {Array<any>} keys2 the keys array to test
+     * @returns {boolean} are the keys shallowly equal
+     */
+        (keys1, keys2) => {
+        if (keys1.length !== keys2.length) {
+            return false;
+        }
+
+        for (let index = 0; index < keys1.length; index++) {
+            if (!isEqual(keys1[index], keys2[index])) {
+                return false;
+            }
+        }
+
+        return true;
+    };
 
 export const PENDING = 0;
 export const FULFILLED = 1;
@@ -23,18 +62,13 @@ export default function memoize(fn, options = {}) {
         maxSize = 1,
         maxAge = Infinity,
         onCacheChange = noop,
-        onExpire = noop,
-        updateExpire = false,
     } = options;
 
     const areKeysEqual = createAreKeysEqual(isEqual);
 
-    const cache = new Cache(null, {
+    const cache = new Cache(undefined, {
         maxAge,
-        onExpire,
-        onDelete() {
-            onCacheChange();
-        },
+        onCacheChange,
     });
 
     /**
@@ -53,50 +87,33 @@ export default function memoize(fn, options = {}) {
 
         if (result) {
             if (isForced) {
-                cache.delete(result);
+                // TODO: force updating should not remove previous data
+                cache.remove(result);
                 result = null;
-            } else if (result === cache.head) {
-                if (updateExpire) {
-                    cache.hit(result);
-                }
-            } else {
-                cache.delete(result);
-                cache.prepend(result);
-                onCacheChange();
+            } else if (result !== cache.head) {
+                cache.moveToHead(result);
             }
         }
 
         if (!result) {
             if (cache.size >= maxSize) {
-                cache.delete(cache.tail);
+                cache.remove(cache.tail);
             }
 
             const itemValue = {status: PENDING, value: null, reason: null};
             const item = new CacheItem(args, itemValue);
 
             cache.prepend(item);
-            onCacheChange();
 
             itemValue.promise = fn
                 .apply(this, args)
                 .then(value => {
                     Object.assign(itemValue, {status: FULFILLED, value, reason: null});
-
-                    if (updateExpire) {
-                        cache.hit(item);
-                    }
-
                     onCacheChange();
-
                     return value;
                 })
                 .catch(error => {
                     Object.assign(itemValue, {status: REJECTED, value: null, reason: error});
-
-                    if (updateExpire) {
-                        cache.hit(item);
-                    }
-
                     onCacheChange();
                 });
         }
@@ -106,16 +123,10 @@ export default function memoize(fn, options = {}) {
 
     Object.defineProperties(memoized, {
         cache: {
-            configurable: true,
-            get() {
-                return cache;
-            },
+            value: cache,
         },
         isMemoized: {
-            configurable: true,
-            get() {
-                return true;
-            },
+            value: true,
         },
     });
 
