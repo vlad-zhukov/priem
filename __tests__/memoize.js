@@ -218,8 +218,7 @@ Cache {
 
 it('should have a `maxAge` option', async () => {
     const onCacheChange = jest.fn();
-    const onExpire = jest.fn();
-    const memoized = memoize(() => delay(200), {maxSize: 2, onCacheChange, maxAge: 500, onExpire});
+    const memoized = memoize(() => delay(200), {maxSize: 2, onCacheChange, maxAge: 500});
 
     memoized('SpongeBob');
     expect(memoized.cache).toMatchInlineSnapshot(`
@@ -350,151 +349,11 @@ Cache {
 }
 `);
     expect(onCacheChange).toHaveBeenCalledTimes(6);
-    expect(onExpire).toHaveBeenCalledTimes(2);
-});
-
-it('should not expire keys if `onExpire` returns false', async () => {
-    const onCacheChange = jest.fn();
-    const onExpire = jest.fn(() => false);
-    const memoized = memoize(() => delay(200), {onCacheChange, maxAge: 500, onExpire});
-
-    memoized('SpongeBob');
-    expect(onCacheChange).toHaveBeenCalledTimes(1);
-    await delay(300);
-    expect(memoized.cache).toMatchInlineSnapshot(`
-Cache {
-  "head": CacheItem {
-    "key": Array [
-      "SpongeBob",
-    ],
-    "value": Object {
-      "promise": Promise {},
-      "reason": null,
-      "status": 1,
-      "value": undefined,
-    },
-  },
-  "size": 1,
-  "tail": CacheItem {
-    "key": Array [
-      "SpongeBob",
-    ],
-    "value": Object {
-      "promise": Promise {},
-      "reason": null,
-      "status": 1,
-      "value": undefined,
-    },
-  },
-}
-`);
-    expect(onCacheChange).toHaveBeenCalledTimes(2);
-
-    await delay(300);
-    expect(memoized.cache).toMatchInlineSnapshot(`
-Cache {
-  "head": CacheItem {
-    "key": Array [
-      "SpongeBob",
-    ],
-    "value": Object {
-      "promise": Promise {},
-      "reason": null,
-      "status": 1,
-      "value": undefined,
-    },
-  },
-  "size": 1,
-  "tail": CacheItem {
-    "key": Array [
-      "SpongeBob",
-    ],
-    "value": Object {
-      "promise": Promise {},
-      "reason": null,
-      "status": 1,
-      "value": undefined,
-    },
-  },
-}
-`);
-    expect(onCacheChange).toHaveBeenCalledTimes(2);
-    expect(onExpire).toHaveBeenCalledTimes(1);
-});
-
-it('should not expire keys if the key has been hit recently and `updateExpire` is true', async () => {
-    const onCacheChange = jest.fn();
-    const onExpire = jest.fn();
-    const memoized = memoize(() => delay(200), {onCacheChange, maxAge: 500, onExpire, updateExpire: true});
-
-    memoized('SpongeBob');
-    expect(onCacheChange).toHaveBeenCalledTimes(1);
-    await delay(300);
-    expect(memoized.cache).toMatchInlineSnapshot(`
-Cache {
-  "head": CacheItem {
-    "key": Array [
-      "SpongeBob",
-    ],
-    "value": Object {
-      "promise": Promise {},
-      "reason": null,
-      "status": 1,
-      "value": undefined,
-    },
-  },
-  "size": 1,
-  "tail": CacheItem {
-    "key": Array [
-      "SpongeBob",
-    ],
-    "value": Object {
-      "promise": Promise {},
-      "reason": null,
-      "status": 1,
-      "value": undefined,
-    },
-  },
-}
-`);
-    expect(onCacheChange).toHaveBeenCalledTimes(2);
-
-    await delay(300);
-    expect(memoized.cache).toMatchInlineSnapshot(`
-Cache {
-  "head": CacheItem {
-    "key": Array [
-      "SpongeBob",
-    ],
-    "value": Object {
-      "promise": Promise {},
-      "reason": null,
-      "status": 1,
-      "value": undefined,
-    },
-  },
-  "size": 1,
-  "tail": CacheItem {
-    "key": Array [
-      "SpongeBob",
-    ],
-    "value": Object {
-      "promise": Promise {},
-      "reason": null,
-      "status": 1,
-      "value": undefined,
-    },
-  },
-}
-`);
-    expect(onCacheChange).toHaveBeenCalledTimes(2);
-    expect(onExpire).toHaveBeenCalledTimes(0);
 });
 
 it('should not fail to expire if the key does not exist', async () => {
     const onCacheChange = jest.fn();
-    const onExpire = jest.fn();
-    const memoized = memoize(() => delay(200), {onCacheChange, maxAge: 500, onExpire});
+    const memoized = memoize(() => delay(200), {onCacheChange, maxAge: 500});
 
     memoized('SpongeBob');
     expect(onCacheChange).toHaveBeenCalledTimes(1);
@@ -528,7 +387,7 @@ Cache {
 `);
     expect(onCacheChange).toHaveBeenCalledTimes(2);
 
-    memoized.cache.delete(memoized.cache.tail);
+    memoized.cache.remove(memoized.cache.tail);
     expect(memoized.cache).toMatchInlineSnapshot(`
 Cache {
   "head": null,
@@ -545,6 +404,5 @@ Cache {
   "tail": null,
 }
 `);
-    expect(onCacheChange).toHaveBeenCalledTimes(2);
-    expect(onExpire).toHaveBeenCalledTimes(0);
+    expect(onCacheChange).toHaveBeenCalledTimes(3);
 });

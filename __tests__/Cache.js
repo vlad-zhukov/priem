@@ -8,11 +8,16 @@ const createCache = (size = 5) => {
         new CacheItem('qux', 456),
         new CacheItem('quux', 567),
     ];
-    return new Cache(items.slice(0, size));
+    const onCacheChange = jest.fn();
+    const opts = {onCacheChange};
+    return {
+        cache: new Cache(items.slice(0, size), opts),
+        ...opts,
+    };
 };
 
 it('should construct with items', () => {
-    const cache = createCache(2);
+    const {cache} = createCache(2);
     expect(cache).toMatchInlineSnapshot(`
 Cache {
   "head": CacheItem {
@@ -41,7 +46,7 @@ Array [
 });
 
 it('should prepend items', () => {
-    const cache = new Cache();
+    const {cache} = createCache(0);
     expect(cache).toMatchInlineSnapshot(`
 Cache {
   "head": null,
@@ -51,50 +56,43 @@ Cache {
 `);
 
     cache.prepend(new CacheItem('foo', 123));
-    expect(cache).toMatchInlineSnapshot(`
-Cache {
-  "head": CacheItem {
+    expect(cache.toArray()).toMatchInlineSnapshot(`
+Array [
+  CacheItem {
     "key": "foo",
     "value": 123,
   },
-  "size": 1,
-  "tail": CacheItem {
-    "key": "foo",
-    "value": 123,
-  },
-}
+]
 `);
 
     cache.prepend(new CacheItem('bar', 234));
-    expect(cache).toMatchInlineSnapshot(`
-Cache {
-  "head": CacheItem {
+    expect(cache.toArray()).toMatchInlineSnapshot(`
+Array [
+  CacheItem {
     "key": "bar",
     "value": 234,
   },
-  "size": 2,
-  "tail": CacheItem {
+  CacheItem {
     "key": "foo",
     "value": 123,
   },
-}
+]
 `);
 });
 
 it('should find am item by predicate', () => {
-    const cache = createCache(2);
-    expect(cache).toMatchInlineSnapshot(`
-Cache {
-  "head": CacheItem {
+    const {cache} = createCache(2);
+    expect(cache.toArray()).toMatchInlineSnapshot(`
+Array [
+  CacheItem {
     "key": "foo",
     "value": 123,
   },
-  "size": 2,
-  "tail": CacheItem {
+  CacheItem {
     "key": "bar",
     "value": 234,
   },
-}
+]
 `);
 
     const fn1 = jest.fn(item => item.key === 'foo');
@@ -112,23 +110,22 @@ CacheItem {
     expect(res2).toBeNull();
     expect(fn2).toHaveBeenCalledTimes(2);
 
-    expect(cache).toMatchInlineSnapshot(`
-Cache {
-  "head": CacheItem {
+    expect(cache.toArray()).toMatchInlineSnapshot(`
+Array [
+  CacheItem {
     "key": "foo",
     "value": 123,
   },
-  "size": 2,
-  "tail": CacheItem {
+  CacheItem {
     "key": "bar",
     "value": 234,
   },
-}
+]
 `);
 });
 
-it('should delete an item by reference', () => {
-    const cache = createCache(3);
+it('should remove an item by reference', () => {
+    const {cache} = createCache(3);
 
     const res1 = cache.findBy(item => item.key === 'foo');
     expect(res1).toMatchInlineSnapshot(`
@@ -146,11 +143,8 @@ CacheItem {
 }
 `);
 
-    const del1 = cache.delete(res1);
-    expect(del1).toBe(res1);
-
-    const del2 = cache.delete(res2);
-    expect(del2).toBe(res2);
+    cache.remove(res1);
+    cache.remove(res2);
 
     expect(cache.toArray()).toMatchInlineSnapshot(`
 Array [
@@ -162,58 +156,86 @@ Array [
 `);
 });
 
-it('should delete an item by predicate', () => {
-    const cache = createCache(2);
-    expect(cache).toMatchInlineSnapshot(`
-Cache {
-  "head": CacheItem {
+it('should move an item to head', () => {
+    const {cache} = createCache(5);
+    expect(cache.toArray()).toMatchInlineSnapshot(`
+Array [
+  CacheItem {
     "key": "foo",
     "value": 123,
   },
-  "size": 2,
-  "tail": CacheItem {
+  CacheItem {
     "key": "bar",
     "value": 234,
   },
-}
+  CacheItem {
+    "key": "baz",
+    "value": 345,
+  },
+  CacheItem {
+    "key": "qux",
+    "value": 456,
+  },
+  CacheItem {
+    "key": "quux",
+    "value": 567,
+  },
+]
 `);
 
-    const res1 = cache.deleteBy(item => item.key === 'foo');
-    expect(res1).toMatchInlineSnapshot(`
-CacheItem {
-  "key": "foo",
-  "value": 123,
-}
+    const res1 = cache.findBy(item => item.key === 'qux');
+    cache.moveToHead(res1);
+
+    expect(cache.toArray()).toMatchInlineSnapshot(`
+Array [
+  CacheItem {
+    "key": "qux",
+    "value": 456,
+  },
+  CacheItem {
+    "key": "foo",
+    "value": 123,
+  },
+  CacheItem {
+    "key": "bar",
+    "value": 234,
+  },
+  CacheItem {
+    "key": "baz",
+    "value": 345,
+  },
+  CacheItem {
+    "key": "quux",
+    "value": 567,
+  },
+]
 `);
 
-    expect(cache).toMatchInlineSnapshot(`
-Cache {
-  "head": CacheItem {
-    "key": "bar",
-    "value": 234,
-  },
-  "size": 1,
-  "tail": CacheItem {
-    "key": "bar",
-    "value": 234,
-  },
-}
-`);
+    const res2 = cache.findBy(item => item.key === 'bar');
+    cache.moveToHead(res2);
 
-    const res2 = cache.deleteBy(item => item.key === 'foo');
-    expect(res2).toBeNull();
-
-    expect(cache).toMatchInlineSnapshot(`
-Cache {
-  "head": CacheItem {
+    expect(cache.toArray()).toMatchInlineSnapshot(`
+Array [
+  CacheItem {
     "key": "bar",
     "value": 234,
   },
-  "size": 1,
-  "tail": CacheItem {
-    "key": "bar",
-    "value": 234,
+  CacheItem {
+    "key": "qux",
+    "value": 456,
   },
-}
+  CacheItem {
+    "key": "foo",
+    "value": 123,
+  },
+  CacheItem {
+    "key": "baz",
+    "value": 345,
+  },
+  CacheItem {
+    "key": "quux",
+    "value": 567,
+  },
+]
 `);
 });

@@ -1,19 +1,7 @@
-import {noop} from './utils';
+import {type} from './helpers';
 
-const NEXT = '@next';
-const PREV = '@prev';
-
-function createTimeout(item, list) {
-    // eslint-disable-next-line no-param-reassign
-    item.timeoutId = setTimeout(() => {
-        if (list.onExpire(item.key) === false) {
-            createTimeout(item, list);
-        } else {
-            list.delete(item);
-            list.onDelete();
-        }
-    }, list.maxAge);
-}
+const NEXT = '@@next';
+const PREV = '@@prev';
 
 export class CacheItem {
     constructor(key, value) {
@@ -43,26 +31,48 @@ export class CacheItem {
     }
 }
 
-const REDUCED = {};
-
-const reduced = value => ({
-    [REDUCED]: true,
-    get() {
-        return value;
-    },
-});
-
-function reduce(list, ret, predicate) {
-    let item = list.head;
-    let result = ret;
+const REDUCED = '@@reduced';
+const reduced = value => ({[REDUCED]: true, value});
+function reduce(cache, accumulator, iteratee) {
+    let item = cache.head;
+    let result = accumulator;
     while (item !== null) {
-        result = predicate(result, item);
+        result = iteratee(result, item);
         if (result && REDUCED in result) {
-            return result.get();
+            return result.value;
         }
         item = item[NEXT];
     }
     return result;
+}
+
+function prepend(cache, item) {
+    item[NEXT] = cache.head; // eslint-disable-line no-param-reassign
+    if (cache.head !== null) {
+        cache.head[PREV] = item;
+    }
+    cache.head = item;
+    if (cache.tail === null) {
+        cache.tail = item;
+    }
+    cache.size += 1;
+}
+
+function remove(cache, item) {
+    const next = item[NEXT];
+    const prev = item[PREV];
+
+    if (prev === null) {
+        cache.head = next;
+    } else {
+        prev[NEXT] = next;
+    }
+    if (next === null) {
+        cache.tail = prev;
+    } else {
+        next[PREV] = prev;
+    }
+    cache.size -= 1;
 }
 
 export class Cache {
@@ -71,85 +81,56 @@ export class Cache {
         this.tail = null;
         this.size = 0;
 
+        Object.defineProperties(this, {
+            onCacheChange: {
+                value: options.onCacheChange,
+            },
+            maxAge: {
+                // eslint-disable-next-line no-restricted-globals
+                value: type(options.maxAge) === 'number' && isFinite(options.maxAge) ? options.maxAge : null,
+            },
+        });
+
         if (Array.isArray(items)) {
             for (let i = items.length; i > 0; i--) {
                 this.prepend(items[i - 1]);
             }
         }
-
-        Object.defineProperties(this, {
-            maxAge: {
-                // eslint-disable-next-line no-restricted-globals
-                value: options.maxAge && isFinite(options.maxAge) ? options.maxAge : null,
-            },
-            onExpire: {
-                value: options.onExpire || noop,
-            },
-            onDelete: {
-                value: options.onDelete || noop,
-            },
-        });
     }
 
     prepend(item) {
-        item[NEXT] = this.head; // eslint-disable-line no-param-reassign
-        if (this.head !== null) {
-            this.head[PREV] = item;
-        }
-        this.head = item;
-        if (this.tail === null) {
-            this.tail = item;
-        }
-        this.size += 1;
+        prepend(this, item);
 
-        this.hit(item);
-
-        return item;
-    }
-
-    hit(item) {
         if (this.maxAge !== null) {
             clearTimeout(item.timeoutId);
-            createTimeout(item, this);
+            // eslint-disable-next-line no-param-reassign
+            item.timeoutId = setTimeout(() => {
+                this.remove(item);
+            }, this.maxAge);
         }
+
+        this.onCacheChange();
     }
 
-    delete(item) {
-        const next = item[NEXT];
-        const prev = item[PREV];
-
+    remove(item) {
+        remove(this, item);
         item.destroy();
+        this.onCacheChange();
+    }
 
-        if (prev === null) {
-            this.head = next;
-        } else {
-            prev[NEXT] = next;
-        }
-        if (next === null) {
-            this.tail = prev;
-        } else {
-            next[PREV] = prev;
-        }
-        this.size -= 1;
-        return item;
+    moveToHead(item) {
+        remove(this, item);
+        prepend(this, item);
     }
 
     findBy(predicate) {
-        return reduce(this, null, (ret, item) => (predicate(item) ? reduced(item) : ret));
-    }
-
-    deleteBy(predicate) {
-        const item = this.findBy(predicate);
-        if (item !== null) {
-            this.delete(item);
-        }
-        return item;
+        return reduce(this, null, (acc, item) => (predicate(item) ? reduced(item) : acc));
     }
 
     toArray() {
-        return reduce(this, [], (ret, item) => {
-            ret.push(item);
-            return ret;
+        return reduce(this, [], (acc, item) => {
+            acc.push(item);
+            return acc;
         });
     }
 }
