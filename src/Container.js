@@ -1,4 +1,4 @@
-import memoize, {FULFILLED, REJECTED} from './memoize';
+import memoize, {areKeysEqual, FULFILLED, REJECTED} from './memoize';
 import * as promiseState from './promiseState';
 import {assertType} from './helpers';
 
@@ -62,18 +62,20 @@ export default class Container {
     }
 
     _onCacheChange({args, forceRefresh}) {
-        if (forceRefresh === true) {
-            this._memoized(args, {forceRefresh});
-        } else {
-            this._listeners.forEach(fn => fn());
-        }
+        this._listeners.forEach(comp => {
+            if (areKeysEqual(args, this._mapPropsToArgs(comp.props))) {
+                console.log(Date.now(), 'UPDATE', args);
+                comp._update(forceRefresh);
+            }
+        });
     }
 
-    _subscribe(fn) {
-        this._listeners.push(fn);
+    _subscribe(component) {
+        this._listeners.push(component);
     }
 
-    _unsubscribe(fn) {
-        this._listeners = this._listeners.filter(f => f !== fn);
+    _unsubscribe(component) {
+        const index = this._listeners.findIndex(comp => comp === component);
+        this._listeners.splice(index, 1);
     }
 }

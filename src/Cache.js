@@ -51,14 +51,14 @@ function reduce(cache, accumulator, iteratee) {
 }
 
 export class Cache {
-    constructor(options = {}) {
+    constructor() {
         this.head = null;
         this.tail = null;
         this.size = 0;
     }
 
-    static fromArray(items, options) {
-        const cache = new Cache(options);
+    static fromArray(items) {
+        const cache = new Cache();
         for (let i = items.length; i > 0; i--) {
             cache.prepend(items[i - 1]);
         }
@@ -66,7 +66,7 @@ export class Cache {
     }
 
     prepend(item) {
-        item[NEXT] = this.head;
+        item[NEXT] = this.head; // eslint-disable-line no-param-reassign
         if (this.head !== null) {
             this.head[PREV] = item;
         }
@@ -75,7 +75,7 @@ export class Cache {
             this.tail = item;
         }
         this.size += 1;
-        item.used = true;
+        item.used = true; // eslint-disable-line no-param-reassign
     }
 
     remove(item) {

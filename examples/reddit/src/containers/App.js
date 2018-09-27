@@ -11,7 +11,7 @@ const reddit = new Container({
             .then(res => res.data.children);
     },
     maxSize: 2,
-    maxAge: 20000,
+    maxAge: 10000,
 });
 
 export default class App extends React.Component {
@@ -30,8 +30,6 @@ export default class App extends React.Component {
             <Priem reddit={this.state.reddit} sources={{reddit}}>
                 {({reddit, refresh}) => {
                     const {value, lastUpdated} = reddit;
-                    const isFetching = reddit.pending || reddit.refreshing;
-
                     return (
                         <div>
                             <Picker
@@ -43,18 +41,14 @@ export default class App extends React.Component {
                                 {lastUpdated && (
                                     <span>Last updated at {new Date(lastUpdated).toLocaleTimeString()}. </span>
                                 )}
-                                {!isFetching && <button onClick={refresh}>Refresh</button>}
+                                {value && <button onClick={refresh}>Refresh</button>}
                             </p>
-                            {!value ? ( // eslint-disable-line no-nested-ternary
-                                isFetching ? (
-                                    <h2>Loading...</h2>
-                                ) : (
-                                    <h2>Empty.</h2>
-                                )
-                            ) : (
-                                <div style={{opacity: isFetching ? 0.5 : 1}}>
+                            {value ? (
+                                <div style={{opacity: !value ? 0.5 : 1}}>
                                     <Posts posts={value} />
                                 </div>
+                            ) : (
+                                <h2>Loading...</h2>
                             )}
                         </div>
                     );
