@@ -12,27 +12,25 @@ export default class Container {
         this._listeners = [];
         this._recentCallCount = 0;
         this._lastCallTime = 0;
-        this._prevProps = {};
 
-        this._notify = this._notify.bind(this);
+        this._onCacheChange = this._onCacheChange.bind(this);
 
-        this._memoized = memoize(options.promise, {
+        this._memoized = memoize({
+            fn: options.promise,
             maxSize: options.maxSize,
             maxAge: options.maxAge,
-            onCacheChange: this._notify,
+            onCacheChange: this._onCacheChange,
         });
-
-        this._debouncedGet = function(props = this._prevProps, isForced = false) {
-            this._prevProps = props;
-
-            const args = this._mapPropsToArgs(props);
-            assertType(args, ['array', 'null'], "The result of 'mapPropsToArgs(props)'");
-
-            return this._memoized.apply({isForced}, args);
-        };
     }
 
-    _get(props, isForced) {
+    _debouncedGet({props, forceRefresh}) {
+        const args = this._mapPropsToArgs(props);
+        assertType(args, ['array', 'null'], "The result of 'mapPropsToArgs(props)'");
+
+        return this._memoized(args, {forceRefresh});
+    }
+
+    _get({props, forceRefresh}) {
         const now = Date.now();
         if (now - this._lastCallTime < 200) {
             if (this._recentCallCount > 100) {
@@ -51,9 +49,7 @@ export default class Container {
 
         //
 
-        const res = this._debouncedGet(props, isForced);
-
-        console.log(res);
+        const res = this._debouncedGet({props, forceRefresh});
 
         switch (res.status) {
             case FULFILLED:
@@ -65,8 +61,12 @@ export default class Container {
         }
     }
 
-    _notify() {
-        this._listeners.forEach(fn => fn());
+    _onCacheChange({args, forceRefresh}) {
+        if (forceRefresh === true) {
+            this._memoized(args, {forceRefresh});
+        } else {
+            this._listeners.forEach(fn => fn());
+        }
     }
 
     _subscribe(fn) {
@@ -75,10 +75,5 @@ export default class Container {
 
     _unsubscribe(fn) {
         this._listeners = this._listeners.filter(f => f !== fn);
-    }
-
-    refresh() {
-        const res = this._debouncedGet(this._prevProps, true);
-        return res.promise;
     }
 }

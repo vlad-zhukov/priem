@@ -2,11 +2,11 @@ import delay from 'delay';
 import memoize from '../src/memoize';
 
 it('should memoize promises', async () => {
-    const memoized = memoize(name => delay(200, {value: `Hello ${name}!`}), {maxSize: 2});
+    const memoized = memoize({fn: name => delay(200, {value: `Hello ${name}!`}), maxSize: 2});
 
     expect(memoized.isMemoized).toBe(true);
 
-    expect(memoized('world')).toMatchInlineSnapshot(`
+    expect(memoized(['world'])).toMatchInlineSnapshot(`
 Object {
   "promise": Promise {},
   "reason": null,
@@ -16,7 +16,7 @@ Object {
 `);
 
     await delay(300);
-    expect(memoized('world')).toMatchInlineSnapshot(`
+    expect(memoized(['world'])).toMatchInlineSnapshot(`
 Object {
   "promise": Promise {},
   "reason": null,
@@ -24,7 +24,7 @@ Object {
   "value": "Hello world!",
 }
 `);
-    expect(memoized('world')).toMatchInlineSnapshot(`
+    expect(memoized(['world'])).toMatchInlineSnapshot(`
 Object {
   "promise": Promise {},
   "reason": null,
@@ -32,7 +32,7 @@ Object {
   "value": "Hello world!",
 }
 `);
-    expect(memoized('SpongeBob')).toMatchInlineSnapshot(`
+    expect(memoized(['SpongeBob'])).toMatchInlineSnapshot(`
 Object {
   "promise": Promise {},
   "reason": null,
@@ -42,7 +42,7 @@ Object {
 `);
 
     await delay(300);
-    expect(memoized('SpongeBob')).toMatchInlineSnapshot(`
+    expect(memoized(['SpongeBob'])).toMatchInlineSnapshot(`
 Object {
   "promise": Promise {},
   "reason": null,
@@ -50,7 +50,7 @@ Object {
   "value": "Hello SpongeBob!",
 }
 `);
-    expect(memoized('world')).toMatchInlineSnapshot(`
+    expect(memoized(['world'])).toMatchInlineSnapshot(`
 Object {
   "promise": Promise {},
   "reason": null,
@@ -61,9 +61,9 @@ Object {
 });
 
 it('should not throw on rejected promises', async () => {
-    const memoized = memoize(name => delay.reject(200, {value: new Error(`Hello ${name}!`)}), {maxSize: 2});
+    const memoized = memoize({fn: name => delay.reject(200, {value: new Error(`Hello ${name}!`)}), maxSize: 2});
 
-    expect(memoized('world')).toMatchInlineSnapshot(`
+    expect(memoized(['world'])).toMatchInlineSnapshot(`
 Object {
   "promise": Promise {},
   "reason": null,
@@ -73,7 +73,7 @@ Object {
 `);
 
     await delay(300);
-    expect(memoized('world')).toMatchInlineSnapshot(`
+    expect(memoized(['world'])).toMatchInlineSnapshot(`
 Object {
   "promise": Promise {},
   "reason": [Error: Hello world!],
@@ -81,7 +81,7 @@ Object {
   "value": null,
 }
 `);
-    expect(memoized('world')).toMatchInlineSnapshot(`
+    expect(memoized(['world'])).toMatchInlineSnapshot(`
 Object {
   "promise": Promise {},
   "reason": [Error: Hello world!],
@@ -89,7 +89,7 @@ Object {
   "value": null,
 }
 `);
-    expect(memoized('SpongeBob')).toMatchInlineSnapshot(`
+    expect(memoized(['SpongeBob'])).toMatchInlineSnapshot(`
 Object {
   "promise": Promise {},
   "reason": null,
@@ -99,7 +99,7 @@ Object {
 `);
 
     await delay(300);
-    expect(memoized('SpongeBob')).toMatchInlineSnapshot(`
+    expect(memoized(['SpongeBob'])).toMatchInlineSnapshot(`
 Object {
   "promise": Promise {},
   "reason": [Error: Hello SpongeBob!],
@@ -110,17 +110,18 @@ Object {
 });
 
 it('should default `maxSize` to 1', async () => {
-    const memoized = memoize((name1, name2) =>
-        delay(200, {
-            value: `Hello ${name1}${name2 ? ` and ${name2}` : ''}!`,
-        })
-    );
+    const memoized = memoize({
+        fn: (name1, name2) =>
+            delay(200, {
+                value: `Hello ${name1}${name2 ? ` and ${name2}` : ''}!`,
+            }),
+    });
 
-    memoized('SpongeBob');
+    memoized(['SpongeBob']);
     await delay(300);
-    expect(memoized.cache).toMatchInlineSnapshot(`
-Cache {
-  "head": CacheItem {
+    expect(memoized.cache.toArray()).toMatchInlineSnapshot(`
+Array [
+  CacheItem {
     "key": Array [
       "SpongeBob",
     ],
@@ -131,26 +132,14 @@ Cache {
       "value": "Hello SpongeBob!",
     },
   },
-  "size": 1,
-  "tail": CacheItem {
-    "key": Array [
-      "SpongeBob",
-    ],
-    "value": Object {
-      "promise": Promise {},
-      "reason": null,
-      "status": 1,
-      "value": "Hello SpongeBob!",
-    },
-  },
-}
+]
 `);
 
-    memoized('SpongeBob', 'Patrick');
+    memoized(['SpongeBob', 'Patrick']);
     await delay(300);
-    expect(memoized.cache).toMatchInlineSnapshot(`
-Cache {
-  "head": CacheItem {
+    expect(memoized.cache.toArray()).toMatchInlineSnapshot(`
+Array [
+  CacheItem {
     "key": Array [
       "SpongeBob",
       "Patrick",
@@ -162,32 +151,19 @@ Cache {
       "value": "Hello SpongeBob and Patrick!",
     },
   },
-  "size": 1,
-  "tail": CacheItem {
-    "key": Array [
-      "SpongeBob",
-      "Patrick",
-    ],
-    "value": Object {
-      "promise": Promise {},
-      "reason": null,
-      "status": 1,
-      "value": "Hello SpongeBob and Patrick!",
-    },
-  },
-}
+]
 `);
 });
 
 it('should properly match equal keys', async () => {
-    const memoized = memoize(() => delay(200));
+    const memoized = memoize({fn: () => delay(200)});
 
-    memoized(NaN, NaN);
-    memoized(NaN, NaN);
+    memoized([NaN, NaN]);
+    memoized([NaN, NaN]);
 
-    expect(memoized.cache).toMatchInlineSnapshot(`
-Cache {
-  "head": CacheItem {
+    expect(memoized.cache.toArray()).toMatchInlineSnapshot(`
+Array [
+  CacheItem {
     "key": Array [
       NaN,
       NaN,
@@ -199,31 +175,18 @@ Cache {
       "value": null,
     },
   },
-  "size": 1,
-  "tail": CacheItem {
-    "key": Array [
-      NaN,
-      NaN,
-    ],
-    "value": Object {
-      "promise": Promise {},
-      "reason": null,
-      "status": 0,
-      "value": null,
-    },
-  },
-}
+]
 `);
 });
 
 it('should have a `maxAge` option', async () => {
     const onCacheChange = jest.fn();
-    const memoized = memoize(() => delay(200), {maxSize: 2, onCacheChange, maxAge: 500});
+    const memoized = memoize({fn: () => delay(200), maxSize: 2, onCacheChange, maxAge: 500});
 
-    memoized('SpongeBob');
-    expect(memoized.cache).toMatchInlineSnapshot(`
-Cache {
-  "head": CacheItem {
+    memoized(['SpongeBob']);
+    expect(memoized.cache.toArray()).toMatchInlineSnapshot(`
+Array [
+  CacheItem {
     "key": Array [
       "SpongeBob",
     ],
@@ -234,26 +197,14 @@ Cache {
       "value": null,
     },
   },
-  "size": 1,
-  "tail": CacheItem {
-    "key": Array [
-      "SpongeBob",
-    ],
-    "value": Object {
-      "promise": Promise {},
-      "reason": null,
-      "status": 0,
-      "value": null,
-    },
-  },
-}
+]
 `);
     expect(onCacheChange).toHaveBeenCalledTimes(1);
 
     await delay(300);
-    expect(memoized.cache).toMatchInlineSnapshot(`
-Cache {
-  "head": CacheItem {
+    expect(memoized.cache.toArray()).toMatchInlineSnapshot(`
+Array [
+  CacheItem {
     "key": Array [
       "SpongeBob",
     ],
@@ -264,23 +215,69 @@ Cache {
       "value": undefined,
     },
   },
-  "size": 1,
-  "tail": CacheItem {
-    "key": Array [
-      "SpongeBob",
-    ],
-    "value": Object {
-      "promise": Promise {},
-      "reason": null,
-      "status": 1,
-      "value": undefined,
-    },
-  },
-}
+]
 `);
     expect(onCacheChange).toHaveBeenCalledTimes(2);
 
-    memoized('Patrick');
+    memoized(['Patrick']);
+    expect(memoized.cache.toArray()).toMatchInlineSnapshot(`
+Array [
+  CacheItem {
+    "key": Array [
+      "Patrick",
+    ],
+    "value": Object {
+      "promise": Promise {},
+      "reason": null,
+      "status": 0,
+      "value": null,
+    },
+  },
+  CacheItem {
+    "key": Array [
+      "SpongeBob",
+    ],
+    "value": Object {
+      "promise": Promise {},
+      "reason": null,
+      "status": 1,
+      "value": undefined,
+    },
+  },
+]
+`);
+    expect(onCacheChange).toHaveBeenCalledTimes(3);
+
+    await delay(300);
+    expect(memoized.cache.toArray()).toMatchInlineSnapshot(`
+Array [
+  CacheItem {
+    "key": Array [
+      "Patrick",
+    ],
+    "value": Object {
+      "promise": Promise {},
+      "reason": null,
+      "status": 1,
+      "value": undefined,
+    },
+  },
+  CacheItem {
+    "key": Array [
+      "SpongeBob",
+    ],
+    "value": Object {
+      "promise": Promise {},
+      "reason": null,
+      "status": 1,
+      "value": undefined,
+    },
+  },
+]
+`);
+    expect(onCacheChange).toHaveBeenCalledTimes(5);
+
+    await delay(300);
     expect(memoized.cache).toMatchInlineSnapshot(`
 Cache {
   "head": CacheItem {
@@ -290,8 +287,8 @@ Cache {
     "value": Object {
       "promise": Promise {},
       "reason": null,
-      "status": 0,
-      "value": null,
+      "status": 1,
+      "value": undefined,
     },
   },
   "size": 2,
@@ -308,59 +305,19 @@ Cache {
   },
 }
 `);
-    expect(onCacheChange).toHaveBeenCalledTimes(3);
-
-    await delay(300);
-    expect(memoized.cache).toMatchInlineSnapshot(`
-Cache {
-  "head": CacheItem {
-    "key": Array [
-      "Patrick",
-    ],
-    "value": Object {
-      "promise": Promise {},
-      "reason": null,
-      "status": 1,
-      "value": undefined,
-    },
-  },
-  "size": 1,
-  "tail": CacheItem {
-    "key": Array [
-      "Patrick",
-    ],
-    "value": Object {
-      "promise": Promise {},
-      "reason": null,
-      "status": 1,
-      "value": undefined,
-    },
-  },
-}
-`);
-    expect(onCacheChange).toHaveBeenCalledTimes(5);
-
-    await delay(300);
-    expect(memoized.cache).toMatchInlineSnapshot(`
-Cache {
-  "head": null,
-  "size": 0,
-  "tail": null,
-}
-`);
     expect(onCacheChange).toHaveBeenCalledTimes(6);
 });
 
 it('should not fail to expire if the key does not exist', async () => {
     const onCacheChange = jest.fn();
-    const memoized = memoize(() => delay(200), {onCacheChange, maxAge: 500});
+    const memoized = memoize({fn: () => delay(200), onCacheChange, maxAge: 500});
 
-    memoized('SpongeBob');
+    memoized(['SpongeBob']);
     expect(onCacheChange).toHaveBeenCalledTimes(1);
     await delay(300);
-    expect(memoized.cache).toMatchInlineSnapshot(`
-Cache {
-  "head": CacheItem {
+    expect(memoized.cache.toArray()).toMatchInlineSnapshot(`
+Array [
+  CacheItem {
     "key": Array [
       "SpongeBob",
     ],
@@ -371,23 +328,13 @@ Cache {
       "value": undefined,
     },
   },
-  "size": 1,
-  "tail": CacheItem {
-    "key": Array [
-      "SpongeBob",
-    ],
-    "value": Object {
-      "promise": Promise {},
-      "reason": null,
-      "status": 1,
-      "value": undefined,
-    },
-  },
-}
+]
 `);
     expect(onCacheChange).toHaveBeenCalledTimes(2);
 
-    memoized.cache.remove(memoized.cache.tail);
+    const itemToRemove = memoized.cache.tail;
+    memoized.cache.remove(itemToRemove);
+    itemToRemove.destroy();
     expect(memoized.cache).toMatchInlineSnapshot(`
 Cache {
   "head": null,
@@ -404,5 +351,63 @@ Cache {
   "tail": null,
 }
 `);
-    expect(onCacheChange).toHaveBeenCalledTimes(3);
+    expect(onCacheChange).toHaveBeenCalledTimes(2);
+});
+
+it('should refresh when called with `forceRefresh`', async () => {
+    const onCacheChange = jest.fn();
+    const memoized = memoize({fn: () => delay(200, {value: 'SquarePants'}), onCacheChange});
+
+    memoized(['SpongeBob']);
+    expect(onCacheChange).toHaveBeenCalledTimes(1);
+    await delay(300);
+    expect(memoized.cache.toArray()).toMatchInlineSnapshot(`
+Array [
+  CacheItem {
+    "key": Array [
+      "SpongeBob",
+    ],
+    "value": Object {
+      "promise": Promise {},
+      "reason": null,
+      "status": 1,
+      "value": "SquarePants",
+    },
+  },
+]
+`);
+
+    memoized(['SpongeBob'], {forceRefresh: true});
+    expect(memoized.cache.toArray()).toMatchInlineSnapshot(`
+Array [
+  CacheItem {
+    "key": Array [
+      "SpongeBob",
+    ],
+    "value": Object {
+      "promise": Promise {},
+      "reason": null,
+      "status": 0,
+      "value": "SquarePants",
+    },
+  },
+]
+`);
+
+    await delay(300);
+    expect(memoized.cache.toArray()).toMatchInlineSnapshot(`
+Array [
+  CacheItem {
+    "key": Array [
+      "SpongeBob",
+    ],
+    "value": Object {
+      "promise": Promise {},
+      "reason": null,
+      "status": 1,
+      "value": "SquarePants",
+    },
+  },
+]
+`);
 });

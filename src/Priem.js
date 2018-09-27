@@ -14,38 +14,37 @@ export default class Priem extends React.Component {
 
         this._isPriemComponent = true;
         this._isMounted = false;
-        this._sources = props.sources;
     }
 
     componentDidMount() {
         this._isMounted = true;
-        this._updateSubscriptions({instancesToSub: Object.values(this._sources)});
+        this._updateSubscriptions({instancesToSub: Object.values(this.props.sources)});
     }
 
-    componentDidUpdate() {
-        const {sources: nextSources} = this.props;
+    componentDidUpdate(prevProps) {
+        const {sources} = this.props;
+        const {sources: prevSources} = prevProps;
 
         const instancesToUnsub = [];
-        Object.keys(this._sources).forEach(key => {
-            if (this._sources[key] !== nextSources[key]) {
-                instancesToUnsub.push(this._sources[key]);
+        Object.keys(prevSources).forEach(key => {
+            if (prevSources[key] !== sources[key]) {
+                instancesToUnsub.push(prevSources[key]);
             }
         });
 
         const instancesToSub = [];
-        Object.keys(nextSources).forEach(key => {
-            if (nextSources[key] !== this._sources[key]) {
-                instancesToSub.push(nextSources[key]);
+        Object.keys(sources).forEach(key => {
+            if (sources[key] !== prevSources[key]) {
+                instancesToSub.push(sources[key]);
             }
         });
 
-        this._sources = nextSources;
         this._updateSubscriptions({instancesToSub, instancesToUnsub});
     }
 
     componentWillUnmount() {
         this._isMounted = false;
-        this._updateSubscriptions({instancesToUnsub: Object.values(this._sources)});
+        this._updateSubscriptions({instancesToUnsub: Object.values(this.props.sources)});
     }
 
     refresh = () => {
@@ -72,10 +71,10 @@ export default class Priem extends React.Component {
         }
     }
 
-    _getProps(populateWithRefresh, isForced) {
-        const {component, children, sources, ...props} = this.props;
-        Object.keys(this._sources).forEach(key => {
-            props[key] = this._sources[key]._get(props, isForced);
+    _getProps(populateWithRefresh, forceRefresh) {
+        const {children, component, sources, ...props} = this.props;
+        Object.keys(sources).forEach(key => {
+            props[key] = sources[key]._get({props, forceRefresh});
         });
 
         if (populateWithRefresh) {
@@ -86,7 +85,7 @@ export default class Priem extends React.Component {
     }
 
     render() {
-        const {component, children} = this.props;
+        const {children, component} = this.props;
 
         const props = this._getProps(true);
 
