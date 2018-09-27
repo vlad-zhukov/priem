@@ -8,16 +8,11 @@ const createCache = (size = 5) => {
         new CacheItem('qux', 456),
         new CacheItem('quux', 567),
     ];
-    const onCacheChange = jest.fn();
-    const opts = {onCacheChange};
-    return {
-        cache: Cache.fromArray(items.slice(0, size), opts),
-        ...opts,
-    };
+    return Cache.fromArray(items.slice(0, size));
 };
 
 it('should construct with items', () => {
-    const {cache} = createCache(2);
+    const cache = createCache(2);
     expect(cache).toMatchInlineSnapshot(`
 Cache {
   "head": CacheItem {
@@ -46,7 +41,7 @@ Array [
 });
 
 it('should prepend items', () => {
-    const {cache} = createCache(0);
+    const cache = createCache(0);
     expect(cache).toMatchInlineSnapshot(`
 Cache {
   "head": null,
@@ -81,7 +76,7 @@ Array [
 });
 
 it('should find am item by predicate', () => {
-    const {cache} = createCache(2);
+    const cache = createCache(2);
     expect(cache.toArray()).toMatchInlineSnapshot(`
 Array [
   CacheItem {
@@ -125,7 +120,7 @@ Array [
 });
 
 it('should remove an item by reference', () => {
-    const {cache} = createCache(3);
+    const cache = createCache(3);
 
     const res1 = cache.findBy(item => item.key === 'foo');
     expect(res1).toMatchInlineSnapshot(`

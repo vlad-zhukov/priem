@@ -14,6 +14,7 @@ export default class Priem extends React.Component {
 
         this._isPriemComponent = true;
         this._isMounted = false;
+        this._shouldForceRefresh = false;
     }
 
     componentDidMount() {
@@ -51,27 +52,35 @@ export default class Priem extends React.Component {
         this._getProps(false, true);
     };
 
-    _onUpdate = () => {
+    _update(forceRefresh) {
+        if (forceRefresh === true) {
+            this._shouldForceRefresh = true;
+        }
         if (this._isMounted) {
             this.setState(DUMMY_STATE);
         }
-    };
+    }
 
     _updateSubscriptions({instancesToSub, instancesToUnsub}) {
         if (instancesToSub) {
             instancesToSub.forEach(instanceToSub => {
-                instanceToSub._subscribe(this._onUpdate);
+                instanceToSub._subscribe(this);
             });
         }
 
         if (instancesToUnsub) {
             instancesToUnsub.forEach(instanceToUnsub => {
-                instanceToUnsub._unsubscribe(this._onUpdate);
+                instanceToUnsub._unsubscribe(this);
             });
         }
     }
 
     _getProps(populateWithRefresh, forceRefresh) {
+        if (this._shouldForceRefresh === true) {
+            this._shouldForceRefresh = false;
+            forceRefresh = true; // eslint-disable-line no-param-reassign
+        }
+
         const {children, component, sources, ...props} = this.props;
         Object.keys(sources).forEach(key => {
             props[key] = sources[key]._get({props, forceRefresh});

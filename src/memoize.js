@@ -26,7 +26,7 @@ function isSameValueZero(object1, object2) {
  * @param {Array<any>} keys2 the keys array to test
  * @returns {boolean} are the keys shallowly equal
  */
-function areKeysEqual(keys1, keys2) {
+export function areKeysEqual(keys1, keys2) {
     if (keys1.length !== keys2.length) {
         return false;
     }
@@ -101,7 +101,7 @@ export default function memoize({fn, maxSize = 1, maxAge = Infinity, onCacheChan
                 });
         }
 
-        console.log(cache.head.key, cache.head.value);
+        console.log(Date.now(), cache.head.key, cache.head.value);
 
         return cache.head.value;
     }
