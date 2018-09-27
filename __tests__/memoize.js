@@ -199,7 +199,7 @@ Array [
   },
 ]
 `);
-    expect(onCacheChange).toHaveBeenCalledTimes(1);
+    expect(onCacheChange).toHaveBeenCalledTimes(0);
 
     await delay(300);
     expect(memoized.cache.toArray()).toMatchInlineSnapshot(`
@@ -217,7 +217,7 @@ Array [
   },
 ]
 `);
-    expect(onCacheChange).toHaveBeenCalledTimes(2);
+    expect(onCacheChange).toHaveBeenCalledTimes(1);
 
     memoized(['Patrick']);
     expect(memoized.cache.toArray()).toMatchInlineSnapshot(`
@@ -246,7 +246,7 @@ Array [
   },
 ]
 `);
-    expect(onCacheChange).toHaveBeenCalledTimes(3);
+    expect(onCacheChange).toHaveBeenCalledTimes(1);
 
     await delay(300);
     expect(memoized.cache.toArray()).toMatchInlineSnapshot(`
@@ -275,7 +275,7 @@ Array [
   },
 ]
 `);
-    expect(onCacheChange).toHaveBeenCalledTimes(5);
+    expect(onCacheChange).toHaveBeenCalledTimes(3);
 
     await delay(300);
     expect(memoized.cache).toMatchInlineSnapshot(`
@@ -305,7 +305,7 @@ Cache {
   },
 }
 `);
-    expect(onCacheChange).toHaveBeenCalledTimes(6);
+    expect(onCacheChange).toHaveBeenCalledTimes(4);
 });
 
 it('should not fail to expire if the key does not exist', async () => {
@@ -313,7 +313,7 @@ it('should not fail to expire if the key does not exist', async () => {
     const memoized = memoize({fn: () => delay(200), onCacheChange, maxAge: 500});
 
     memoized(['SpongeBob']);
-    expect(onCacheChange).toHaveBeenCalledTimes(1);
+    expect(onCacheChange).toHaveBeenCalledTimes(0);
     await delay(300);
     expect(memoized.cache.toArray()).toMatchInlineSnapshot(`
 Array [
@@ -330,7 +330,7 @@ Array [
   },
 ]
 `);
-    expect(onCacheChange).toHaveBeenCalledTimes(2);
+    expect(onCacheChange).toHaveBeenCalledTimes(1);
 
     const itemToRemove = memoized.cache.tail;
     memoized.cache.remove(itemToRemove);
@@ -351,7 +351,7 @@ Cache {
   "tail": null,
 }
 `);
-    expect(onCacheChange).toHaveBeenCalledTimes(2);
+    expect(onCacheChange).toHaveBeenCalledTimes(1);
 });
 
 it('should refresh when called with `forceRefresh`', async () => {
@@ -359,7 +359,7 @@ it('should refresh when called with `forceRefresh`', async () => {
     const memoized = memoize({fn: () => delay(200, {value: 'SquarePants'}), onCacheChange});
 
     memoized(['SpongeBob']);
-    expect(onCacheChange).toHaveBeenCalledTimes(1);
+    expect(onCacheChange).toHaveBeenCalledTimes(0);
     await delay(300);
     expect(memoized.cache.toArray()).toMatchInlineSnapshot(`
 Array [

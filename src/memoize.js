@@ -78,13 +78,11 @@ export default function memoize({fn, maxSize = 1, maxAge = Infinity, onCacheChan
                 if (itemToRemove) {
                     cache.remove(itemToRemove);
                     itemToRemove.destroy();
-                    onCacheChange({args: itemToRemove.key});
                 }
             }
 
             item = new CacheItem(args, {status: PENDING, value: null, reason: null});
             cache.prepend(item);
-            onCacheChange({args});
             shouldRefresh = true;
         }
 
@@ -103,7 +101,7 @@ export default function memoize({fn, maxSize = 1, maxAge = Infinity, onCacheChan
                 });
         }
 
-        // console.log(cache.head.key, cache.head.value);
+        console.log(cache.head.key, cache.head.value);
 
         return cache.head.value;
     }
