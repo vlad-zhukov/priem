@@ -1,5 +1,3 @@
-import {type} from './helpers';
-
 const NEXT = '@@next';
 const PREV = '@@prev';
 
@@ -21,6 +19,10 @@ export class CacheItem {
                 value: null,
                 writable: true,
             },
+            used: {
+                value: false,
+                writable: true,
+            },
         });
     }
 
@@ -28,6 +30,8 @@ export class CacheItem {
         this[NEXT] = null;
         this[PREV] = null;
         clearTimeout(this.timeoutId);
+        this.timeoutId = null;
+        this.used = false;
     }
 }
 
@@ -46,52 +50,11 @@ function reduce(cache, accumulator, iteratee) {
     return result;
 }
 
-/* eslint-disable no-param-reassign */
-function prepend(cache, item) {
-    item[NEXT] = cache.head;
-    if (cache.head !== null) {
-        cache.head[PREV] = item;
-    }
-    cache.head = item;
-    if (cache.tail === null) {
-        cache.tail = item;
-    }
-    cache.size += 1;
-}
-
-function remove(cache, item) {
-    const next = item[NEXT];
-    const prev = item[PREV];
-
-    if (prev === null) {
-        cache.head = next;
-    } else {
-        prev[NEXT] = next;
-    }
-    if (next === null) {
-        cache.tail = prev;
-    } else {
-        next[PREV] = prev;
-    }
-    cache.size -= 1;
-}
-/* eslint-enable no-param-reassign */
-
 export class Cache {
     constructor(options = {}) {
         this.head = null;
         this.tail = null;
         this.size = 0;
-
-        Object.defineProperties(this, {
-            onCacheChange: {
-                value: options.onCacheChange,
-            },
-            maxAge: {
-                // eslint-disable-next-line no-restricted-globals
-                value: type(options.maxAge) === 'number' && isFinite(options.maxAge) ? options.maxAge : null,
-            },
-        });
     }
 
     static fromArray(items, options) {
@@ -103,28 +66,37 @@ export class Cache {
     }
 
     prepend(item) {
-        prepend(this, item);
-
-        if (this.maxAge !== null) {
-            clearTimeout(item.timeoutId);
-            // eslint-disable-next-line no-param-reassign
-            item.timeoutId = setTimeout(() => {
-                this.remove(item);
-            }, this.maxAge);
+        item[NEXT] = this.head;
+        if (this.head !== null) {
+            this.head[PREV] = item;
         }
-
-        this.onCacheChange();
+        this.head = item;
+        if (this.tail === null) {
+            this.tail = item;
+        }
+        this.size += 1;
+        item.used = true;
     }
 
     remove(item) {
-        remove(this, item);
-        item.destroy();
-        this.onCacheChange();
-    }
+        if (item === null || item.used === false) {
+            return;
+        }
 
-    moveToHead(item) {
-        remove(this, item);
-        prepend(this, item);
+        const next = item[NEXT];
+        const prev = item[PREV];
+
+        if (prev === null) {
+            this.head = next;
+        } else {
+            prev[NEXT] = next;
+        }
+        if (next === null) {
+            this.tail = prev;
+        } else {
+            next[PREV] = prev;
+        }
+        this.size -= 1;
     }
 
     findBy(predicate) {
