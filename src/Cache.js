@@ -46,8 +46,9 @@ function reduce(cache, accumulator, iteratee) {
     return result;
 }
 
+/* eslint-disable no-param-reassign */
 function prepend(cache, item) {
-    item[NEXT] = cache.head; // eslint-disable-line no-param-reassign
+    item[NEXT] = cache.head;
     if (cache.head !== null) {
         cache.head[PREV] = item;
     }
@@ -74,9 +75,10 @@ function remove(cache, item) {
     }
     cache.size -= 1;
 }
+/* eslint-enable no-param-reassign */
 
 export class Cache {
-    constructor(items, options = {}) {
+    constructor(options = {}) {
         this.head = null;
         this.tail = null;
         this.size = 0;
@@ -90,12 +92,14 @@ export class Cache {
                 value: type(options.maxAge) === 'number' && isFinite(options.maxAge) ? options.maxAge : null,
             },
         });
+    }
 
-        if (Array.isArray(items)) {
-            for (let i = items.length; i > 0; i--) {
-                this.prepend(items[i - 1]);
-            }
+    static fromArray(items, options) {
+        const cache = new Cache(options);
+        for (let i = items.length; i > 0; i--) {
+            cache.prepend(items[i - 1]);
         }
+        return cache;
     }
 
     prepend(item) {

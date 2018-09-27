@@ -11,7 +11,7 @@ const createCache = (size = 5) => {
     const onCacheChange = jest.fn();
     const opts = {onCacheChange};
     return {
-        cache: new Cache(items.slice(0, size), opts),
+        cache: Cache.fromArray(items.slice(0, size), opts),
         ...opts,
     };
 };
