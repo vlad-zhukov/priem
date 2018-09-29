@@ -15,16 +15,24 @@ export default class Priem extends React.Component {
         this._isPriemComponent = true;
         this._isMounted = false;
         this._shouldForceRefresh = false;
+
+        this.refresh = this.refresh.bind(this);
     }
 
     componentDidMount() {
+        const {sources} = this.props;
+
+        assertType(sources, ['object'], "<Priem />'s 'sources'");
+
         this._isMounted = true;
-        this._updateSubscriptions({instancesToSub: Object.values(this.props.sources)});
+        this._updateSubscriptions({instancesToSub: Object.values(sources)});
     }
 
     componentDidUpdate(prevProps) {
         const {sources} = this.props;
         const {sources: prevSources} = prevProps;
+
+        assertType(sources, ['object'], "<Priem />'s 'sources'");
 
         const instancesToUnsub = [];
         Object.keys(prevSources).forEach(key => {
@@ -48,7 +56,7 @@ export default class Priem extends React.Component {
         this._updateSubscriptions({instancesToUnsub: Object.values(this.props.sources)});
     }
 
-    refresh = () => {
+    refresh() {
         this._getProps(false, true);
     };
 

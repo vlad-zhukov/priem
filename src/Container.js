@@ -2,35 +2,51 @@ import memoize, {areKeysEqual, FULFILLED, REJECTED} from './memoize';
 import * as promiseState from './promiseState';
 import {assertType} from './helpers';
 
-export default class Container {
-    constructor(options) {
-        assertType(options, ['object'], "AsyncContainer argument 'options'");
-        assertType(options.promise, ['function'], "'promise'");
-        assertType(options.mapPropsToArgs, ['function', 'undefined'], "'mapPropsToArgs'");
+let store = {};
 
-        this._mapPropsToArgs = options.mapPropsToArgs || (() => []);
+export function populateStore(initialStore) {
+    assertType(initialStore, ['object'], "'initialStore'");
+    Object.assign(store, initialStore);
+}
+
+export function flushStore() {
+    const tmp = store;
+    store = {};
+    return tmp;
+}
+
+export class Container {
+    constructor(options) {
+        assertType(options, ['object'], "Container argument 'options'");
+
+        const {promise, mapPropsToArgs, maxSize, maxAge, ssrKey} = options;
+
+        assertType(promise, ['function'], "'promise'");
+        assertType(mapPropsToArgs, ['function', 'undefined'], "'mapPropsToArgs'");
+        assertType(ssrKey, ['string', 'undefined'], "'ssrKey'");
+
+        this._mapPropsToArgs = mapPropsToArgs || (() => []);
         this._listeners = [];
         this._recentCallCount = 0;
         this._lastCallTime = 0;
 
         this._onCacheChange = this._onCacheChange.bind(this);
 
+        const initialCache = store[ssrKey];
+        store[ssrKey] = undefined;
+
         this._memoized = memoize({
-            fn: options.promise,
-            maxSize: options.maxSize,
-            maxAge: options.maxAge,
+            fn: promise,
+            initialCache,
+            maxSize,
+            maxAge,
             onCacheChange: this._onCacheChange,
         });
     }
 
-    _debouncedGet({props, forceRefresh}) {
-        const args = this._mapPropsToArgs(props);
-        assertType(args, ['array', 'null'], "The result of 'mapPropsToArgs(props)'");
-
-        return this._memoized(args, {forceRefresh});
-    }
-
     _get({props, forceRefresh}) {
+        // TODO: do we need it?
+
         const now = Date.now();
         if (now - this._lastCallTime < 200) {
             if (this._recentCallCount > 100) {
@@ -49,8 +65,16 @@ export default class Container {
 
         //
 
-        const res = this._debouncedGet({props, forceRefresh});
+        const args = this._mapPropsToArgs(props);
+        assertType(args, ['array', 'null'], "The result of 'mapPropsToArgs(props)'");
 
+        if (args === null) {
+            return promiseState.pending();
+        }
+
+        const res = this._memoized(args, {forceRefresh});
+
+        // TODO: remove this
         switch (res.status) {
             case FULFILLED:
                 return promiseState.fulfilled(res.value);
@@ -63,8 +87,9 @@ export default class Container {
 
     _onCacheChange({args, forceRefresh}) {
         this._listeners.forEach(comp => {
-            if (areKeysEqual(args, this._mapPropsToArgs(comp.props))) {
-                console.log(Date.now(), 'UPDATE', args);
+            const nextArgs = this._mapPropsToArgs(comp.props);
+            if (nextArgs !== null && areKeysEqual(args, nextArgs)) {
+                // console.log(Date.now(), 'UPDATE', args);
                 comp._update(forceRefresh);
             }
         });
