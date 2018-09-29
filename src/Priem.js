@@ -25,7 +25,12 @@ export default class Priem extends React.Component {
         assertType(sources, ['object'], "<Priem />'s 'sources'");
 
         this._isMounted = true;
-        this._updateSubscriptions({instancesToSub: Object.values(sources)});
+
+        const sourcesToSub = [];
+        Object.keys(sources).forEach(key => {
+            sourcesToSub.push(sources[key]);
+        });
+        this._updateSubscriptions(sourcesToSub);
     }
 
     componentDidUpdate(prevProps) {
@@ -34,31 +39,38 @@ export default class Priem extends React.Component {
 
         assertType(sources, ['object'], "<Priem />'s 'sources'");
 
-        const instancesToUnsub = [];
+        const sourcesToUnsub = [];
         Object.keys(prevSources).forEach(key => {
             if (prevSources[key] !== sources[key]) {
-                instancesToUnsub.push(prevSources[key]);
+                sourcesToUnsub.push(prevSources[key]);
             }
         });
 
-        const instancesToSub = [];
+        const sourcesToSub = [];
         Object.keys(sources).forEach(key => {
             if (sources[key] !== prevSources[key]) {
-                instancesToSub.push(sources[key]);
+                sourcesToSub.push(sources[key]);
             }
         });
 
-        this._updateSubscriptions({instancesToSub, instancesToUnsub});
+        this._updateSubscriptions(sourcesToSub, sourcesToUnsub);
     }
 
     componentWillUnmount() {
+        const {sources} = this.props;
+
         this._isMounted = false;
-        this._updateSubscriptions({instancesToUnsub: Object.values(this.props.sources)});
+
+        const sourcesToUnsub = [];
+        Object.keys(sources).forEach(key => {
+            sourcesToUnsub.push(sources[key]);
+        });
+        this._updateSubscriptions(undefined, sourcesToUnsub);
     }
 
     refresh() {
         this._getProps(false, true);
-    };
+    }
 
     _update(forceRefresh) {
         if (forceRefresh === true) {
@@ -69,15 +81,15 @@ export default class Priem extends React.Component {
         }
     }
 
-    _updateSubscriptions({instancesToSub, instancesToUnsub}) {
-        if (instancesToSub) {
-            instancesToSub.forEach(instanceToSub => {
+    _updateSubscriptions(sourcesToSub, sourcesToUnsub) {
+        if (sourcesToSub) {
+            sourcesToSub.forEach(instanceToSub => {
                 instanceToSub._subscribe(this);
             });
         }
 
-        if (instancesToUnsub) {
-            instancesToUnsub.forEach(instanceToUnsub => {
+        if (sourcesToUnsub) {
+            sourcesToUnsub.forEach(instanceToUnsub => {
                 instanceToUnsub._unsubscribe(this);
             });
         }
