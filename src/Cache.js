@@ -51,18 +51,14 @@ function reduce(cache, accumulator, iteratee) {
 }
 
 export class Cache {
-    constructor() {
+    constructor(items) {
         this.head = null;
         this.tail = null;
         this.size = 0;
-    }
 
-    static fromArray(items) {
-        const cache = new Cache();
         for (let i = items.length; i > 0; i--) {
-            cache.prepend(items[i - 1]);
+            this.prepend(items[i - 1]);
         }
-        return cache;
     }
 
     prepend(item) {

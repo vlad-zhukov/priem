@@ -8,7 +8,7 @@ const createCache = (size = 5) => {
         new CacheItem('qux', 456),
         new CacheItem('quux', 567),
     ];
-    return Cache.fromArray(items.slice(0, size));
+    return new Cache(items.slice(0, size));
 };
 
 it('should construct with items', () => {
@@ -151,7 +151,7 @@ Array [
 `);
 });
 
-it('should not remove if item is `null` or `item.used` is true', () => {
+it('should not remove an item if it is `null` or `item.used` is true', () => {
     const cache = createCache(3);
 
     cache.remove(null);
