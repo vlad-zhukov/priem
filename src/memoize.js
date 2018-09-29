@@ -54,10 +54,10 @@ function createTimeout(cache, item, maxAge, onCacheChange) {
     }
 }
 
-export default function memoize({fn, maxSize = 1, maxAge = Infinity, onCacheChange = noop}) {
+export default function memoize({fn, initialCache = [], maxSize = 1, maxAge = Infinity, onCacheChange = noop}) {
     // eslint-disable-next-line no-restricted-globals
     const normMaxAge = type(maxAge) === 'number' && isFinite(maxAge) ? maxAge : null;
-    const cache = new Cache();
+    const cache = Cache.fromArray(initialCache);
 
     function memoized(args, options) {
         let item = cache.findBy(cacheItem => areKeysEqual(cacheItem.key, args));
@@ -101,9 +101,9 @@ export default function memoize({fn, maxSize = 1, maxAge = Infinity, onCacheChan
                 });
         }
 
-        console.log(Date.now(), cache.head.key, cache.head.value);
+        // console.log(Date.now(), cache.head.key, cache.head.value);
 
-        return cache.head.value;
+        return item.value;
     }
 
     Object.defineProperties(memoized, {
