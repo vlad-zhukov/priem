@@ -45,25 +45,35 @@ export const FULFILLED = 1;
 export const REJECTED = 2;
 
 function createTimeout(cache, item, maxAge, onCacheChange) {
-    if (maxAge !== null) {
+    // eslint-disable-next-line no-restricted-globals
+    const normalizeMaxAge = type(maxAge) === 'number' && isFinite(maxAge) ? maxAge : null;
+    if (normalizeMaxAge !== null) {
         clearTimeout(item.timeoutId);
         // eslint-disable-next-line no-param-reassign
         item.timeoutId = setTimeout(() => {
             onCacheChange({args: item.key, forceRefresh: true});
-        }, maxAge);
+        }, normalizeMaxAge);
     }
 }
 
 export default function memoize({fn, initialCache = [], maxSize = 1, maxAge = Infinity, onCacheChange = noop}) {
-    // eslint-disable-next-line no-restricted-globals
-    const normMaxAge = type(maxAge) === 'number' && isFinite(maxAge) ? maxAge : null;
     const cache = Cache.fromArray(initialCache);
 
     function memoized(args, options) {
         let item = cache.findBy(cacheItem => areKeysEqual(cacheItem.key, args));
         let shouldRefresh = false;
 
-        if (item !== null) {
+        if (item === null) {
+            if (cache.size >= maxSize) {
+                const itemToRemove = cache.tail;
+                cache.remove(itemToRemove);
+                itemToRemove.destroy();
+            }
+
+            item = new CacheItem(args, {status: PENDING, value: null, reason: null});
+            cache.prepend(item);
+            shouldRefresh = true;
+        } else {
             if (item !== cache.head) {
                 cache.remove(item);
                 cache.prepend(item);
@@ -72,22 +82,10 @@ export default function memoize({fn, initialCache = [], maxSize = 1, maxAge = In
             if (forceRefresh === true) {
                 shouldRefresh = true;
             }
-        } else {
-            if (cache.size >= maxSize) {
-                const itemToRemove = cache.tail;
-                if (itemToRemove) {
-                    cache.remove(itemToRemove);
-                    itemToRemove.destroy();
-                }
-            }
-
-            item = new CacheItem(args, {status: PENDING, value: null, reason: null});
-            cache.prepend(item);
-            shouldRefresh = true;
         }
 
         if (shouldRefresh) {
-            createTimeout(cache, item, normMaxAge, onCacheChange);
+            createTimeout(cache, item, maxAge, onCacheChange);
             const itemValue = Object.assign(item.value, {status: PENDING, reason: null});
             itemValue.promise = fn
                 .apply(this, args)
