@@ -57,7 +57,7 @@ function createTimeout(cache, item, maxAge, onCacheChange) {
 }
 
 export default function memoize({fn, initialCache = [], maxSize = 1, maxAge = Infinity, onCacheChange = noop}) {
-    const cache = Cache.fromArray(initialCache);
+    const cache = new Cache(initialCache);
 
     function memoized(args, options) {
         let item = cache.findBy(cacheItem => areKeysEqual(cacheItem.key, args));
