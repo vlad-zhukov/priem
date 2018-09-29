@@ -27,8 +27,6 @@ export class Container {
 
         this._mapPropsToArgs = mapPropsToArgs || (() => []);
         this._listeners = [];
-        this._recentCallCount = 0;
-        this._lastCallTime = 0;
 
         this._onCacheChange = this._onCacheChange.bind(this);
 
@@ -45,26 +43,6 @@ export class Container {
     }
 
     _get({props, forceRefresh}) {
-        // TODO: do we need it?
-
-        const now = Date.now();
-        if (now - this._lastCallTime < 200) {
-            if (this._recentCallCount > 100) {
-                throw new Error(
-                    "Priem: the amount of updates of 'Container' exceeded the safe threshold, which means " +
-                        "it has stuck in an infinite rerendering loop. This happens when 'mapPropsToArgs' " +
-                        'returns different results on consecutive calls. For example, this might be caused by ' +
-                        'a race condition between 2 or more Priem components. Please, fix.'
-                );
-            }
-            this._recentCallCount += 1;
-        } else {
-            this._recentCallCount = 1;
-        }
-        this._lastCallTime = now;
-
-        //
-
         const args = this._mapPropsToArgs(props);
         assertType(args, ['array', 'null'], "The result of 'mapPropsToArgs(props)'");
 

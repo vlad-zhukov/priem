@@ -150,3 +150,13 @@ Array [
 ]
 `);
 });
+
+it('should not remove if item is `null` or `item.used` is true', () => {
+    const cache = createCache(3);
+
+    cache.remove(null);
+
+    const item = new CacheItem('foo', 123);
+
+    cache.remove(item);
+});
