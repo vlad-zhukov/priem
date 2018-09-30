@@ -14,7 +14,7 @@ it('should return a pending state if `args` have not been provided', () => {
         promise: () => delay(100),
     });
 
-    expect(ctr._get({props: {}})).toMatchInlineSnapshot(`
+    expect(ctr._get({})).toMatchInlineSnapshot(`
 Object {
   "fulfilled": false,
   "pending": true,

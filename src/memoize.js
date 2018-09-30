@@ -45,19 +45,19 @@ export const FULFILLED = 1;
 export const REJECTED = 2;
 
 function createTimeout(cache, item, maxAge, onCacheChange) {
-    // eslint-disable-next-line no-restricted-globals
-    const normalizeMaxAge = type(maxAge) === 'number' && isFinite(maxAge) ? maxAge : null;
-    if (normalizeMaxAge !== null) {
-        clearTimeout(item.timeoutId);
+    if (maxAge !== null) {
+        clearTimeout(item.expireId);
         // eslint-disable-next-line no-param-reassign
-        item.timeoutId = setTimeout(() => {
-            onCacheChange({args: item.key, forceRefresh: true});
-        }, normalizeMaxAge);
+        item.expireId = setTimeout(() => {
+            onCacheChange(item.key, true);
+        }, maxAge);
     }
 }
 
 export default function memoize({fn, initialCache = [], maxSize = 1, maxAge = Infinity, onCacheChange = noop}) {
     const cache = new Cache(initialCache);
+    // eslint-disable-next-line no-restricted-globals
+    const normalizeMaxAge = type(maxAge) === 'number' && isFinite(maxAge) ? maxAge : null;
 
     function memoized(args, options) {
         let item = cache.findBy(cacheItem => areKeysEqual(cacheItem.key, args));
@@ -70,14 +70,14 @@ export default function memoize({fn, initialCache = [], maxSize = 1, maxAge = In
                 itemToRemove.destroy();
             }
 
-            item = new CacheItem(args, {status: PENDING, value: null, reason: null});
+            item = new CacheItem(args, {status: PENDING, data: null, reason: null});
             cache.prepend(item);
             shouldRefresh = true;
         } else {
-            if (item !== cache.head) {
-                cache.remove(item);
+            if (item !== cache.head && cache.remove(item) !== null) {
                 cache.prepend(item);
             }
+
             const forceRefresh = (options && options.forceRefresh) || false;
             if (forceRefresh === true) {
                 shouldRefresh = true;
@@ -85,21 +85,24 @@ export default function memoize({fn, initialCache = [], maxSize = 1, maxAge = In
         }
 
         if (shouldRefresh) {
-            createTimeout(cache, item, maxAge, onCacheChange);
-            const itemValue = Object.assign(item.value, {status: PENDING, reason: null});
-            itemValue.promise = fn
-                .apply(this, args)
-                .then(value => {
-                    Object.assign(itemValue, {status: FULFILLED, value, reason: null});
-                    onCacheChange({args});
-                })
-                .catch(error => {
-                    Object.assign(itemValue, {status: REJECTED, value: null, reason: error});
-                    onCacheChange({args});
-                });
+            const now = Date.now();
+            const lastRefreshAt = item.lastRefreshAt || 0;
+            if (now - lastRefreshAt > 150) {
+                item.lastRefreshAt = now;
+                createTimeout(cache, item, normalizeMaxAge, onCacheChange);
+                const itemValue = Object.assign(item.value, {status: PENDING, reason: null});
+                itemValue.promise = fn
+                    .apply(this, args)
+                    .then(data => {
+                        Object.assign(itemValue, {status: FULFILLED, data, reason: null});
+                        onCacheChange(args);
+                    })
+                    .catch(error => {
+                        Object.assign(itemValue, {status: REJECTED, data: null, reason: error});
+                        onCacheChange(args);
+                    });
+            }
         }
-
-        // console.log(Date.now(), cache.head.key, cache.head.value);
 
         return item.value;
     }

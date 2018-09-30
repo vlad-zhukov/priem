@@ -123,6 +123,7 @@ it('should remove an item by reference', () => {
     const cache = createCache(3);
 
     const res1 = cache.findBy(item => item.key === 'foo');
+    res1.lastRefreshAt = Date.now();
     expect(res1).toMatchInlineSnapshot(`
 CacheItem {
   "key": "foo",
@@ -131,6 +132,7 @@ CacheItem {
 `);
 
     const res2 = cache.findBy(item => item.key === 'baz');
+    res2.lastRefreshAt = Date.now();
     expect(res2).toMatchInlineSnapshot(`
 CacheItem {
   "key": "baz",
@@ -151,12 +153,29 @@ Array [
 `);
 });
 
-it('should not remove an item if it is `null` or `item.used` is true', () => {
+it('should not remove an item if it is `null` or `item.lastRefreshAt` is `null`', () => {
     const cache = createCache(3);
 
+    const item = cache.head;
+    item.lastRefreshAt = null;
+
     cache.remove(null);
-
-    const item = new CacheItem('foo', 123);
-
     cache.remove(item);
+
+    expect(cache.toArray()).toMatchInlineSnapshot(`
+Array [
+  CacheItem {
+    "key": "foo",
+    "value": 123,
+  },
+  CacheItem {
+    "key": "bar",
+    "value": 234,
+  },
+  CacheItem {
+    "key": "baz",
+    "value": 345,
+  },
+]
+`);
 });

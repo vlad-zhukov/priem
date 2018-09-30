@@ -15,17 +15,11 @@ export default class Priem extends React.Component {
     }
 
     componentDidMount() {
-        const {sources} = this.props;
-
-        assertType(sources, ['object'], "<Priem />'s 'sources'");
-
         this._isMounted = true;
 
-        const sourcesToSub = [];
-        Object.keys(sources).forEach(key => {
-            sourcesToSub.push(sources[key]);
-        });
-        this._updateSubscriptions(sourcesToSub);
+        const {sources} = this.props;
+        assertType(sources, ['object'], "<Priem />'s 'sources'");
+        this._updateSubscriptions(Object.values(sources));
     }
 
     componentDidUpdate(prevProps) {
@@ -52,15 +46,11 @@ export default class Priem extends React.Component {
     }
 
     componentWillUnmount() {
-        const {sources} = this.props;
-
         this._isMounted = false;
 
-        const sourcesToUnsub = [];
-        Object.keys(sources).forEach(key => {
-            sourcesToUnsub.push(sources[key]);
-        });
-        this._updateSubscriptions(undefined, sourcesToUnsub);
+        const {sources} = this.props;
+        assertType(sources, ['object'], "<Priem />'s 'sources'");
+        this._updateSubscriptions(undefined, Object.values(sources));
     }
 
     refresh() {
@@ -97,8 +87,9 @@ export default class Priem extends React.Component {
         }
 
         const {children, component, sources, ...props} = this.props;
+        assertType(sources, ['object'], "<Priem />'s 'sources'");
         Object.keys(sources).forEach(key => {
-            props[key] = sources[key]._get({props, forceRefresh});
+            props[key] = sources[key]._get(props, forceRefresh);
         });
 
         if (populateWithRefresh) {
