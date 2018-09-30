@@ -1,7 +1,7 @@
 const env = process.env.BABEL_ENV || process.env.NODE_ENV;
 
 const presets = ['@babel/preset-react'];
-const plugins = ['@babel/plugin-proposal-class-properties', ['@babel/plugin-proposal-decorators', {legacy: true}]];
+const plugins = [];
 
 if (env === 'test') {
     presets.unshift([
@@ -10,13 +10,14 @@ if (env === 'test') {
             targets: {node: 'current'},
         },
     ]);
+    plugins.push(['@babel/plugin-proposal-decorators', {legacy: true}]);
 }
 
 if (env === 'production') {
     presets.unshift([
         '@babel/preset-env',
         {
-            targets: {node: '6.6'},
+            targets: {node: '8'},
             modules: false,
             loose: true,
         },

@@ -69,7 +69,10 @@ export function testComponentNested({initialStore, ctr1Props, ctr2Props} = {}) {
 
 /* eslint-disable react/no-unused-state */
 export class ErrorBoundary extends React.Component {
-    state = {initTime: Date.now(), hasError: null};
+    constructor() {
+        super();
+        this.state = {initTime: Date.now(), hasError: null};
+    }
 
     componentDidCatch(error) {
         this.setState({hasError: error, catchTime: Date.now()});

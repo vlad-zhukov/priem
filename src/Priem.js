@@ -4,11 +4,6 @@ import {assertType} from './helpers';
 const DUMMY_STATE = {};
 
 export default class Priem extends React.Component {
-    static defaultProps = {
-        component: null,
-        children: null,
-    };
-
     constructor(props) {
         super(props);
 
@@ -127,3 +122,8 @@ export default class Priem extends React.Component {
         return children(props);
     }
 }
+
+Priem.defaultProps = {
+    component: null,
+    children: null,
+};
