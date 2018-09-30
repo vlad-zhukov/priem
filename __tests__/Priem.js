@@ -32,7 +32,7 @@ export function testComponent({initialStore, options} = {}) {
         ...options,
     });
 
-    const element = <Priem sources={{ctr}}>{p => <div>{p.ctr.value}</div>}</Priem>;
+    const element = <Priem sources={{ctr}}>{p => <div>{p.ctr.data}</div>}</Priem>;
 
     return {element, getSpy, onCacheChangeSpy};
 }
@@ -49,7 +49,7 @@ export function testComponentNested({initialStore, ctr1Props, ctr2Props} = {}) {
     });
 
     const ctr2 = new Container({
-        mapPropsToArgs: p => (!p.ctr1 ? null : [p.ctr1.value, 'bar']),
+        mapPropsToArgs: p => (!p.ctr1 ? null : [p.ctr1.data, 'bar']),
         promise: (ctr1Value, value) => delay(100, {value: ctr1Value + value}),
         ...ctr2Props,
     });
@@ -58,7 +58,7 @@ export function testComponentNested({initialStore, ctr1Props, ctr2Props} = {}) {
         <Priem sources={{ctr1, ctr2}}>
             {props => (
                 <Priem sources={{ctr2}} ctr1={props.ctr1}>
-                    {p => <div>{p.ctr2.value}</div>}
+                    {p => <div>{p.ctr2.data}</div>}
                 </Priem>
             )}
         </Priem>
@@ -113,8 +113,8 @@ it('should use `children` and `component` props', async () => {
         promise: value => delay(100, {value}),
     });
 
-    const childrenSpy = jest.fn(p => <div>children {p.ctr.value}</div>);
-    const componentSpy = jest.fn(p => <div>component {p.ctr.value}</div>);
+    const childrenSpy = jest.fn(p => <div>children {p.ctr.data}</div>);
+    const componentSpy = jest.fn(p => <div>component {p.ctr.data}</div>);
 
     const createElement = (props = {}) => (
         <Priem sources={{ctr}} component={componentSpy} {...props}>
@@ -208,7 +208,7 @@ it('should have a `refresh` method', async () => {
     const {element} = testComponent();
     const {container, instance} = render(element);
 
-    await delay(150);
+    await delay(200);
     expect(container.innerHTML).toBe('<div>foo</div>');
     expect(getSpy).toHaveBeenCalledTimes(2);
 
@@ -216,7 +216,7 @@ it('should have a `refresh` method', async () => {
     expect(container.innerHTML).toBe('<div>foo</div>');
     expect(getSpy).toHaveBeenCalledTimes(3);
 
-    await delay(150);
+    await delay(200);
     expect(container.innerHTML).toBe('<div>foo</div>');
     expect(getSpy).toHaveBeenCalledTimes(4);
 });
@@ -287,7 +287,7 @@ it('should rerun promises when cache expires if `maxAge` is set', async () => {
 
     // expire (pending)
 
-    expect(container.innerHTML).toBe('<div></div>');
+    expect(container.innerHTML).toBe('<div>foo2</div>');
     expect(setStateSpy).toHaveBeenCalledTimes(3);
     expect(updateSpy).toHaveBeenCalledTimes(3);
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(3);
@@ -323,7 +323,7 @@ it('should pass a `refresh` method as a render prop', async () => {
                 expect(typeof p.refresh).toBe('function');
                 return (
                     <button type="button" onClick={p.refresh}>
-                        {p.ctr.value}
+                        {p.ctr.data}
                     </button>
                 );
             }}
@@ -343,53 +343,6 @@ it('should pass a `refresh` method as a render prop', async () => {
     await delay(200);
     expect(container.innerHTML).toBe('<button type="button"></button>');
 });
-
-// it('should pass a `refresh` method as a property into every AsyncContainer render prop', async () => {
-//     const {Container, AsyncContainer} = createStore();
-//
-//     let shouldReject = false;
-//     const container1 = new AsyncContainer({
-//         mapPropsToArgs: () => ['foo'],
-//         promise: value => {
-//             if (shouldReject) {
-//                 return delay.reject(100, {value: new Error('error!')});
-//             }
-//             shouldReject = true;
-//             return delay(100, {value});
-//         },
-//     });
-//
-//     const container2 = new AsyncContainer({
-//         mapPropsToArgs: () => ['bar'],
-//         promise: value => delay(100, {value}),
-//     });
-//
-//     const syncContainer = new Container({value: 'baz'});
-//
-//     const element = (
-//         <Priem sources={{container1, container2, syncContainer}}>
-//             {p => {
-//                 expect(typeof p.container1.refresh).toBe('function');
-//                 expect(typeof p.container2.refresh).toBe('function');
-//                 expect(typeof p.syncContainer.refresh).toBe('undefined');
-//                 return <button type="button" onClick={p.container2.refresh} />;
-//             }}
-//         </Priem>
-//     );
-//
-//     const {container} = render(element);
-//
-//     expect([container1.state, container2.state, syncContainer.state]).toMatchSnapshot();
-//
-//     await delay(200);
-//     expect([container1.state, container2.state, syncContainer.state]).toMatchSnapshot(); // fulfilled
-//
-//     fireEvent.click(container.querySelector('button'));
-//     expect([container1.state, container2.state, syncContainer.state]).toMatchSnapshot(); // refreshing
-//
-//     await delay(200);
-//     expect([container1.state, container2.state, syncContainer.state]).toMatchSnapshot(); // not rejected
-// });
 
 it('should render a nested component', async () => {
     const {element} = testComponentNested({
@@ -413,10 +366,10 @@ it('should render components that are subscribed to the same container but need 
     const {container} = render(
         <div>
             <Priem sources={{ctr}} value="foo">
-                {p => <div>{p.ctr.value}</div>}
+                {p => <div>{p.ctr.data}</div>}
             </Priem>
             <Priem sources={{ctr}} value="bar">
-                {p => <div>{p.ctr.value}</div>}
+                {p => <div>{p.ctr.data}</div>}
             </Priem>
         </div>
     );
