@@ -15,12 +15,12 @@ export class CacheItem {
                 value: null,
                 writable: true,
             },
-            timeoutId: {
+            expireId: {
                 value: null,
                 writable: true,
             },
-            used: {
-                value: false,
+            lastRefreshAt: {
+                value: null,
                 writable: true,
             },
         });
@@ -29,9 +29,9 @@ export class CacheItem {
     destroy() {
         this[NEXT] = null;
         this[PREV] = null;
-        clearTimeout(this.timeoutId);
-        this.timeoutId = null;
-        this.used = false;
+        clearTimeout(this.expireId);
+        this.expireId = null;
+        this.lastRefreshAt = null;
     }
 }
 
@@ -71,12 +71,12 @@ export class Cache {
             this.tail = item;
         }
         this.size += 1;
-        item.used = true; // eslint-disable-line no-param-reassign
     }
 
+    // eslint-disable-next-line consistent-return
     remove(item) {
-        if (item === null || item.used === false) {
-            return;
+        if (item === null || item.lastRefreshAt === null) {
+            return null;
         }
 
         const next = item[NEXT];

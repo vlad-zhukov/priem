@@ -42,7 +42,7 @@ export class Container {
         });
     }
 
-    _get({props, forceRefresh}) {
+    _get(props, forceRefresh) {
         const args = this._mapPropsToArgs(props);
         assertType(args, ['array', 'null'], "The result of 'mapPropsToArgs(props)'");
 
@@ -55,7 +55,7 @@ export class Container {
         // TODO: remove this
         switch (res.status) {
             case FULFILLED:
-                return promiseState.fulfilled(res.value);
+                return promiseState.fulfilled(res.data);
             case REJECTED:
                 return promiseState.rejected(res.reason);
             default:
@@ -63,11 +63,10 @@ export class Container {
         }
     }
 
-    _onCacheChange({args, forceRefresh}) {
+    _onCacheChange(args, forceRefresh) {
         this._listeners.forEach(comp => {
             const nextArgs = this._mapPropsToArgs(comp.props);
             if (nextArgs !== null && areKeysEqual(args, nextArgs)) {
-                // console.log(Date.now(), 'UPDATE', args);
                 comp._update(forceRefresh);
             }
         });

@@ -162,7 +162,9 @@ it('should throw if `sources` is not an object', async () => {
         </ErrorBoundary>
     );
 
-    expect(instance.state.hasError).toMatchInlineSnapshot(`[TypeError: Cannot convert undefined or null to object]`);
+    expect(instance.state.hasError).toMatchInlineSnapshot(
+        `[TypeError: Priem: <Priem />'s 'sources' must be one of the following: 'object', but got: 'undefined'.]`
+    );
 });
 
 it('should resubscribe when `sources` change', async () => {
@@ -202,37 +204,20 @@ it('should resubscribe when `sources` change', async () => {
     expect(unsubscribeSpy2).toHaveBeenCalledTimes(0);
 });
 
-// it('should not keep data after the unmount if `persist: false`', async () => {
-//     const {element, container} = testComponent({options: {persist: false}});
-//     const {rerender} = render(element);
-//     await delay(150);
-//
-//     expect(container.state).toMatchSnapshot(); // fulfilled
-//     expect(container._cache.memoized.keys()).toEqual([['foo']]);
-//
-//     cleanup();
-//
-//     expect(container.state).toMatchSnapshot(); // empty
-//     expect(container._cache.memoized.keys()).toEqual([]);
-//
-//     rerender(element);
-//     await delay(150);
-//
-//     expect(container.state).toMatchSnapshot(); // fulfilled
-//     expect(container._cache.memoized.keys()).toEqual([['foo']]);
-// });
-
 it('should have a `refresh` method', async () => {
     const {element} = testComponent();
-    const {instance} = render(element);
+    const {container, instance} = render(element);
 
     await delay(150);
+    expect(container.innerHTML).toBe('<div>foo</div>');
     expect(getSpy).toHaveBeenCalledTimes(2);
 
     instance.refresh();
+    expect(container.innerHTML).toBe('<div>foo</div>');
     expect(getSpy).toHaveBeenCalledTimes(3);
 
     await delay(150);
+    expect(container.innerHTML).toBe('<div>foo</div>');
     expect(getSpy).toHaveBeenCalledTimes(4);
 });
 

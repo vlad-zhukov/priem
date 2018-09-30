@@ -8,54 +8,54 @@ it('should memoize promises', async () => {
 
     expect(memoized(['world'])).toMatchInlineSnapshot(`
 Object {
+  "data": null,
   "promise": Promise {},
   "reason": null,
   "status": 0,
-  "value": null,
 }
 `);
 
     await delay(300);
     expect(memoized(['world'])).toMatchInlineSnapshot(`
 Object {
+  "data": "Hello world!",
   "promise": Promise {},
   "reason": null,
   "status": 1,
-  "value": "Hello world!",
 }
 `);
     expect(memoized(['world'])).toMatchInlineSnapshot(`
 Object {
+  "data": "Hello world!",
   "promise": Promise {},
   "reason": null,
   "status": 1,
-  "value": "Hello world!",
 }
 `);
     expect(memoized(['SpongeBob'])).toMatchInlineSnapshot(`
 Object {
+  "data": null,
   "promise": Promise {},
   "reason": null,
   "status": 0,
-  "value": null,
 }
 `);
 
     await delay(300);
     expect(memoized(['SpongeBob'])).toMatchInlineSnapshot(`
 Object {
+  "data": "Hello SpongeBob!",
   "promise": Promise {},
   "reason": null,
   "status": 1,
-  "value": "Hello SpongeBob!",
 }
 `);
     expect(memoized(['world'])).toMatchInlineSnapshot(`
 Object {
+  "data": "Hello world!",
   "promise": Promise {},
   "reason": null,
   "status": 1,
-  "value": "Hello world!",
 }
 `);
 });
@@ -65,46 +65,46 @@ it('should not throw on rejected promises', async () => {
 
     expect(memoized(['world'])).toMatchInlineSnapshot(`
 Object {
+  "data": null,
   "promise": Promise {},
   "reason": null,
   "status": 0,
-  "value": null,
 }
 `);
 
     await delay(300);
     expect(memoized(['world'])).toMatchInlineSnapshot(`
 Object {
+  "data": null,
   "promise": Promise {},
   "reason": [Error: Hello world!],
   "status": 2,
-  "value": null,
 }
 `);
     expect(memoized(['world'])).toMatchInlineSnapshot(`
 Object {
+  "data": null,
   "promise": Promise {},
   "reason": [Error: Hello world!],
   "status": 2,
-  "value": null,
 }
 `);
     expect(memoized(['SpongeBob'])).toMatchInlineSnapshot(`
 Object {
+  "data": null,
   "promise": Promise {},
   "reason": null,
   "status": 0,
-  "value": null,
 }
 `);
 
     await delay(300);
     expect(memoized(['SpongeBob'])).toMatchInlineSnapshot(`
 Object {
+  "data": null,
   "promise": Promise {},
   "reason": [Error: Hello SpongeBob!],
   "status": 2,
-  "value": null,
 }
 `);
 });
@@ -126,10 +126,10 @@ Array [
       "SpongeBob",
     ],
     "value": Object {
+      "data": "Hello SpongeBob!",
       "promise": Promise {},
       "reason": null,
       "status": 1,
-      "value": "Hello SpongeBob!",
     },
   },
 ]
@@ -145,10 +145,10 @@ Array [
       "Patrick",
     ],
     "value": Object {
+      "data": "Hello SpongeBob and Patrick!",
       "promise": Promise {},
       "reason": null,
       "status": 1,
-      "value": "Hello SpongeBob and Patrick!",
     },
   },
 ]
@@ -169,10 +169,10 @@ Array [
       NaN,
     ],
     "value": Object {
+      "data": null,
       "promise": Promise {},
       "reason": null,
       "status": 0,
-      "value": null,
     },
   },
 ]
@@ -191,10 +191,10 @@ Array [
       "SpongeBob",
     ],
     "value": Object {
+      "data": null,
       "promise": Promise {},
       "reason": null,
       "status": 0,
-      "value": null,
     },
   },
 ]
@@ -209,10 +209,10 @@ Array [
       "SpongeBob",
     ],
     "value": Object {
+      "data": undefined,
       "promise": Promise {},
       "reason": null,
       "status": 1,
-      "value": undefined,
     },
   },
 ]
@@ -227,10 +227,10 @@ Array [
       "Patrick",
     ],
     "value": Object {
+      "data": null,
       "promise": Promise {},
       "reason": null,
       "status": 0,
-      "value": null,
     },
   },
   CacheItem {
@@ -238,10 +238,10 @@ Array [
       "SpongeBob",
     ],
     "value": Object {
+      "data": undefined,
       "promise": Promise {},
       "reason": null,
       "status": 1,
-      "value": undefined,
     },
   },
 ]
@@ -256,10 +256,10 @@ Array [
       "Patrick",
     ],
     "value": Object {
+      "data": undefined,
       "promise": Promise {},
       "reason": null,
       "status": 1,
-      "value": undefined,
     },
   },
   CacheItem {
@@ -267,10 +267,10 @@ Array [
       "SpongeBob",
     ],
     "value": Object {
+      "data": undefined,
       "promise": Promise {},
       "reason": null,
       "status": 1,
-      "value": undefined,
     },
   },
 ]
@@ -285,10 +285,10 @@ Cache {
       "Patrick",
     ],
     "value": Object {
+      "data": undefined,
       "promise": Promise {},
       "reason": null,
       "status": 1,
-      "value": undefined,
     },
   },
   "size": 2,
@@ -297,10 +297,10 @@ Cache {
       "SpongeBob",
     ],
     "value": Object {
+      "data": undefined,
       "promise": Promise {},
       "reason": null,
       "status": 1,
-      "value": undefined,
     },
   },
 }
@@ -315,6 +315,7 @@ it('should not fail to expire if the key does not exist', async () => {
     memoized(['SpongeBob']);
     expect(onCacheChange).toHaveBeenCalledTimes(0);
     await delay(300);
+    expect(onCacheChange).toHaveBeenCalledTimes(1);
     expect(memoized.cache.toArray()).toMatchInlineSnapshot(`
 Array [
   CacheItem {
@@ -322,15 +323,14 @@ Array [
       "SpongeBob",
     ],
     "value": Object {
+      "data": undefined,
       "promise": Promise {},
       "reason": null,
       "status": 1,
-      "value": undefined,
     },
   },
 ]
 `);
-    expect(onCacheChange).toHaveBeenCalledTimes(1);
 
     const itemToRemove = memoized.cache.tail;
     memoized.cache.remove(itemToRemove);
@@ -344,6 +344,7 @@ Cache {
 `);
 
     await delay(300);
+    expect(onCacheChange).toHaveBeenCalledTimes(1);
     expect(memoized.cache).toMatchInlineSnapshot(`
 Cache {
   "head": null,
@@ -351,7 +352,6 @@ Cache {
   "tail": null,
 }
 `);
-    expect(onCacheChange).toHaveBeenCalledTimes(1);
 });
 
 it('should refresh when called with `forceRefresh`', async () => {
@@ -368,10 +368,10 @@ Array [
       "SpongeBob",
     ],
     "value": Object {
+      "data": "SquarePants",
       "promise": Promise {},
       "reason": null,
       "status": 1,
-      "value": "SquarePants",
     },
   },
 ]
@@ -385,10 +385,10 @@ Array [
       "SpongeBob",
     ],
     "value": Object {
+      "data": "SquarePants",
       "promise": Promise {},
       "reason": null,
       "status": 0,
-      "value": "SquarePants",
     },
   },
 ]
@@ -402,10 +402,57 @@ Array [
       "SpongeBob",
     ],
     "value": Object {
+      "data": "SquarePants",
       "promise": Promise {},
       "reason": null,
       "status": 1,
-      "value": "SquarePants",
+    },
+  },
+]
+`);
+});
+
+it('should throttle refreshing', async () => {
+    const memoized = memoize({
+        fn: () => delay(200, {value: 'SquarePants'}),
+        onCacheChange() {},
+    });
+
+    memoized(['SpongeBob']);
+    await delay(300);
+    expect(memoized.cache.toArray()).toMatchInlineSnapshot(`
+Array [
+  CacheItem {
+    "key": Array [
+      "SpongeBob",
+    ],
+    "value": Object {
+      "data": "SquarePants",
+      "promise": Promise {},
+      "reason": null,
+      "status": 1,
+    },
+  },
+]
+`);
+
+    const item1 = memoized(['SpongeBob'], {forceRefresh: true});
+    const item2 = memoized(['SpongeBob'], {forceRefresh: true});
+
+    expect(item1).toBe(item2);
+    expect(item1.promise).toBe(item2.promise);
+
+    expect(memoized.cache.toArray()).toMatchInlineSnapshot(`
+Array [
+  CacheItem {
+    "key": Array [
+      "SpongeBob",
+    ],
+    "value": Object {
+      "data": "SquarePants",
+      "promise": Promise {},
+      "reason": null,
+      "status": 0,
     },
   },
 ]
