@@ -1,5 +1,4 @@
-import memoize, {areKeysEqual, FULFILLED, REJECTED} from './memoize';
-import * as promiseState from './promiseState';
+import memoize, {areKeysEqual} from './memoize';
 import {assertType} from './helpers';
 
 let store = {};
@@ -47,20 +46,10 @@ export class Container {
         assertType(args, ['array', 'null'], "The result of 'mapPropsToArgs(props)'");
 
         if (args === null) {
-            return promiseState.pending();
+            return null;
         }
 
-        const res = this._memoized(args, {forceRefresh});
-
-        // TODO: remove this
-        switch (res.status) {
-            case FULFILLED:
-                return promiseState.fulfilled(res.data);
-            case REJECTED:
-                return promiseState.rejected(res.reason);
-            default:
-                return promiseState.pending();
-        }
+        return this._memoized(args, {forceRefresh});
     }
 
     _onCacheChange(args, forceRefresh) {

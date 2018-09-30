@@ -14,16 +14,7 @@ it('should return a pending state if `args` have not been provided', () => {
         promise: () => delay(100),
     });
 
-    expect(ctr._get({})).toMatchInlineSnapshot(`
-Object {
-  "fulfilled": false,
-  "pending": true,
-  "reason": null,
-  "refreshing": false,
-  "rejected": false,
-  "value": null,
-}
-`);
+    expect(ctr._get({})).toBe(null);
 });
 
 it('should default `mapPropsToArgs` to a function that returns an empty array', () => {
