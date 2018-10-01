@@ -3,9 +3,10 @@
 import React from 'react';
 import delay from 'delay';
 import {cleanup, fireEvent} from 'react-testing-library';
-import Priem from '../src/Priem';
-import {Container, populateStore, flushStore} from '../src/Container';
 import render from '../__test-helpers__/render';
+import {testComponent, testComponentNested, ErrorBoundary} from '../__test-helpers__/util';
+import Priem from '../src/Priem';
+import {Container} from '../src/Container';
 
 const setStateSpy = jest.spyOn(Priem.prototype, 'setState');
 const updateSpy = jest.spyOn(Priem.prototype, '_update');
@@ -17,78 +18,11 @@ afterEach(() => {
     updateSpy.mockClear();
     getSpy.mockClear();
     onCacheChangeSpy.mockClear();
-    flushStore();
     cleanup();
 });
 
-export function testComponent({initialStore, options} = {}) {
-    if (initialStore) {
-        populateStore(initialStore);
-    }
-
-    const ctr = new Container({
-        mapPropsToArgs: () => ['foo'],
-        promise: value => delay(100, {value}),
-        ...options,
-    });
-
-    const element = <Priem sources={{ctr}}>{p => <div>{p.ctr.data}</div>}</Priem>;
-
-    return {element, getSpy, onCacheChangeSpy};
-}
-
-export function testComponentNested({initialStore, ctr1Props, ctr2Props} = {}) {
-    if (initialStore) {
-        populateStore(initialStore);
-    }
-
-    const ctr1 = new Container({
-        mapPropsToArgs: () => ['foo'],
-        promise: value => delay(100, {value}),
-        ...ctr1Props,
-    });
-
-    const ctr2 = new Container({
-        mapPropsToArgs: p => (!p.ctr1 ? null : [p.ctr1.data, 'bar']),
-        promise: (ctr1Value, value) => delay(100, {value: ctr1Value + value}),
-        ...ctr2Props,
-    });
-
-    const element = (
-        <Priem sources={{ctr1, ctr2}}>
-            {props => (
-                <Priem sources={{ctr2}} ctr1={props.ctr1}>
-                    {p => <div>{p.ctr2.data}</div>}
-                </Priem>
-            )}
-        </Priem>
-    );
-
-    return {element};
-}
-
-/* eslint-disable react/no-unused-state */
-export class ErrorBoundary extends React.Component {
-    constructor() {
-        super();
-        this.state = {initTime: Date.now(), hasError: null};
-    }
-
-    componentDidCatch(error) {
-        this.setState({hasError: error, catchTime: Date.now()});
-    }
-
-    render() {
-        if (this.state.hasError) {
-            return null;
-        }
-        return this.props.children;
-    }
-}
-/* eslint-enable react/no-unused-state */
-
 it('should render', async () => {
-    const {element} = testComponent();
+    const element = testComponent();
     const {container, instance} = render(element);
 
     expect(instance).toHaveProperty('_isPriemComponent', true);
@@ -205,7 +139,7 @@ it('should resubscribe when `sources` change', async () => {
 });
 
 it('should have a `refresh` method', async () => {
-    const {element} = testComponent();
+    const element = testComponent();
     const {container, instance} = render(element);
 
     await delay(200);
@@ -242,7 +176,7 @@ it('should rerun promises when cache expires if `maxAge` is set', async () => {
         maxAge: 1000,
     };
 
-    const {element} = testComponent({options});
+    const element = testComponent({options});
     const {container, rerender} = render(element);
 
     // mount (pending)
@@ -345,15 +279,11 @@ it('should pass a `refresh` method as a render prop', async () => {
 });
 
 it('should render a nested component', async () => {
-    const {element} = testComponentNested({
-        ctr1Props: {ssrKey: 'unique-key-1'},
-        ctr2Props: {ssrKey: 'unique-key-2'},
-    });
+    const element = testComponentNested();
     const {container} = render(element);
     await delay(300);
 
     expect(container.innerHTML).toBe('<div>foobar</div>');
-    expect(flushStore()).toEqual({});
 });
 
 it('should render components that are subscribed to the same container but need different data', async () => {

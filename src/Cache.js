@@ -37,7 +37,7 @@ export class CacheItem {
 
 const REDUCED = '@@reduced';
 const reduced = value => ({[REDUCED]: true, value});
-function reduce(cache, accumulator, iteratee) {
+export function reduce(cache, accumulator, iteratee) {
     let item = cache.head;
     let result = accumulator;
     while (item !== null) {
@@ -57,7 +57,11 @@ export class Cache {
         this.size = 0;
 
         for (let i = items.length; i > 0; i--) {
-            this.prepend(items[i - 1]);
+            let item = items[i - 1];
+            if (!(item instanceof CacheItem)) {
+                item = new CacheItem(item.key, item.value);
+            }
+            this.prepend(item);
         }
     }
 
@@ -97,12 +101,5 @@ export class Cache {
 
     findBy(predicate) {
         return reduce(this, null, (acc, item) => (predicate(item) ? reduced(item) : acc));
-    }
-
-    toArray() {
-        return reduce(this, [], (acc, item) => {
-            acc.push(item);
-            return acc;
-        });
     }
 }

@@ -1,5 +1,3 @@
-export const noop = () => {};
-
 export const isBrowser = typeof window === 'object' && typeof document === 'object' && document.nodeType === 9;
 
 export function type(value) {

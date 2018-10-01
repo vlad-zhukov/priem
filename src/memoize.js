@@ -1,43 +1,34 @@
-import {Cache, CacheItem} from './Cache';
-import {noop, type} from './helpers';
+import {Cache, CacheItem, reduce} from './Cache';
+import {type, isBrowser} from './helpers';
 
-/**
- * @function isSameValueZero
- *
- * @description
- * are the objects equal based on SameValueZero
- *
- * @param {any} object1 the first object to compare
- * @param {any} object2 the second object to compare
- * @returns {boolean} are the two objects equal
- */
+const noop = () => {};
+
 function isSameValueZero(object1, object2) {
     // eslint-disable-next-line no-self-compare
     return object1 === object2 || (object1 !== object1 && object2 !== object2);
 }
 
-/**
- * @function areKeysEqual
- *
- * @description
- * are the keys shallowly equal to one another
- *
- * @param {Array<any>} keys1 the keys array to test against
- * @param {Array<any>} keys2 the keys array to test
- * @returns {boolean} are the keys shallowly equal
- */
 export function areKeysEqual(keys1, keys2) {
     if (keys1.length !== keys2.length) {
         return false;
     }
-
-    for (let index = 0; index < keys1.length; index++) {
-        if (!isSameValueZero(keys1[index], keys2[index])) {
+    for (let i = 0; i < keys1.length; i++) {
+        if (isSameValueZero(keys1[i], keys2[i]) === false) {
             return false;
         }
     }
-
     return true;
+}
+
+export function toSerializableArray(cache) {
+    return reduce(cache, [], (acc, item) => {
+        const {status, data, reason} = item.value;
+        acc.push({
+            key: item.key,
+            value: {status, data, reason},
+        });
+        return acc;
+    });
 }
 
 export const PENDING = 0;
@@ -45,7 +36,7 @@ export const FULFILLED = 1;
 export const REJECTED = 2;
 
 function createTimeout(cache, item, maxAge, onCacheChange) {
-    if (maxAge !== null) {
+    if (isBrowser === true && maxAge !== null) {
         clearTimeout(item.expireId);
         // eslint-disable-next-line no-param-reassign
         item.expireId = setTimeout(() => {
