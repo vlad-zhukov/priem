@@ -1,5 +1,5 @@
 import delay from 'delay';
-import memoize from '../src/memoize';
+import memoize, {toSerializableArray} from '../src/memoize';
 
 it('should memoize promises', async () => {
     const memoized = memoize({fn: name => delay(200, {value: `Hello ${name}!`}), maxSize: 2});
@@ -119,15 +119,14 @@ it('should default `maxSize` to 1', async () => {
 
     memoized(['SpongeBob']);
     await delay(300);
-    expect(memoized.cache.toArray()).toMatchInlineSnapshot(`
+    expect(toSerializableArray(memoized.cache)).toMatchInlineSnapshot(`
 Array [
-  CacheItem {
+  Object {
     "key": Array [
       "SpongeBob",
     ],
     "value": Object {
       "data": "Hello SpongeBob!",
-      "promise": Promise {},
       "reason": null,
       "status": 1,
     },
@@ -137,16 +136,15 @@ Array [
 
     memoized(['SpongeBob', 'Patrick']);
     await delay(300);
-    expect(memoized.cache.toArray()).toMatchInlineSnapshot(`
+    expect(toSerializableArray(memoized.cache)).toMatchInlineSnapshot(`
 Array [
-  CacheItem {
+  Object {
     "key": Array [
       "SpongeBob",
       "Patrick",
     ],
     "value": Object {
       "data": "Hello SpongeBob and Patrick!",
-      "promise": Promise {},
       "reason": null,
       "status": 1,
     },
@@ -161,16 +159,15 @@ it('should properly match equal keys', async () => {
     memoized([NaN, NaN]);
     memoized([NaN, NaN]);
 
-    expect(memoized.cache.toArray()).toMatchInlineSnapshot(`
+    expect(toSerializableArray(memoized.cache)).toMatchInlineSnapshot(`
 Array [
-  CacheItem {
+  Object {
     "key": Array [
       NaN,
       NaN,
     ],
     "value": Object {
       "data": null,
-      "promise": Promise {},
       "reason": null,
       "status": 0,
     },
@@ -184,15 +181,14 @@ it('should have a `maxAge` option', async () => {
     const memoized = memoize({fn: () => delay(200), maxSize: 2, onCacheChange, maxAge: 500});
 
     memoized(['SpongeBob']);
-    expect(memoized.cache.toArray()).toMatchInlineSnapshot(`
+    expect(toSerializableArray(memoized.cache)).toMatchInlineSnapshot(`
 Array [
-  CacheItem {
+  Object {
     "key": Array [
       "SpongeBob",
     ],
     "value": Object {
       "data": null,
-      "promise": Promise {},
       "reason": null,
       "status": 0,
     },
@@ -202,15 +198,14 @@ Array [
     expect(onCacheChange).toHaveBeenCalledTimes(0);
 
     await delay(300);
-    expect(memoized.cache.toArray()).toMatchInlineSnapshot(`
+    expect(toSerializableArray(memoized.cache)).toMatchInlineSnapshot(`
 Array [
-  CacheItem {
+  Object {
     "key": Array [
       "SpongeBob",
     ],
     "value": Object {
       "data": undefined,
-      "promise": Promise {},
       "reason": null,
       "status": 1,
     },
@@ -220,26 +215,24 @@ Array [
     expect(onCacheChange).toHaveBeenCalledTimes(1);
 
     memoized(['Patrick']);
-    expect(memoized.cache.toArray()).toMatchInlineSnapshot(`
+    expect(toSerializableArray(memoized.cache)).toMatchInlineSnapshot(`
 Array [
-  CacheItem {
+  Object {
     "key": Array [
       "Patrick",
     ],
     "value": Object {
       "data": null,
-      "promise": Promise {},
       "reason": null,
       "status": 0,
     },
   },
-  CacheItem {
+  Object {
     "key": Array [
       "SpongeBob",
     ],
     "value": Object {
       "data": undefined,
-      "promise": Promise {},
       "reason": null,
       "status": 1,
     },
@@ -249,26 +242,24 @@ Array [
     expect(onCacheChange).toHaveBeenCalledTimes(1);
 
     await delay(300);
-    expect(memoized.cache.toArray()).toMatchInlineSnapshot(`
+    expect(toSerializableArray(memoized.cache)).toMatchInlineSnapshot(`
 Array [
-  CacheItem {
+  Object {
     "key": Array [
       "Patrick",
     ],
     "value": Object {
       "data": undefined,
-      "promise": Promise {},
       "reason": null,
       "status": 1,
     },
   },
-  CacheItem {
+  Object {
     "key": Array [
       "SpongeBob",
     ],
     "value": Object {
       "data": undefined,
-      "promise": Promise {},
       "reason": null,
       "status": 1,
     },
@@ -316,15 +307,14 @@ it('should not fail to expire if the key does not exist', async () => {
     expect(onCacheChange).toHaveBeenCalledTimes(0);
     await delay(300);
     expect(onCacheChange).toHaveBeenCalledTimes(1);
-    expect(memoized.cache.toArray()).toMatchInlineSnapshot(`
+    expect(toSerializableArray(memoized.cache)).toMatchInlineSnapshot(`
 Array [
-  CacheItem {
+  Object {
     "key": Array [
       "SpongeBob",
     ],
     "value": Object {
       "data": undefined,
-      "promise": Promise {},
       "reason": null,
       "status": 1,
     },
@@ -361,15 +351,14 @@ it('should refresh when called with `forceRefresh`', async () => {
     memoized(['SpongeBob']);
     expect(onCacheChange).toHaveBeenCalledTimes(0);
     await delay(300);
-    expect(memoized.cache.toArray()).toMatchInlineSnapshot(`
+    expect(toSerializableArray(memoized.cache)).toMatchInlineSnapshot(`
 Array [
-  CacheItem {
+  Object {
     "key": Array [
       "SpongeBob",
     ],
     "value": Object {
       "data": "SquarePants",
-      "promise": Promise {},
       "reason": null,
       "status": 1,
     },
@@ -378,15 +367,14 @@ Array [
 `);
 
     memoized(['SpongeBob'], {forceRefresh: true});
-    expect(memoized.cache.toArray()).toMatchInlineSnapshot(`
+    expect(toSerializableArray(memoized.cache)).toMatchInlineSnapshot(`
 Array [
-  CacheItem {
+  Object {
     "key": Array [
       "SpongeBob",
     ],
     "value": Object {
       "data": "SquarePants",
-      "promise": Promise {},
       "reason": null,
       "status": 0,
     },
@@ -395,15 +383,14 @@ Array [
 `);
 
     await delay(300);
-    expect(memoized.cache.toArray()).toMatchInlineSnapshot(`
+    expect(toSerializableArray(memoized.cache)).toMatchInlineSnapshot(`
 Array [
-  CacheItem {
+  Object {
     "key": Array [
       "SpongeBob",
     ],
     "value": Object {
       "data": "SquarePants",
-      "promise": Promise {},
       "reason": null,
       "status": 1,
     },
@@ -420,15 +407,14 @@ it('should throttle refreshing', async () => {
 
     memoized(['SpongeBob']);
     await delay(300);
-    expect(memoized.cache.toArray()).toMatchInlineSnapshot(`
+    expect(toSerializableArray(memoized.cache)).toMatchInlineSnapshot(`
 Array [
-  CacheItem {
+  Object {
     "key": Array [
       "SpongeBob",
     ],
     "value": Object {
       "data": "SquarePants",
-      "promise": Promise {},
       "reason": null,
       "status": 1,
     },
@@ -442,15 +428,14 @@ Array [
     expect(item1).toBe(item2);
     expect(item1.promise).toBe(item2.promise);
 
-    expect(memoized.cache.toArray()).toMatchInlineSnapshot(`
+    expect(toSerializableArray(memoized.cache)).toMatchInlineSnapshot(`
 Array [
-  CacheItem {
+  Object {
     "key": Array [
       "SpongeBob",
     ],
     "value": Object {
       "data": "SquarePants",
-      "promise": Promise {},
       "reason": null,
       "status": 0,
     },

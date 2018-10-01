@@ -23,3 +23,20 @@ it('should default `mapPropsToArgs` to a function that returns an empty array', 
     });
     expect(ctr._mapPropsToArgs()).toEqual([]);
 });
+
+it('should not automatically populate store in browser evironments', () => {
+    const ctr = new Container({
+        mapPropsToArgs: () => ['foo'],
+        promise: value => delay(100, {value}),
+    });
+
+    expect(ctr._get({})).toMatchInlineSnapshot(`
+Object {
+  "data": null,
+  "promise": Promise {},
+  "reason": null,
+  "status": 0,
+}
+`);
+    expect(flushStore()).toMatchInlineSnapshot(`Object {}`);
+});

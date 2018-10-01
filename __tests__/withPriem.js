@@ -5,10 +5,9 @@ import delay from 'delay';
 import {cleanup} from 'react-testing-library';
 import render from '../__test-helpers__/render';
 import withPriem from '../src/withPriem';
-import {Container, populateStore, flushStore} from '../src/Container';
+import {Container, populateStore} from '../src/Container';
 
 afterEach(() => {
-    flushStore();
     cleanup();
 });
 

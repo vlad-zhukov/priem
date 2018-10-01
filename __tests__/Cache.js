@@ -1,4 +1,11 @@
-import {Cache, CacheItem} from '../src/Cache';
+import {Cache, CacheItem, reduce} from '../src/Cache';
+
+function toArray(cache) {
+    return reduce(cache, [], (acc, item) => {
+        acc.push(item);
+        return acc;
+    });
+}
 
 const createCache = (size = 5) => {
     const items = [
@@ -26,7 +33,7 @@ Cache {
   },
 }
 `);
-    expect(cache.toArray()).toMatchInlineSnapshot(`
+    expect(toArray(cache)).toMatchInlineSnapshot(`
 Array [
   CacheItem {
     "key": "foo",
@@ -51,7 +58,7 @@ Cache {
 `);
 
     cache.prepend(new CacheItem('foo', 123));
-    expect(cache.toArray()).toMatchInlineSnapshot(`
+    expect(toArray(cache)).toMatchInlineSnapshot(`
 Array [
   CacheItem {
     "key": "foo",
@@ -61,7 +68,7 @@ Array [
 `);
 
     cache.prepend(new CacheItem('bar', 234));
-    expect(cache.toArray()).toMatchInlineSnapshot(`
+    expect(toArray(cache)).toMatchInlineSnapshot(`
 Array [
   CacheItem {
     "key": "bar",
@@ -77,7 +84,7 @@ Array [
 
 it('should find am item by predicate', () => {
     const cache = createCache(2);
-    expect(cache.toArray()).toMatchInlineSnapshot(`
+    expect(toArray(cache)).toMatchInlineSnapshot(`
 Array [
   CacheItem {
     "key": "foo",
@@ -105,7 +112,7 @@ CacheItem {
     expect(res2).toBeNull();
     expect(fn2).toHaveBeenCalledTimes(2);
 
-    expect(cache.toArray()).toMatchInlineSnapshot(`
+    expect(toArray(cache)).toMatchInlineSnapshot(`
 Array [
   CacheItem {
     "key": "foo",
@@ -143,7 +150,7 @@ CacheItem {
     cache.remove(res1);
     cache.remove(res2);
 
-    expect(cache.toArray()).toMatchInlineSnapshot(`
+    expect(toArray(cache)).toMatchInlineSnapshot(`
 Array [
   CacheItem {
     "key": "bar",
@@ -162,7 +169,7 @@ it('should not remove an item if it is `null` or `item.lastRefreshAt` is `null`'
     cache.remove(null);
     cache.remove(item);
 
-    expect(cache.toArray()).toMatchInlineSnapshot(`
+    expect(toArray(cache)).toMatchInlineSnapshot(`
 Array [
   CacheItem {
     "key": "foo",

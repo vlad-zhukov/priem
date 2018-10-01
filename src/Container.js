@@ -1,5 +1,5 @@
-import memoize, {areKeysEqual} from './memoize';
-import {assertType} from './helpers';
+import memoize, {areKeysEqual, toSerializableArray} from './memoize';
+import {assertType, isBrowser} from './helpers';
 
 let store = {};
 
@@ -25,12 +25,16 @@ export class Container {
         assertType(ssrKey, ['string', 'undefined'], "'ssrKey'");
 
         this._mapPropsToArgs = mapPropsToArgs || (() => []);
+        this._ssrKey = ssrKey;
         this._listeners = [];
 
         this._onCacheChange = this._onCacheChange.bind(this);
 
-        const initialCache = store[ssrKey];
-        store[ssrKey] = undefined;
+        let initialCache;
+        if (ssrKey) {
+            initialCache = store[ssrKey];
+            delete store[ssrKey];
+        }
 
         this._memoized = memoize({
             fn: promise,
@@ -49,7 +53,11 @@ export class Container {
             return null;
         }
 
-        return this._memoized(args, {forceRefresh});
+        const ret = this._memoized(args, {forceRefresh});
+        if (isBrowser === false && this._ssrKey) {
+            store[this._ssrKey] = toSerializableArray(this._memoized.cache);
+        }
+        return ret;
     }
 
     _onCacheChange(args, forceRefresh) {
