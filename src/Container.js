@@ -1,6 +1,6 @@
 import memoize, {areKeysEqual, toSerializableArray} from './memoize';
 import {normalizeProps} from './Priem';
-import {assertType, isBrowser} from './helpers';
+import {type, assertType, isBrowser} from './helpers';
 
 let store = {};
 
@@ -53,6 +53,17 @@ export class Container {
         if (args === null) {
             return null;
         }
+
+        args.forEach(arg => {
+            const typeOfArg = type(arg);
+            if (typeOfArg === 'object' || typeOfArg === 'array') {
+                throw new TypeError(
+                    'Priem: Passing reference types (such as objects and arrays) to `promise` function is ' +
+                        "discouraged as it's very error prone and often causes infinite rerenders. " +
+                        'Please change this function signature to only use primitive types.'
+                );
+            }
+        });
 
         const ret = this._memoized(args, forceRefresh);
         if (isBrowser === false && this._ssrKey) {
