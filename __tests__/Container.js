@@ -24,7 +24,7 @@ it('should default `mapPropsToArgs` to a function that returns an empty array', 
     expect(ctr._mapPropsToArgs()).toEqual([]);
 });
 
-it('should not automatically populate store in browser evironments', () => {
+it('should not automatically populate store in browser environments', () => {
     const ctr = new Container({
         mapPropsToArgs: () => ['foo'],
         promise: value => delay(100, {value}),
@@ -39,4 +39,15 @@ Object {
 }
 `);
     expect(flushStore()).toMatchInlineSnapshot(`Object {}`);
+});
+
+it('should guard against passing reference types to `promise` function', () => {
+    const ctr = new Container({
+        mapPropsToArgs: () => [{}],
+        promise: value => delay(100, {value}),
+    });
+
+    expect(() => ctr._get({})).toThrowErrorMatchingInlineSnapshot(
+        `"Priem: Passing reference types (such as objects and arrays) to \`promise\` function is discouraged as it's very error prone and often causes infinite rerenders. Please change this function signature to only use primitive types."`
+    );
 });
