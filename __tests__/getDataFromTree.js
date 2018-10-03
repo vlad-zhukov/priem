@@ -41,14 +41,14 @@ Object {
 
 it('should fetch data from a nested component', async () => {
     const element = testComponentNested({
-        ctr1Props: {ssrKey: 'unique-key-2'},
-        ctr2Props: {ssrKey: 'unique-key-3'},
+        ctr1Props: {ssrKey: 'unique-key-1'},
+        ctr2Props: {ssrKey: 'unique-key-2'},
     });
     await getDataFromTree(element);
 
     expect(flushStore()).toMatchInlineSnapshot(`
 Object {
-  "unique-key-2": Array [
+  "unique-key-1": Array [
     Object {
       "key": Array [
         "foo",
@@ -60,7 +60,7 @@ Object {
       },
     },
   ],
-  "unique-key-3": Array [
+  "unique-key-2": Array [
     Object {
       "key": Array [
         "foo",
@@ -83,16 +83,16 @@ Object {
 
 it('should rehydrate data from initial store', async () => {
     const serverElement = testComponentNested({
-        ctr1Props: {ssrKey: 'unique-key-2'},
-        ctr2Props: {ssrKey: 'unique-key-3'},
+        ctr1Props: {ssrKey: 'unique-key-1'},
+        ctr2Props: {ssrKey: 'unique-key-2'},
     });
     await getDataFromTree(serverElement);
     const initialStore = flushStore();
 
     const clientElement = testComponentNested({
         initialStore,
-        ctr1Props: {ssrKey: 'unique-key-2'},
-        ctr2Props: {ssrKey: 'unique-key-3'},
+        ctr1Props: {ssrKey: 'unique-key-1'},
+        ctr2Props: {ssrKey: 'unique-key-2'},
     });
     const content = ReactDOM.renderToStaticMarkup(clientElement);
 

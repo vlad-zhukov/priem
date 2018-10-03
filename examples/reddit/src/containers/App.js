@@ -4,7 +4,7 @@ import Picker from '../components/Picker';
 import Posts from '../components/Posts';
 
 const reddit = new Container({
-    mapPropsToArgs: props => [props.reddit],
+    mapPropsToArgs: props => [props.redditName],
     promise: reddit => {
         return fetch(`https://www.reddit.com/r/${reddit}.json`)
             .then(res => res.json())
@@ -27,33 +27,27 @@ export default class App extends React.Component {
 
     render() {
         return (
-            <Priem reddit={this.state.reddit} sources={{reddit}}>
-                {({reddit, refresh}) => {
-                    const {value, lastUpdated} = reddit;
-                    return (
-                        <div>
-                            <Picker
-                                value={this.state.reddit}
-                                onChange={this.handleChange}
-                                options={['reactjs', 'frontend']}
-                            />
-                            <p>
-                                {lastUpdated && (
-                                    <span>Last updated at {new Date(lastUpdated).toLocaleTimeString()}. </span>
+            <div>
+                <Picker value={this.state.reddit} onChange={this.handleChange} options={['reactjs', 'frontend']} />
+                <Priem redditName={this.state.reddit} sources={{reddit}}>
+                    {({reddit, refresh}) => {
+                        const {data, status} = reddit;
+
+                        return (
+                            <>
+                                <p>{data && <button onClick={refresh}>Refresh</button>}</p>
+                                {data ? (
+                                    <div style={{opacity: status === 0 ? 0.5 : 1}}>
+                                        <Posts posts={data} />
+                                    </div>
+                                ) : (
+                                    <h2>Loading...</h2>
                                 )}
-                                {value && <button onClick={refresh}>Refresh</button>}
-                            </p>
-                            {value ? (
-                                <div style={{opacity: !value ? 0.5 : 1}}>
-                                    <Posts posts={value} />
-                                </div>
-                            ) : (
-                                <h2>Loading...</h2>
-                            )}
-                        </div>
-                    );
-                }}
-            </Priem>
+                            </>
+                        );
+                    }}
+                </Priem>
+            </div>
         );
     }
 }

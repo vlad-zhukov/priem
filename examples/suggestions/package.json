@@ -1,14 +1,14 @@
 {
-  "name": "reddit",
-  "version": "0.0.1",
+  "name": "suggestions",
+  "version": "0.1.0",
   "private": true,
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build"
   },
   "dependencies": {
-    "prop-types": "^15.6.2",
     "react": "^16.5.2",
+    "react-autosuggest": "^9.4.2",
     "react-dom": "^16.5.2"
   },
   "devDependencies": {

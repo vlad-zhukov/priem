@@ -4,8 +4,6 @@ import memoize, {toSerializableArray} from '../src/memoize';
 it('should memoize promises', async () => {
     const memoized = memoize({fn: name => delay(200, {value: `Hello ${name}!`}), maxSize: 2});
 
-    expect(memoized.isMemoized).toBe(true);
-
     expect(memoized(['world'])).toMatchInlineSnapshot(`
 Object {
   "data": null,
@@ -366,7 +364,7 @@ Array [
 ]
 `);
 
-    memoized(['SpongeBob'], {forceRefresh: true});
+    memoized(['SpongeBob'], true);
     expect(toSerializableArray(memoized.cache)).toMatchInlineSnapshot(`
 Array [
   Object {
@@ -422,8 +420,8 @@ Array [
 ]
 `);
 
-    const item1 = memoized(['SpongeBob'], {forceRefresh: true});
-    const item2 = memoized(['SpongeBob'], {forceRefresh: true});
+    const item1 = memoized(['SpongeBob'], true);
+    const item2 = memoized(['SpongeBob'], true);
 
     expect(item1).toBe(item2);
     expect(item1.promise).toBe(item2.promise);

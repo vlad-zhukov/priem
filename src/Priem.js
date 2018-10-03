@@ -1,6 +1,16 @@
 import React from 'react';
 import {assertType} from './helpers';
 
+export function normalizeProps({children, component, sources, ...props}, forceRefresh) {
+    assertType(sources, ['object'], "<Priem />'s 'sources'");
+    Object.keys(sources).forEach(key => {
+        // eslint-disable-next-line no-param-reassign
+        props[key] = sources[key]._get(props, forceRefresh);
+    });
+
+    return props;
+}
+
 const DUMMY_STATE = {};
 
 export default class Priem extends React.Component {
@@ -86,16 +96,10 @@ export default class Priem extends React.Component {
             forceRefresh = true; // eslint-disable-line no-param-reassign
         }
 
-        const {children, component, sources, ...props} = this.props;
-        assertType(sources, ['object'], "<Priem />'s 'sources'");
-        Object.keys(sources).forEach(key => {
-            props[key] = sources[key]._get(props, forceRefresh);
-        });
-
+        const props = normalizeProps(this.props, forceRefresh);
         if (populateWithRefresh) {
             props.refresh = this.refresh;
         }
-
         return props;
     }
 
