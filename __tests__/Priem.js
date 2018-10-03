@@ -38,7 +38,7 @@ it('should render', async () => {
     instance._update();
     expect(instance).toHaveProperty('_isMounted', false);
     expect(setStateSpy).toHaveBeenCalledTimes(1);
-    expect(updateSpy).toHaveBeenCalledTimes(2); // Called it the second time manually above
+    expect(updateSpy).toHaveBeenCalledTimes(2); // Called it the second time above
 });
 
 it('should use `children` and `component` props', async () => {
@@ -83,6 +83,8 @@ it('should throw if neither `children` nor `component` have been passed', async 
             <Priem sources={{ctr}} />
         </ErrorBoundary>
     );
+
+    await delay(150);
 
     expect(instance.state.hasError).toMatchInlineSnapshot(
         `[TypeError: Priem: <Priem />'s 'children' must be one of the following: 'function', but got: 'null'.]`
@@ -144,15 +146,15 @@ it('should have a `refresh` method', async () => {
 
     await delay(200);
     expect(container.innerHTML).toBe('<div>foo</div>');
-    expect(getSpy).toHaveBeenCalledTimes(2);
+    expect(getSpy).toHaveBeenCalledTimes(3);
 
     instance.refresh();
     expect(container.innerHTML).toBe('<div>foo</div>');
-    expect(getSpy).toHaveBeenCalledTimes(3);
+    expect(getSpy).toHaveBeenCalledTimes(4);
 
     await delay(200);
     expect(container.innerHTML).toBe('<div>foo</div>');
-    expect(getSpy).toHaveBeenCalledTimes(4);
+    expect(getSpy).toHaveBeenCalledTimes(6);
 });
 
 it('should rerun promises when cache expires if `maxAge` is set', async () => {
@@ -195,7 +197,7 @@ it('should rerun promises when cache expires if `maxAge` is set', async () => {
     expect(setStateSpy).toHaveBeenCalledTimes(1);
     expect(updateSpy).toHaveBeenCalledTimes(1);
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(1);
-    expect(getSpy).toHaveBeenCalledTimes(2);
+    expect(getSpy).toHaveBeenCalledTimes(3);
 
     rerender(React.cloneElement(element, {count: 2}));
 
@@ -205,7 +207,7 @@ it('should rerun promises when cache expires if `maxAge` is set', async () => {
     expect(setStateSpy).toHaveBeenCalledTimes(1);
     expect(updateSpy).toHaveBeenCalledTimes(1);
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(1);
-    expect(getSpy).toHaveBeenCalledTimes(3);
+    expect(getSpy).toHaveBeenCalledTimes(4);
 
     await delay(210);
 
@@ -215,7 +217,7 @@ it('should rerun promises when cache expires if `maxAge` is set', async () => {
     expect(setStateSpy).toHaveBeenCalledTimes(2);
     expect(updateSpy).toHaveBeenCalledTimes(2);
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(2);
-    expect(getSpy).toHaveBeenCalledTimes(4);
+    expect(getSpy).toHaveBeenCalledTimes(6);
 
     await delay(800);
 
@@ -225,7 +227,7 @@ it('should rerun promises when cache expires if `maxAge` is set', async () => {
     expect(setStateSpy).toHaveBeenCalledTimes(3);
     expect(updateSpy).toHaveBeenCalledTimes(3);
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(3);
-    expect(getSpy).toHaveBeenCalledTimes(5);
+    expect(getSpy).toHaveBeenCalledTimes(8);
 
     await delay(210);
 
@@ -235,7 +237,7 @@ it('should rerun promises when cache expires if `maxAge` is set', async () => {
     expect(setStateSpy).toHaveBeenCalledTimes(4);
     expect(updateSpy).toHaveBeenCalledTimes(4);
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(4);
-    expect(getSpy).toHaveBeenCalledTimes(6);
+    expect(getSpy).toHaveBeenCalledTimes(10);
 });
 
 it('should pass a `refresh` method as a render prop', async () => {
@@ -244,11 +246,12 @@ it('should pass a `refresh` method as a render prop', async () => {
         mapPropsToArgs: () => [`foo`],
         promise(value) {
             if (shouldReject) {
-                return delay.reject(100, {value: new Error('error!')});
+                return delay.reject(10, {value: new Error('error!')});
             }
             shouldReject = true;
             return delay(100, {value});
         },
+        maxSize: 10,
     });
 
     const element = (
@@ -256,9 +259,12 @@ it('should pass a `refresh` method as a render prop', async () => {
             {p => {
                 expect(typeof p.refresh).toBe('function');
                 return (
-                    <button type="button" onClick={p.refresh}>
-                        {p.ctr.data}
-                    </button>
+                    <>
+                        <button type="button" onClick={p.refresh}>
+                            {p.ctr.data}
+                        </button>
+                        {p.ctr.reason && <p>{p.ctr.reason.message}</p>}
+                    </>
                 );
             }}
         </Priem>
@@ -267,15 +273,23 @@ it('should pass a `refresh` method as a render prop', async () => {
     const {container} = render(element);
 
     expect(container.innerHTML).toBe('<button type="button"></button>');
+    expect(getSpy).toHaveBeenCalledTimes(1);
 
     await delay(200);
     expect(container.innerHTML).toBe('<button type="button">foo</button>');
+    expect(getSpy).toHaveBeenCalledTimes(3);
 
     fireEvent.click(container.querySelector('button'));
     expect(container.innerHTML).toBe('<button type="button">foo</button>');
+    expect(getSpy).toHaveBeenCalledTimes(4);
 
     await delay(200);
-    expect(container.innerHTML).toBe('<button type="button"></button>');
+    expect(container.innerHTML).toBe('<button type="button"></button><p>error!</p>');
+    expect(getSpy).toHaveBeenCalledTimes(6);
+
+    await delay(500);
+    expect(container.innerHTML).toBe('<button type="button"></button><p>error!</p>');
+    expect(getSpy).toHaveBeenCalledTimes(6);
 });
 
 it('should render a nested component', async () => {

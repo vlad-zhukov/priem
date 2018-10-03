@@ -50,7 +50,7 @@ export default function memoize({fn, initialCache = [], maxSize = 1, maxAge = In
     // eslint-disable-next-line no-restricted-globals
     const normalizeMaxAge = type(maxAge) === 'number' && isFinite(maxAge) ? maxAge : null;
 
-    function memoized(args, options) {
+    function memoized(args, forceRefresh) {
         let item = cache.findBy(cacheItem => areKeysEqual(cacheItem.key, args));
         let shouldRefresh = false;
 
@@ -69,7 +69,6 @@ export default function memoize({fn, initialCache = [], maxSize = 1, maxAge = In
                 cache.prepend(item);
             }
 
-            const forceRefresh = (options && options.forceRefresh) || false;
             if (forceRefresh === true) {
                 shouldRefresh = true;
             }
@@ -98,13 +97,8 @@ export default function memoize({fn, initialCache = [], maxSize = 1, maxAge = In
         return item.value;
     }
 
-    Object.defineProperties(memoized, {
-        cache: {
-            value: cache,
-        },
-        isMemoized: {
-            value: true,
-        },
+    Object.defineProperty(memoized, 'cache', {
+        value: cache,
     });
 
     return memoized;

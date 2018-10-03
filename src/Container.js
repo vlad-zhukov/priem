@@ -1,4 +1,5 @@
 import memoize, {areKeysEqual, toSerializableArray} from './memoize';
+import {normalizeProps} from './Priem';
 import {assertType, isBrowser} from './helpers';
 
 let store = {};
@@ -53,7 +54,7 @@ export class Container {
             return null;
         }
 
-        const ret = this._memoized(args, {forceRefresh});
+        const ret = this._memoized(args, forceRefresh);
         if (isBrowser === false && this._ssrKey) {
             store[this._ssrKey] = toSerializableArray(this._memoized.cache);
         }
@@ -62,7 +63,8 @@ export class Container {
 
     _onCacheChange(args, forceRefresh) {
         this._listeners.forEach(comp => {
-            const nextArgs = this._mapPropsToArgs(comp.props);
+            const props = normalizeProps(comp.props, false);
+            const nextArgs = this._mapPropsToArgs(props);
             if (nextArgs !== null && areKeysEqual(args, nextArgs)) {
                 comp._update(forceRefresh);
             }
