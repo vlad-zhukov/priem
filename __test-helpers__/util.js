@@ -16,7 +16,7 @@ export function testComponent({initialStore, options} = {}) {
         ...options,
     });
 
-    return <Priem sources={{ctr}}>{p => <div>{p.ctr.data}</div>}</Priem>;
+    return <Priem sources={{ctr}}>{p => <div>{p.ctr}</div>}</Priem>;
 }
 
 export function testComponentNested({initialStore, ctr1Props, ctr2Props} = {}) {
@@ -31,7 +31,7 @@ export function testComponentNested({initialStore, ctr1Props, ctr2Props} = {}) {
     });
 
     const ctr2 = new Container({
-        mapPropsToArgs: p => (!p.ctr1 ? null : [p.ctr1.data, 'bar']),
+        mapPropsToArgs: p => (!p.ctr1 ? null : [p.ctr1, 'bar']),
         promise: (ctr1Value, value) => delay(100, {value: ctr1Value + value}),
         ...ctr2Props,
     });
@@ -40,7 +40,7 @@ export function testComponentNested({initialStore, ctr1Props, ctr2Props} = {}) {
         <Priem sources={{ctr1, ctr2}}>
             {props => (
                 <Priem sources={{ctr2}} ctr1={props.ctr1}>
-                    {p => <div>{p.ctr2.data}</div>}
+                    {p => <div>{p.ctr2}</div>}
                 </Priem>
             )}
         </Priem>

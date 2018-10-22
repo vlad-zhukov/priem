@@ -1,15 +1,6 @@
 import React from 'react';
+import {normalizeProps} from './Container';
 import {assertType} from './helpers';
-
-export function normalizeProps({children, component, sources, ...props}, forceRefresh) {
-    assertType(sources, ['object'], "<Priem />'s 'sources'");
-    Object.keys(sources).forEach(key => {
-        // eslint-disable-next-line no-param-reassign
-        props[key] = sources[key]._get(props, forceRefresh);
-    });
-
-    return props;
-}
 
 const DUMMY_STATE = {};
 
@@ -96,25 +87,25 @@ export default class Priem extends React.Component {
             forceRefresh = true; // eslint-disable-line no-param-reassign
         }
 
-        const props = normalizeProps(this.props, forceRefresh);
+        const {props, priemBag} = normalizeProps(this.props, forceRefresh);
         if (populateWithRefresh) {
-            props.refresh = this.refresh;
+            priemBag.refresh = this.refresh;
         }
-        return props;
+        return {props, priemBag};
     }
 
     render() {
         const {children, component} = this.props;
 
-        const props = this._getProps(true);
+        const {props, priemBag} = this._getProps(true);
 
         if (component) {
-            return React.createElement(component, props);
+            return React.createElement(component, Object.assign({}, props, priemBag));
         }
 
         assertType(children, ['function'], "<Priem />'s 'children'");
 
-        return children(props);
+        return children(props, priemBag);
     }
 }
 

@@ -47,8 +47,8 @@ it('should use `children` and `component` props', async () => {
         promise: value => delay(100, {value}),
     });
 
-    const childrenSpy = jest.fn(p => <div>children {p.ctr.data}</div>);
-    const componentSpy = jest.fn(p => <div>component {p.ctr.data}</div>);
+    const childrenSpy = jest.fn(p => <div>children {p.ctr}</div>);
+    const componentSpy = jest.fn(p => <div>component {p.ctr}</div>);
 
     const createElement = (props = {}) => (
         <Priem sources={{ctr}} component={componentSpy} {...props}>
@@ -256,14 +256,14 @@ it('should pass a `refresh` method as a render prop', async () => {
 
     const element = (
         <Priem sources={{ctr}}>
-            {p => {
-                expect(typeof p.refresh).toBe('function');
+            {(p, {refresh, reason}) => {
+                expect(typeof refresh).toBe('function');
                 return (
                     <>
-                        <button type="button" onClick={p.refresh}>
-                            {p.ctr.data}
+                        <button type="button" onClick={refresh}>
+                            {p.ctr}
                         </button>
-                        {p.ctr.reason && <p>{p.ctr.reason.message}</p>}
+                        {reason && <p>{reason.message}</p>}
                     </>
                 );
             }}
@@ -310,10 +310,10 @@ it('should render components that are subscribed to the same container but need 
     const {container} = render(
         <div>
             <Priem sources={{ctr}} value="foo">
-                {p => <div>{p.ctr.data}</div>}
+                {p => <div>{p.ctr}</div>}
             </Priem>
             <Priem sources={{ctr}} value="bar">
-                {p => <div>{p.ctr.data}</div>}
+                {p => <div>{p.ctr}</div>}
             </Priem>
         </div>
     );
