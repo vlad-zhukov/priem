@@ -30,22 +30,18 @@ export default class App extends React.Component {
             <div>
                 <Picker value={this.state.reddit} onChange={this.handleChange} options={['reactjs', 'frontend']} />
                 <Priem redditName={this.state.reddit} sources={{reddit}}>
-                    {({reddit, refresh}) => {
-                        const {data, status} = reddit;
-
-                        return (
-                            <>
-                                <p>{data && <button onClick={refresh}>Refresh</button>}</p>
-                                {data ? (
-                                    <div style={{opacity: status === 0 ? 0.5 : 1}}>
-                                        <Posts posts={data} />
-                                    </div>
-                                ) : (
-                                    <h2>Loading...</h2>
-                                )}
-                            </>
-                        );
-                    }}
+                    {({reddit}, {refresh, pending}) => (
+                        <>
+                            <p>{reddit && <button onClick={refresh}>Refresh</button>}</p>
+                            {reddit ? (
+                                <div style={{opacity: pending ? 0.5 : 1}}>
+                                    <Posts posts={reddit} />
+                                </div>
+                            ) : (
+                                <h2>Loading...</h2>
+                            )}
+                        </>
+                    )}
                 </Priem>
             </div>
         );

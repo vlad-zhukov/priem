@@ -37,13 +37,9 @@ export default class Suggest extends React.Component {
         return (
             <Priem sources={{suggestions}} value={value}>
                 {props => {
-                    let suggestions = [];
-                    if (props.suggestions && props.suggestions.data) {
-                        suggestions = props.suggestions.data;
-                    }
                     return (
                         <Autosuggest
-                            suggestions={suggestions}
+                            suggestions={props.suggestions || []}
                             getSuggestionValue={getSuggestionValue}
                             renderSuggestion={renderSuggestion}
                             inputProps={{value, onChange: this.onChange, placeholder: 'Input something'}}
