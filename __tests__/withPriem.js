@@ -22,7 +22,7 @@ function testComponentDecorated({initialStore, options} = {}) {
         ...options,
     });
 
-    const ComponentDecorated = withPriem({sources: {ctr}})(p => <div>{p.ctr.data}</div>);
+    const ComponentDecorated = withPriem({sources: {ctr}})(p => <div>{p.ctr}</div>);
 
     return {element: <ComponentDecorated />};
 }
@@ -45,18 +45,18 @@ function testComponentNestedDecorated({initialStore} = {}) {
     @withPriem({sources: {ctr1}})
     class TestComponent1 extends React.Component {
         render() {
-            if (!this.props.ctr1.data) {
+            if (!this.props.fulfilled) {
                 return null;
             }
 
-            return <TestComponent2 ctr1Value={this.props.ctr1.data} />;
+            return <TestComponent2 ctr1Value={this.props.ctr1} />;
         }
     }
 
     @withPriem({sources: {ctr2}})
     class TestComponent2 extends React.Component {
         render() {
-            return <div>{this.props.ctr2.data}</div>;
+            return <div>{this.props.ctr2}</div>;
         }
     }
 

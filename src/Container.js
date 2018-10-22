@@ -1,6 +1,34 @@
-import memoize, {areKeysEqual, toSerializableArray} from './memoize';
-import {normalizeProps} from './Priem';
+import memoize, {areKeysEqual, toSerializableArray, PENDING, REJECTED} from './memoize';
 import {type, assertType, isBrowser} from './helpers';
+
+export function normalizeProps({children, component, sources, ...props}, forceRefresh) {
+    assertType(sources, ['object'], "<Priem />'s 'sources'");
+
+    const priemBag = {
+        pending: false,
+        fulfilled: false,
+        rejected: false,
+        reason: null,
+    };
+
+    Object.keys(sources).forEach(key => {
+        const ret = sources[key]._get(props, forceRefresh);
+        if (ret === null || ret.status === PENDING) {
+            priemBag.pending = true;
+        } else if (ret.status === REJECTED && priemBag.rejected === false) {
+            priemBag.rejected = true;
+            priemBag.reason = ret.reason;
+        }
+        // eslint-disable-next-line no-param-reassign
+        props[key] = ret !== null ? ret.data : null;
+    });
+
+    if (priemBag.pending === false && priemBag.rejected === false) {
+        priemBag.fulfilled = true;
+    }
+
+    return {props, priemBag};
+}
 
 let store = {};
 
@@ -74,7 +102,7 @@ export class Container {
 
     _onCacheChange(args, forceRefresh) {
         this._listeners.forEach(comp => {
-            const props = normalizeProps(comp.props, false);
+            const {props} = normalizeProps(comp.props, false);
             const nextArgs = this._mapPropsToArgs(props);
             if (nextArgs !== null && areKeysEqual(args, nextArgs)) {
                 comp._update(forceRefresh);
