@@ -1,13 +1,12 @@
 import React from 'react';
 import {Priem, Container} from 'priem';
-
-const delay = value => new Promise(resolve => setTimeout(() => resolve(value), 1000));
+import delay from 'delay';
 
 const aLongPromise = new Container({
-    promise: () => delay('SpongeBob'),
+    promise: () => delay(1000, {value: 'SpongeBob'}),
     ssrKey: 'a-long-promise',
 });
 
 export default () => (
-    <Priem sources={{aLongPromise}}>{props => <h1>{props.aLongPromise.data || 'Loading...'}</h1>}</Priem>
+    <Priem sources={{aLongPromise}}>{(props, {pending}) => <h1>{pending ? 'Loading...' : props.aLongPromise}</h1>}</Priem>
 );

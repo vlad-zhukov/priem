@@ -3,7 +3,6 @@ import {renderToString} from 'react-dom/server';
 import {StaticRouter} from 'react-router-dom';
 import express from 'express';
 import {getDataFromTree, flushStore} from 'priem';
-import devalue from 'devalue';
 import App from './App';
 
 const assets = require(process.env.RAZZLE_ASSETS_MANIFEST);
@@ -14,6 +13,7 @@ server
     .use(express.static(process.env.RAZZLE_PUBLIC_DIR))
     .get('/*', async (req, res) => {
         await getDataFromTree(App);
+
         const context = {};
         const markup = renderToString(
             <StaticRouter context={context} location={req.url}>
