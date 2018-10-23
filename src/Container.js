@@ -1,7 +1,7 @@
 import memoize, {areKeysEqual, toSerializableArray, PENDING, REJECTED} from './memoize';
 import {type, assertType, isBrowser} from './helpers';
 
-export function normalizeProps({children, component, sources, ...props}, forceRefresh) {
+export function populateProps({children, component, sources, ...props}, forceRefresh) {
     assertType(sources, ['object'], "<Priem />'s 'sources'");
 
     const priemBag = {
@@ -12,15 +12,15 @@ export function normalizeProps({children, component, sources, ...props}, forceRe
     };
 
     Object.keys(sources).forEach(key => {
-        const ret = sources[key]._get(props, forceRefresh);
-        if (ret === null || ret.status === PENDING) {
+        const itemValue = sources[key]._get(props, forceRefresh);
+        if (itemValue === null || itemValue.status === PENDING) {
             priemBag.pending = true;
-        } else if (ret.status === REJECTED && priemBag.rejected === false) {
+        } else if (itemValue.status === REJECTED && priemBag.rejected === false) {
             priemBag.rejected = true;
-            priemBag.reason = ret.reason;
+            priemBag.reason = itemValue.reason;
         }
         // eslint-disable-next-line no-param-reassign
-        props[key] = ret !== null ? ret.data : null;
+        props[key] = itemValue !== null ? itemValue.data : null;
     });
 
     if (priemBag.pending === false && priemBag.rejected === false) {
@@ -75,6 +75,10 @@ export class Container {
     }
 
     _get(props, forceRefresh) {
+        if (isBrowser === false && !this._ssrKey) {
+            return null;
+        }
+
         const args = this._mapPropsToArgs(props);
         assertType(args, ['array', 'null'], "The result of 'mapPropsToArgs(props)'");
 
@@ -102,7 +106,7 @@ export class Container {
 
     _onCacheChange(args, forceRefresh) {
         this._listeners.forEach(comp => {
-            const {props} = normalizeProps(comp.props, false);
+            const {props} = populateProps(comp.props, false);
             const nextArgs = this._mapPropsToArgs(props);
             if (nextArgs !== null && areKeysEqual(args, nextArgs)) {
                 comp._update(forceRefresh);

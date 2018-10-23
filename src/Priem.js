@@ -1,5 +1,5 @@
 import React from 'react';
-import {normalizeProps} from './Container';
+import {populateProps} from './Container';
 import {assertType} from './helpers';
 
 const DUMMY_STATE = {};
@@ -87,7 +87,7 @@ export default class Priem extends React.Component {
             forceRefresh = true; // eslint-disable-line no-param-reassign
         }
 
-        const {props, priemBag} = normalizeProps(this.props, forceRefresh);
+        const {props, priemBag} = populateProps(this.props, forceRefresh);
         if (populateWithRefresh) {
             priemBag.refresh = this.refresh;
         }

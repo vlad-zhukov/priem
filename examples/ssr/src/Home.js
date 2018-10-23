@@ -8,5 +8,7 @@ const aLongPromise = new Container({
 });
 
 export default () => (
-    <Priem sources={{aLongPromise}}>{(props, {pending}) => <h1>{pending ? 'Loading...' : props.aLongPromise}</h1>}</Priem>
+    <Priem sources={{aLongPromise}}>
+        {(props, {pending}) => <h1>{pending ? 'Loading...' : props.aLongPromise}</h1>}
+    </Priem>
 );

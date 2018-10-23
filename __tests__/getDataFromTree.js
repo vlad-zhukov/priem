@@ -81,6 +81,34 @@ Object {
     expect(content).toBe('<div>foobar</div>');
 });
 
+it('should not fetch data from containers without `ssrKey`', async () => {
+    const element = testComponentNested({
+        ctr1Props: {ssrKey: 'unique-key-1'},
+    });
+    await getDataFromTree(element);
+
+    expect(flushStore()).toMatchInlineSnapshot(`
+Object {
+  "unique-key-1": Array [
+    Object {
+      "key": Array [
+        "foo",
+      ],
+      "value": Object {
+        "data": "foo",
+        "reason": null,
+        "status": 1,
+      },
+    },
+  ],
+}
+`);
+
+    const content = ReactDOM.renderToStaticMarkup(element);
+
+    expect(content).toBe('<div></div>');
+});
+
 it('should rehydrate data from initial store', async () => {
     const serverElement = testComponentNested({
         ctr1Props: {ssrKey: 'unique-key-1'},
@@ -111,6 +139,7 @@ it('should catch all errors and reject the promise', async () => {
             throw new Error('bar');
         },
         promise: () => delay(100),
+        ssrKey: 'ctr-1',
     });
     const element1 = <Priem sources={{ctr1}}>{() => null}</Priem>;
     await expect(getDataFromTree(element1)).rejects.toThrow('bar');
@@ -120,6 +149,7 @@ it('should catch all errors and reject the promise', async () => {
             throw new Error('baz');
         },
         promise: () => delay(100),
+        ssrKey: 'ctr-2',
     });
     const element2 = <Priem sources={{ctr1, ctr2}}>{() => null}</Priem>;
     await expect(getDataFromTree(element2)).rejects.toThrow('bar');
