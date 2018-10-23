@@ -8,16 +8,13 @@
 
 -   [Installation](#installation)
 -   [Getting Started](#getting-started)
-    -   [Sync usage](#sync-usage)
-    -   [Server-side rendering](#server-side-rendering)
-    -   [`withPriem` HOC](#withpriem-hoc)
 -   [Examples](#examples)
 -   [API](#api)
-    -   [`createStore`](#createstoreinitialstore)
+    -   [`Container`](#container)
     -   [`Priem`](#priem)
-    -   [`withPriem`](#withpriemprops)
     -   [`getDataFromTree`](#getdatafromtreecomponent)
-    -   [`promiseState`](#promisestate)
+    -   [`populateStore`](#populatestoreinitialstore)
+    -   [`flushStore`](#flishstore)
 
 ## Installation
 
@@ -26,8 +23,6 @@ yarn add priem@beta
 ```
 
 ## Getting Started
-
-### Server-side rendering
 
 **App.js**
 
@@ -142,8 +137,6 @@ A component for subscribing to containers.
 1.  `sources` _(Object)_: An object of containers to subscribe to.
 2.  `[children]` _(Function)_: One of two ways to render components. Must be a function that takes
     [props](#passed-props) and returns React component(s).
-3.  `[component]` _(React.Element)_: A React element that can be rendered using `React.createElement` with
-    [props](#passed-props).
 
 **Passed props**
 
@@ -168,7 +161,7 @@ An async function that walks the component tree and fetches async values. Return
 
 ---
 
-### `populateStore(store)`
+### `populateStore(initialStore)`
 
 A function to populate internal store with initial data from server.
 

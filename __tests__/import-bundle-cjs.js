@@ -6,7 +6,6 @@ describe('import-bundle-cjs', () => {
         expect(typeof priem.Container).toBe('function');
         expect(typeof priem.populateStore).toBe('function');
         expect(typeof priem.flushStore).toBe('function');
-        expect(typeof priem.withPriem).toBe('function');
         expect(typeof priem.getDataFromTree).toBe('function');
     });
 });

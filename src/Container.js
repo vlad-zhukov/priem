@@ -1,7 +1,7 @@
 import memoize, {areKeysEqual, toSerializableArray, PENDING, REJECTED} from './memoize';
 import {type, assertType, isBrowser} from './helpers';
 
-export function populateProps({children, component, sources, ...props}, forceRefresh) {
+export function populateProps({children, sources, ...props}, forceRefresh) {
     assertType(sources, ['object'], "<Priem />'s 'sources'");
 
     const priemBag = {

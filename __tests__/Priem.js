@@ -41,37 +41,6 @@ it('should render', async () => {
     expect(updateSpy).toHaveBeenCalledTimes(2); // Called it the second time above
 });
 
-it('should use `children` and `component` props', async () => {
-    const ctr = new Container({
-        mapPropsToArgs: () => ['foo'],
-        promise: value => delay(100, {value}),
-    });
-
-    const childrenSpy = jest.fn(p => <div>children {p.ctr}</div>);
-    const componentSpy = jest.fn(p => <div>component {p.ctr}</div>);
-
-    const createElement = (props = {}) => (
-        <Priem sources={{ctr}} component={componentSpy} {...props}>
-            {childrenSpy}
-        </Priem>
-    );
-    const {container, rerender} = render(createElement());
-
-    await delay(150);
-
-    expect(childrenSpy).toHaveBeenCalledTimes(0);
-    expect(componentSpy).toHaveBeenCalledTimes(2);
-    expect(container.innerHTML).toBe('<div>component foo</div>');
-
-    rerender(createElement({component: undefined}));
-
-    await delay(150);
-
-    expect(childrenSpy).toHaveBeenCalledTimes(1);
-    expect(componentSpy).toHaveBeenCalledTimes(2);
-    expect(container.innerHTML).toBe('<div>children foo</div>');
-});
-
 it('should throw if neither `children` nor `component` have been passed', async () => {
     const ctr = new Container({
         mapPropsToArgs: () => ['foo'],

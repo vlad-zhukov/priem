@@ -95,21 +95,16 @@ export default class Priem extends React.Component {
     }
 
     render() {
-        const {children, component} = this.props;
-
-        const {props, priemBag} = this._getProps(true);
-
-        if (component) {
-            return React.createElement(component, Object.assign({}, props, priemBag));
-        }
+        const {children} = this.props;
 
         assertType(children, ['function'], "<Priem />'s 'children'");
+
+        const {props, priemBag} = this._getProps(true);
 
         return children(props, priemBag);
     }
 }
 
 Priem.defaultProps = {
-    component: null,
     children: null,
 };
