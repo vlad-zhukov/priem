@@ -12,16 +12,19 @@ server
     .disable('x-powered-by')
     .use(express.static(process.env.RAZZLE_PUBLIC_DIR))
     .get('/*', async (req, res) => {
-        await getDataFromTree(App);
-
         const context = {};
-        const markup = renderToString(
+        const tree = (
             <StaticRouter context={context} location={req.url}>
                 <App />
             </StaticRouter>
         );
 
+        await getDataFromTree(tree);
+        const markup = renderToString(tree);
+
         const priemData = flushStore();
+
+        console.log(priemData['a-long-promise'][0]);
 
         if (context.url) {
             res.redirect(context.url);
