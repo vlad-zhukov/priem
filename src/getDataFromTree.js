@@ -10,7 +10,7 @@ function visitor(element, instance) {
         return;
     }
 
-    const {children, component, sources, ...props} = instance.props;
+    const {children, sources, ...props} = instance.props;
     assertType(sources, ['object'], "<Priem />'s 'sources'");
 
     const promises = Object.keys(sources).reduce((acc, key) => {

@@ -6,8 +6,7 @@ const plugins = [];
 if (env === 'test') {
     plugins.push(
         ['@babel/plugin-transform-modules-commonjs'],
-        ['@babel/plugin-proposal-object-rest-spread', {loose: true}],
-        ['@babel/plugin-proposal-decorators', {legacy: true}]
+        ['@babel/plugin-proposal-object-rest-spread', {loose: true}]
     );
 }
 
