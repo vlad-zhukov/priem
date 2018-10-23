@@ -1,7 +1,11 @@
 import {Cache, CacheItem, reduce} from './Cache';
 import {type, isBrowser} from './helpers';
 
-const noop = () => {};
+const noop = () => true;
+
+export const PENDING = 0;
+export const FULFILLED = 1;
+export const REJECTED = 2;
 
 function isSameValueZero(object1, object2) {
     // eslint-disable-next-line no-self-compare
@@ -20,20 +24,18 @@ export function areKeysEqual(keys1, keys2) {
     return true;
 }
 
-export function toSerializableArray(cache) {
+export function toSerializableArray(cache, filterFulfilled = false) {
     return reduce(cache, [], (acc, item) => {
         const {status, data, reason} = item.value;
-        acc.push({
-            key: item.key,
-            value: {status, data, reason},
-        });
+        if (filterFulfilled !== true || status === FULFILLED) {
+            acc.push({
+                key: item.key,
+                value: {status, data, reason},
+            });
+        }
         return acc;
     });
 }
-
-export const PENDING = 0;
-export const FULFILLED = 1;
-export const REJECTED = 2;
 
 function createTimeout(cache, item, maxAge, onCacheChange) {
     if (isBrowser === true && maxAge !== null) {

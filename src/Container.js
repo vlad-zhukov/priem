@@ -38,11 +38,14 @@ export function populateStore(initialStore) {
 }
 
 export function flushStore() {
+    // TODO: register containers and throw a error when trying to register a container with the same ssrKey
+    // TODO: should flushing clear containers?
     const tmp = store;
     store = {};
     return tmp;
 }
 
+// TODO: introduce a mechanism to dispose unneeded containers?
 export class Container {
     constructor(options) {
         assertType(options, ['object'], "Container argument 'options'");
@@ -99,7 +102,7 @@ export class Container {
 
         const ret = this._memoized(args, forceRefresh);
         if (isBrowser === false && this._ssrKey) {
-            store[this._ssrKey] = toSerializableArray(this._memoized.cache);
+            store[this._ssrKey] = toSerializableArray(this._memoized.cache, true);
         }
         return ret;
     }

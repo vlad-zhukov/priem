@@ -109,6 +109,31 @@ Object {
     expect(content).toBe('<div></div>');
 });
 
+it('should not add non-fulfilled cache items to store', async () => {
+    const ctr1 = new Container({
+        promise: () => delay.reject(100, {value: new Error('Boom!')}),
+        ssrKey: 'ctr-1',
+    });
+
+    const ctr2 = new Container({
+        promise: () => delay(10000, {value: 'A very long delay...'}),
+        ssrKey: 'ctr-2',
+    });
+
+    ctr1._get({});
+
+    await delay(300);
+
+    ReactDOM.renderToString(<Priem sources={{ctr1, ctr2}}>{() => null}</Priem>);
+
+    expect(flushStore()).toMatchInlineSnapshot(`
+Object {
+  "ctr-1": Array [],
+  "ctr-2": Array [],
+}
+`);
+});
+
 it('should rehydrate data from initial store', async () => {
     const serverElement = testComponentNested({
         ctr1Props: {ssrKey: 'unique-key-1'},
