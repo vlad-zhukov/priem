@@ -2,6 +2,8 @@
 
 > Rich async state management.
 
+**`priem` v2 is currently in beta!**
+
 ## Table of Contents
 
 -   [Installation](#installation)
@@ -20,58 +22,38 @@
 ## Installation
 
 ```bash
-yarn add priem
+yarn add priem@beta
 ```
 
 ## Getting Started
 
 ### Server-side rendering
 
-**store.js**
-
-```jsx
-import {createStore} from 'priem';
-
-let initialStore = {};
-
-if (isBrowser) {
-    initialStore = JSON.parse(window.__PRIEM_STORE__);
-    delete window.__PRIEM_STORE__;
-}
-
-const {AsyncContainer, getStore} = createStore(initialStore);
-
-const redditContainer = new AsyncContainer({
-    promise: () =>
-        fetch('https://www.reddit.com/r/reactjs.json')
-            .then(res => res.json())
-            .then(res => res.data.children),
-    ssrKey: 'redditContainer', // this is required for SSR to work
-});
-
-export {redditContainer, getStore};
-```
-
 **App.js**
 
 ```jsx
 import React from 'react';
-import {Priem} from 'priem';
-import {redditContainer} from './store';
+import {Priem, Container} from 'priem';
+
+const redditContainer = new Container({
+    promise: () =>
+        fetch('https://www.reddit.com/r/reactjs.json')
+            .then(res => res.json())
+            .then(res => res.data.children),
+    ssrKey: 'reddit-container',
+});
 
 export default () => (
     <Priem sources={{reddit: redditContainer}}>
-        {({reddit}) => {
-            const {pending, refreshing, value} = reddit;
-
-            if (!value) {
+        {({reddit}, {pending}) => {
+            if (!reddit) {
                 return pending ? <h2>Loading...</h2> : <h2>Empty.</h2>;
             }
 
             return (
-                <div style={{opacity: pending || refreshing ? 0.5 : 1}}>
+                <div style={{opacity: pending ? 0.5 : 1}}>
                     <ul>
-                        {value.map((post, i) => <li key={i}>{post.data.title}</li>)}
+                        {reddit.map((post, i) => <li key={i}>{post.title}</li>)}
                     </ul>
                 </div>
             );
@@ -85,8 +67,7 @@ export default () => (
 ```jsx
 import React from 'react';
 import ReactDOM from 'react-dom/server';
-import {getDataFromTree} from 'priem';
-import {getStore} from './store';
+import {getDataFromTree, flushStore} from 'priem';
 import App from './App';
 
 app.get(async (req, res) => {
@@ -95,7 +76,7 @@ app.get(async (req, res) => {
 
     // We suggest to use a specific library instead of JSON.stringify
     // for example `devalue` or `serialize-javascript`.
-    const storeJson = JSON.stringify(getStore()).replace(/</g, '\\u003c');
+    const storeJson = JSON.stringify(flushStore()).replace(/</g, '\\u003c');
 
     res.send(`
         <!doctype html>
@@ -112,42 +93,15 @@ app.get(async (req, res) => {
 ```jsx
 import React from 'react';
 import ReactDOM from 'react-dom';
-import App from './App';
+import {populateStore} from 'priem';
+
+populateStore(JSON.parse(window.__PRIEM_STORE__));
+delete window.__PRIEM_STORE__;
+
+// Note that the import order is important here
+const App = require('./App').default;
 
 ReactDOM.hydrate(<App />, document.getElementById('root'));
-```
-
-### `withPriem` HOC
-
-The above async example can be rewritten using the [`withPriem`](#withpriem) higher-order component:
-
-```jsx
-import React from 'react';
-import {withPriem} from 'priem';
-import {redditContainer} from './store';
-
-@withPriem({sources: {reddit: redditContainer}})
-class RedditPosts extends React.Component {
-    render() {
-        const {pending, refreshing, value} = this.props.reddit;
-
-        if (!value) {
-            return pending ? <h2>Loading...</h2> : <h2>Empty.</h2>;
-        }
-
-        return (
-            <div style={{opacity: pending || refreshing ? 0.5 : 1}}>
-                <ul>
-                    {value.map((post, i) => (
-                        <li key={i}>{post.data.title}</li>
-                    ))}
-                </ul>
-            </div>
-        );
-    }
-}
-
-export default RedditPosts;
 ```
 
 ## Examples
@@ -155,67 +109,29 @@ export default RedditPosts;
 Example apps can be found under the `examples/` directory.
 
 -   [Reddit](https://github.com/Vlad-Zhukov/priem/tree/master/examples/reddit)
+-   [SSR](https://github.com/Vlad-Zhukov/priem/tree/master/examples/ssr)
+-   [Suggestions](https://github.com/Vlad-Zhukov/priem/tree/master/examples/suggestions)
 
 ## API
 
-### `createStore([initialStore])`
+### `Container`
 
-A function that creates a new store. Optionally takes a single argument `initialStore` that must be a server-side
-rendered store. Return an object with the following properties:
-
-#### `Container`
-
-A base class that should be used to create sync containers. It's also a good idea to extend it with custom functions.
+A container for fetching and caching data. `Priem` components can subscribe to it.
 
 **Constructor arguments:**
 
-1.  `[initialState]` _(Object)_: A state object this container will be created with.
-2.  `[options]` _(Object)_: An options object, that can have the following properties:
-    -   `[persist]` _(Boolean)_: When `false`, this container's state will be set to its initial value when all `Priem`
-        components unsubscribe from this container. Defaults to `true`.
+1.  `options` _(Object)_: An options object, that can have the following properties:
+    -   `promise` _(AsyncFunction)_: An async function that takes arguments created by `mapPropsToArgs` and must return
+        a Promise. If promise rejects, the cache item corresponding to these arguments will have a rejected status.
+    -   `[mapPropsToArgs]` _(Function)_: A function that takes React props and must return an array of **immutable**
+        values that will be passed to the `promise` function as arguments. Returning `null` from this function will
+        prevent the update which can be utilized for waiting for async tasks or user interactions to finish. Defaults to
+        `() => []`.
+    -   `[maxAge]` _(Number)_: A time in milliseconds after which cache items will expire and trigger a refresh.
+    -   `[maxSize]` _(Number)_: A number of maximum cache entries to store. After exceeding this amount the most former
+        used item will be removed and a refresh triggered.
     -   `[ssrKey]` _(String)_: A unique key that will be used to place this container to the store. Required for
         server-side rendering.
-
-**Instance:**
-
-1.  `state` _(Object)_: An instance current state.
-2.  `setState(updater)` _(Function)_: Similarly to React instances, a method to update this container's state, where
-    `updater` argument can be either a function or an object. However unlike in React, the state changes are
-    _synchronous_ and there is no a second callback argument.
-
-#### `AsyncContainer`
-
-A class that extends the basic `Container` class. It was designed to efficiently handle async jobs and never trigger
-unwanted updates of subscribed React components. It also has a built-in cache of promise results using
-[`moize`](https://github.com/planttheidea/moize).
-
-**Constructor arguments:**
-
-1.  `options` _(Object)_: An object that inherits all options from the base `Container` and also allows to set the
-    following:
-    -   `promise` _(AsyncFunction)_: An async function that takes arguments created by `mapPropsToArgs` and returns a
-        Promise. During resolving the state of this container updates with [`promiseState`s](#promisestate).
-    -   `[mapPropsToArgs]` _(Function)_: A function that takes React props and must return an array of values that will
-        be passed to the `promise` function as arguments. During caching args are compared using a shallow equality
-        algorithm, so to avoid unnecessary rerenders make sure you use either immutable values (such as numbers and
-        strings) or pass the same exactily same objects. Returning `null` from this function will prevent the update
-        which can be utilized for waiting for async tasks or user interactions to finish. Defaults to `() => []`.
-    -   `[autoRefresh]` _(Boolean)_: A property that defines if this container resolve the `promise` on initial mounting
-        and when props change. Setting it to `false` makes it only possible to refresh using the `refresh` method from
-        the [`Priem`](#priem) component. Defaults to `true`.
-    -   `[maxAge]` _(Number)_: See [`moize` documentation](https://github.com/planttheidea/moize#advanced-usage).
-    -   `[maxArgs]` _(Number)_: See [`moize` documentation](https://github.com/planttheidea/moize#advanced-usage).
-    -   `[maxSize]` _(Number)_: See [`moize` documentation](https://github.com/planttheidea/moize#advanced-usage).
-
-**Instance:**
-
-1.  `refresh(props)` _(Function)_: An instance method to imperatively trigger an update. Returns a promise that resolves
-    into the next state.
-
-#### `getStore`
-
-A function that return a serializable store from all containers that have a `ssrKey` property. Handy for sending
-server-side rendered store to the client.
 
 ### `Priem`
 
@@ -233,31 +149,34 @@ A component for subscribing to containers.
 
 The following props will be passed down:
 
--   Container stores that will match keys specified in the `sources` prop.
--   `refresh()` _(Function)_: Forces the update of async values.
+1. `props` _(Object)_: An object with all additional properties for `Priem` component and all values from subscribed
+   containers.
+2. `priemBag` _(Object)_: An object that aggregates a state of all subscribed containers.
+    - `pending` _(Boolean)_: `true` if _any_ container is pending.
+    - `fulfilled` _(Boolean)_: `true` if _all_ containers have been fulfilled.
+    - `rejected` _(Boolean)_: `true` if _any_ container has been rejected.
+    - `reason` _(Error|null)_: if _any_ container has been rejected, a error will be provided here. If more than one
+      container has been rejected, only the first error will be stored.
+    - `refresh` _(Function)_: a method to refresh all containers.
 
 ---
 
-### `withPriem(props)`
-
-A simple decorator to create a [`Priem`](#priem) instance. It the same as `Priem` with a single exception that
-'component' and 'children' props are not supported, use decorator syntax instead.
-
----
-
-### `getDataFromTree(component)`
+### `getDataFromTree(element)`
 
 An async function that walks the component tree and fetches async values. Returns a promise that either resolves with
 `undefined` or rejects on errors.
 
 ---
 
-### `promiseState`
+### `populateStore(store)`
 
-Helper functions for promise states.
+A function to populate internal store with initial data from server.
 
--   `isPromiseState(maybePromiseState: any): boolean`
--   `isLoading(promiseState: PromiseState): boolean`
+---
+
+### `flushStore()`
+
+A function that clears internal store and returns it. It's safe to serialize it and send to client.
 
 ---
 

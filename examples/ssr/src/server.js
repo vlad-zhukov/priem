@@ -24,8 +24,6 @@ server
 
         const priemData = flushStore();
 
-        console.log(priemData['a-long-promise'][0]);
-
         if (context.url) {
             res.redirect(context.url);
         } else {
