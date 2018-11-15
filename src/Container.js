@@ -1,34 +1,5 @@
-import memoize, {areKeysEqual, toSerializableArray, PENDING, REJECTED} from './memoize';
+import memoize, {toSerializableArray} from './memoize';
 import {type, assertType, isBrowser} from './helpers';
-
-export function populateProps({children, sources, ...props}, forceRefresh) {
-    assertType(sources, ['object'], "<Priem />'s 'sources'");
-
-    const priemBag = {
-        pending: false,
-        fulfilled: false,
-        rejected: false,
-        reason: null,
-    };
-
-    Object.keys(sources).forEach(key => {
-        const itemValue = sources[key]._get(props, forceRefresh);
-        if (itemValue === null || itemValue.status === PENDING) {
-            priemBag.pending = true;
-        } else if (itemValue.status === REJECTED && priemBag.rejected === false) {
-            priemBag.rejected = true;
-            priemBag.reason = itemValue.reason;
-        }
-        // eslint-disable-next-line no-param-reassign
-        props[key] = itemValue !== null ? itemValue.data : null;
-    });
-
-    if (priemBag.pending === false && priemBag.rejected === false) {
-        priemBag.fulfilled = true;
-    }
-
-    return {props, priemBag};
-}
 
 let store = {};
 
@@ -50,13 +21,11 @@ export class Container {
     constructor(options) {
         assertType(options, ['object'], "Container argument 'options'");
 
-        const {promise, mapPropsToArgs, maxSize, maxAge, ssrKey} = options;
+        const {promise, maxSize, maxAge, ssrKey} = options;
 
         assertType(promise, ['function'], "'promise'");
-        assertType(mapPropsToArgs, ['function', 'undefined'], "'mapPropsToArgs'");
         assertType(ssrKey, ['string', 'undefined'], "'ssrKey'");
 
-        this._mapPropsToArgs = mapPropsToArgs || (() => []);
         this._ssrKey = ssrKey;
         this._listeners = [];
 
@@ -77,13 +46,10 @@ export class Container {
         });
     }
 
-    _get(props, forceRefresh) {
+    _get(args, forceRefresh) {
         if (isBrowser === false && !this._ssrKey) {
             return null;
         }
-
-        const args = this._mapPropsToArgs(props);
-        assertType(args, ['array', 'null'], "The result of 'mapPropsToArgs(props)'");
 
         if (args === null) {
             return null;
@@ -109,11 +75,7 @@ export class Container {
 
     _onCacheChange(args, forceRefresh) {
         this._listeners.forEach(comp => {
-            const {props} = populateProps(comp.props, false);
-            const nextArgs = this._mapPropsToArgs(props);
-            if (nextArgs !== null && areKeysEqual(args, nextArgs)) {
-                comp._update(forceRefresh);
-            }
+            comp.current(args, forceRefresh);
         });
     }
 
@@ -122,7 +84,7 @@ export class Container {
     }
 
     _unsubscribe(component) {
-        const index = this._listeners.findIndex(comp => comp === component);
+        const index = this._listeners.findIndex(copm => copm === component);
         this._listeners.splice(index, 1);
     }
 }

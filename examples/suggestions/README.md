@@ -829,7 +829,7 @@ build folder untouched. To reference assets in the `public` folder, you need to 
 Inside `index.html`, you can use it like this:
 
 ```html
-<link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico">
+<link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico" />
 ```
 
 Only files inside the `public` folder will be accessible by `%PUBLIC_URL%` prefix. If you need to use a file from `src`
@@ -1053,10 +1053,8 @@ text will show the environment provided when using `npm start`:
 
 ```html
 <div>
-  <small>You are running this application in <b>development</b> mode.</small>
-  <form>
-    <input type="hidden" value="abcdef" />
-  </form>
+    <small>You are running this application in <b>development</b> mode.</small>
+    <form><input type="hidden" value="abcdef" /></form>
 </div>
 ```
 
@@ -1409,11 +1407,13 @@ Since Create React App doesn’t support server rendering, you might be wonderin
 reflect the current URL. To solve this, we recommend to add placeholders into the HTML, like this:
 
 ```html
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta property="og:title" content="__OG_TITLE__">
-    <meta property="og:description" content="__OG_DESCRIPTION__">
+    <head>
+        <meta property="og:title" content="__OG_TITLE__" />
+        <meta property="og:description" content="__OG_DESCRIPTION__" />
+    </head>
+</html>
 ```
 
 Then, on the server, regardless of the backend you use, you can read `index.html` into memory and replace
