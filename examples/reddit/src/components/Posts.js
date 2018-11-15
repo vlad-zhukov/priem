@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 
 const Posts = ({posts}) => (
     <ol>
@@ -9,9 +8,5 @@ const Posts = ({posts}) => (
         ))}
     </ol>
 );
-
-Posts.propTypes = {
-    posts: PropTypes.array.isRequired, // eslint-disable-line react/forbid-prop-types
-};
 
 export default Posts;
