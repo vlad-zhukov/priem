@@ -1,6 +1,7 @@
 parser: babel-eslint
 
 extends: [airbnb, plugin:jest/recommended, prettier]
+plugins: [react-hooks]
 
 env:
     browser: true
@@ -16,3 +17,5 @@ rules:
     react/jsx-one-expression-per-line: off
     react/destructuring-assignment: off
     react/prop-types: off
+
+    react-hooks/rules-of-hooks: error
