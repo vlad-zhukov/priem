@@ -7,12 +7,12 @@
     "build": "react-scripts build"
   },
   "dependencies": {
-    "react": "^16.5.2",
+    "react": "^16.7.0-alpha.2",
     "react-autosuggest": "^9.4.2",
-    "react-dom": "^16.5.2"
+    "react-dom": "^16.7.0-alpha.2"
   },
   "devDependencies": {
-    "react-scripts": "^2.0.5"
+    "react-scripts": "^2.1.1"
   },
   "eslintConfig": {
     "extends": "react-app"
