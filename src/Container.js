@@ -80,6 +80,7 @@ export class Container {
     }
 
     _subscribe(component) {
+        // TODO: Handle cases when the same component subscribes multiple times?
         this._listeners.push(component);
     }
 
