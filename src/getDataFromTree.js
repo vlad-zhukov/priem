@@ -8,6 +8,6 @@ export default async function getDataFromTree(tree) {
             return;
         }
         const promises = renderPromises.splice(0);
-        await Promise.all(promises);
+        await Promise.all(promises); // eslint-disable-line no-await-in-loop
     }
 }

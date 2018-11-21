@@ -11,8 +11,10 @@ export function populateStore(initialStore) {
 
 export function flushStore() {
     const store = [];
-    for (const [ssrKey, cache] of storeMap.entries()) {
-        store.push([ssrKey, toSerializableArray(cache, true)]);
+    // eslint-disable-next-line no-restricted-syntax
+    for (const [ssrKey, maybeCache] of storeMap.entries()) {
+        const value = type(maybeCache) === 'array' ? maybeCache : toSerializableArray(maybeCache, true);
+        store.push([ssrKey, value]);
     }
 
     storeMap.clear(); // TODO: should flushing clear containers?
@@ -63,7 +65,7 @@ export class Container {
             const typeOfArg = type(arg);
             if (typeOfArg === 'object' || typeOfArg === 'array') {
                 throw new TypeError(
-                    'Priem: Passing reference types (such as objects and arrays) to `promise` function is ' +
+                    'usePriem: Passing reference types (such as objects and arrays) to `promise` function is ' +
                         "discouraged as it's very error prone and often causes infinite rerenders. " +
                         'Please change this function signature to only use primitive types.'
                 );
@@ -74,8 +76,10 @@ export class Container {
         if (isBrowser === false && this._ssrKey) {
             const cache = storeMap.get(this._ssrKey);
             if (cache !== undefined && cache !== this._memoized.cache) {
-                throw new Error('Exists!!');
-                // TODO: add a test
+                throw new TypeError(
+                    `usePriem: A container with '${this._ssrKey}' \`ssrKey\` already exists. ` +
+                        'Please make sure `ssrKey`s are unique.'
+                );
             } else {
                 storeMap.set(this._ssrKey, this._memoized.cache);
             }

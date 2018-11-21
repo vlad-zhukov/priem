@@ -17,12 +17,12 @@ function usePriem(container, args = []) {
 
     const componentRef = useRef(null);
     const shouldForceUpdate = useRef(false);
-    const dummyState = useState(null);
+    const dummyState = useState();
 
     componentRef.current = (prevArgs, forceUpdate) => {
         if (prevArgs !== null && args !== null && areKeysEqual(args, prevArgs)) {
             shouldForceUpdate.current = forceUpdate;
-            dummyState[1](null);
+            dummyState[1]();
         }
     };
 
@@ -44,7 +44,7 @@ function usePriem(container, args = []) {
         reason: null,
         refresh() {
             shouldForceUpdate.current = true;
-            dummyState[1](null);
+            dummyState[1]();
         },
     };
 

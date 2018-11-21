@@ -7,7 +7,7 @@ import usePriemOriginal from '../src/usePriem';
 import {Container} from '../src/Container';
 
 /* eslint-disable react/no-unused-state */
-export class ErrorBoundary extends React.Component {
+class ErrorBoundary extends React.Component {
     constructor() {
         super();
         this.state = {initTime: Date.now(), hasError: null};
