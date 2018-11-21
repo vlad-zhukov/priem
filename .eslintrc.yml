@@ -18,4 +18,4 @@ rules:
     react/destructuring-assignment: off
     react/prop-types: off
 
-    react-hooks/rules-of-hooks: error
+    # react-hooks/rules-of-hooks: error
