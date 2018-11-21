@@ -1,30 +1,13 @@
-import reactTreeWalker from 'react-tree-walker';
-import {assertType} from './helpers';
+import ReactDOM from 'react-dom/server';
+import {renderPromises} from './Container';
 
-function isPriemComponent(instance) {
-    return instance && instance._isPriemComponent === true;
-}
-
-function visitor(element, instance) {
-    if (!isPriemComponent(instance)) {
-        return;
-    }
-
-    const {children, sources, ...props} = instance.props;
-    assertType(sources, ['object'], "<Priem />'s 'sources'");
-
-    const promises = Object.keys(sources).reduce((acc, key) => {
-        const itemValue = sources[key]._get(props);
-        if (itemValue !== null) {
-            acc.push(itemValue.promise);
+export default async function getDataFromTree(tree) {
+    while (true) {
+        ReactDOM.renderToStaticMarkup(tree);
+        if (renderPromises.length === 0) {
+            return;
         }
-        return acc;
-    }, []);
-
-    // eslint-disable-next-line consistent-return
-    return Promise.all(promises);
-}
-
-export default function getDataFromTree(tree) {
-    return reactTreeWalker(tree, visitor);
+        const promises = renderPromises.splice(0);
+        await Promise.all(promises);
+    }
 }

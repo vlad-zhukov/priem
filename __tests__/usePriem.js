@@ -3,9 +3,28 @@
 import React from 'react';
 import delay from 'delay';
 import {render, cleanup, flushEffects, fireEvent} from 'react-testing-library';
-import {testComponentNested, ErrorBoundary} from '../__test-helpers__/util';
 import usePriemOriginal from '../src/usePriem';
 import {Container} from '../src/Container';
+
+/* eslint-disable react/no-unused-state */
+export class ErrorBoundary extends React.Component {
+    constructor() {
+        super();
+        this.state = {initTime: Date.now(), hasError: null};
+    }
+
+    componentDidCatch(error) {
+        this.setState({hasError: error, catchTime: Date.now()});
+    }
+
+    render() {
+        if (this.state.hasError) {
+            return null;
+        }
+        return this.props.children;
+    }
+}
+/* eslint-enable react/no-unused-state */
 
 const usePriem = jest.fn(usePriemOriginal);
 const getSpy = jest.spyOn(Container.prototype, '_get');
@@ -207,7 +226,19 @@ it('should return a promise state with a `refresh` method', async () => {
 });
 
 it('should render a nested component', async () => {
-    const Comp = testComponentNested();
+    const ctr1 = new Container({
+        promise: value => delay(100, {value}),
+    });
+    const ctr2 = new Container({
+        promise: (ctr1Value, value) => delay(100, {value: ctr1Value + value}),
+    });
+
+    function Comp() {
+        const res1 = usePriem(ctr1, ['foo']);
+        const res2 = usePriem(ctr2, !res1.data ? null : [res1.data, 'bar']);
+        return <div>{res2.data}</div>;
+    }
+
     const {container} = render(<Comp />);
     flushEffects();
 
