@@ -17,9 +17,6 @@
     "prettier": "prettier \"**/*.{js,md}\" --write --loglevel warn",
     "prepublishOnly": "yarn build && yarn lint && prettier \"**/*.{js,md}\" -l && yarn test"
   },
-  "dependencies": {
-    "react-tree-walker": "^4.3.0"
-  },
   "devDependencies": {
     "@babel/core": "^7.1.6",
     "@babel/plugin-proposal-object-rest-spread": "^7.0.0",
@@ -50,8 +47,8 @@
     "rollup-plugin-babel": "^4.0.3"
   },
   "peerDependencies": {
-    "react": ">=15.5",
-    "react-dom": ">=15.5"
+    "react": ">=16.7",
+    "react-dom": ">=16.7"
   },
   "keywords": [
     "react",

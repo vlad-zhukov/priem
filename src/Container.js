@@ -1,19 +1,23 @@
-import memoize, {toSerializableArray} from './memoize';
+import memoize, {PENDING, toSerializableArray} from './memoize';
 import {type, assertType, isBrowser} from './helpers';
 
-let store = {};
+let storeMap = new Map();
+export const renderPromises = [];
 
 export function populateStore(initialStore) {
-    assertType(initialStore, ['object'], "'initialStore'");
-    Object.assign(store, initialStore);
+    assertType(initialStore, ['array'], "'initialStore'");
+    storeMap = new Map(initialStore);
 }
 
 export function flushStore() {
-    // TODO: register containers and throw a error when trying to register a container with the same ssrKey
-    // TODO: should flushing clear containers?
-    const tmp = store;
-    store = {};
-    return tmp;
+    const store = [];
+    for (const [ssrKey, cache] of storeMap.entries()) {
+        store.push([ssrKey, toSerializableArray(cache, true)]);
+    }
+
+    storeMap.clear(); // TODO: should flushing clear containers?
+    renderPromises.splice(0);
+    return store;
 }
 
 // TODO: introduce a mechanism to dispose unneeded containers?
@@ -33,8 +37,8 @@ export class Container {
 
         let initialCache;
         if (ssrKey) {
-            initialCache = store[ssrKey];
-            delete store[ssrKey];
+            initialCache = storeMap.get(ssrKey);
+            storeMap.delete(ssrKey);
         }
 
         this._memoized = memoize({
@@ -68,7 +72,16 @@ export class Container {
 
         const ret = this._memoized(args, forceRefresh);
         if (isBrowser === false && this._ssrKey) {
-            store[this._ssrKey] = toSerializableArray(this._memoized.cache, true);
+            const cache = storeMap.get(this._ssrKey);
+            if (cache !== undefined && cache !== this._memoized.cache) {
+                throw new Error('Exists!!');
+                // TODO: add a test
+            } else {
+                storeMap.set(this._ssrKey, this._memoized.cache);
+            }
+            if (ret.status === PENDING) {
+                renderPromises.push(ret.promise);
+            }
         }
         return ret;
     }
