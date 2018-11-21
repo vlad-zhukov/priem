@@ -1,4 +1,4 @@
-import {useRef, useState, useMemo, useEffect} from 'react';
+import {useRef, useState, useEffect} from 'react';
 import {Container} from './Container';
 import {areKeysEqual, PENDING, FULFILLED, REJECTED} from './memoize';
 import {assertType} from './helpers';
@@ -19,14 +19,12 @@ function usePriem(container, args = []) {
     const shouldForceUpdate = useRef(false);
     const dummyState = useState(null);
 
-    useMemo(() => {
-        componentRef.current = (prevArgs, forceUpdate) => {
-            if (prevArgs !== null && areKeysEqual(args, prevArgs)) {
-                shouldForceUpdate.current = forceUpdate;
-                dummyState[1](null);
-            }
-        };
-    }, args || []);
+    componentRef.current = (prevArgs, forceUpdate) => {
+        if (prevArgs !== null && args !== null && areKeysEqual(args, prevArgs)) {
+            shouldForceUpdate.current = forceUpdate;
+            dummyState[1](null);
+        }
+    };
 
     useEffect(() => {
         source.current._subscribe(componentRef);
