@@ -1,14 +1,18 @@
 import {useRef, useState, useMemo, useEffect} from 'react';
+import {Container} from './Container';
 import {areKeysEqual, PENDING, FULFILLED, REJECTED} from './memoize';
 import {assertType} from './helpers';
 
-function usePriem(container, args) {
+function usePriem(container, args = []) {
+    if (!(container instanceof Container)) {
+        throw new TypeError("usePriem: 'source' must be an instance of 'Container'.");
+    }
     assertType(args, ['array', 'null'], '`args`');
 
     const source = useRef(container);
 
     if (source.current !== container) {
-        // throw error!
+        throw new TypeError("usePriem: it looks like you've passed a different 'source' value after initializing.");
     }
 
     const componentRef = useRef(null);
@@ -17,13 +21,12 @@ function usePriem(container, args) {
 
     useMemo(() => {
         componentRef.current = (prevArgs, forceUpdate) => {
-            console.log(prevArgs, args);
             if (prevArgs !== null && areKeysEqual(args, prevArgs)) {
                 shouldForceUpdate.current = forceUpdate;
                 dummyState[1](null);
             }
         };
-    }, args);
+    }, args || []);
 
     useEffect(() => {
         source.current._subscribe(componentRef);
@@ -35,17 +38,27 @@ function usePriem(container, args) {
 
     const result = source.current._get(args, forceUpdate);
 
-    return {
-        data: result.data,
-        pending: result.status === PENDING,
-        fulfilled: result.status === FULFILLED,
-        rejected: result.status === REJECTED,
-        reason: result.reason,
+    const out = {
+        data: null,
+        pending: true,
+        fulfilled: false,
+        rejected: false,
+        reason: null,
         refresh() {
             shouldForceUpdate.current = true;
             dummyState[1](null);
         },
     };
+
+    if (result !== null) {
+        out.data = result.data;
+        out.pending = result.status === PENDING;
+        out.fulfilled = result.status === FULFILLED;
+        out.rejected = result.status === REJECTED;
+        out.reason = result.reason;
+    }
+
+    return out;
 }
 
 export default usePriem;
