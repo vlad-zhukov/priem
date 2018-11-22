@@ -11,7 +11,7 @@
 -   [Examples](#examples)
 -   [API](#api)
     -   [`Container`](#container)
-    -   [`Priem`](#priem)
+    -   [`usePriem`](#usepriem)
     -   [`getDataFromTree`](#getdatafromtreecomponent)
     -   [`populateStore`](#populatestoreinitialstore)
     -   [`flushStore`](#flishstore)
@@ -28,7 +28,7 @@ yarn add priem@beta
 
 ```jsx
 import React from 'react';
-import {Priem, Container} from 'priem';
+import {usePriem, Container} from 'priem';
 
 const redditContainer = new Container({
     promise: () =>
@@ -38,23 +38,23 @@ const redditContainer = new Container({
     ssrKey: 'reddit-container',
 });
 
-export default () => (
-    <Priem sources={{reddit: redditContainer}}>
-        {({reddit}, {pending}) => {
-            if (!reddit) {
-                return pending ? <h2>Loading...</h2> : <h2>Empty.</h2>;
-            }
+export default () => {
+    const {data, pending} = usePriem(redditContainer);
 
-            return (
-                <div style={{opacity: pending ? 0.5 : 1}}>
-                    <ul>
-                        {reddit.map((post, i) => <li key={i}>{post.title}</li>)}
-                    </ul>
-                </div>
-            );
-        })}
-    </Priem>
-);
+    if (!data) {
+        return pending ? <h2>Loading...</h2> : <h2>Empty.</h2>;
+    }
+
+    return (
+        <div style={{opacity: pending ? 0.5 : 1}}>
+            <ul>
+                {data.map((post, i) => (
+                    <li key={i}>{post.title}</li>
+                ))}
+            </ul>
+        </div>
+    );
+};
 ```
 
 **server.js**
@@ -116,48 +116,41 @@ A container for fetching and caching data. `Priem` components can subscribe to i
 **Constructor arguments:**
 
 1.  `options` _(Object)_: An options object, that can have the following properties:
-    -   `promise` _(AsyncFunction)_: An async function that takes arguments created by `mapPropsToArgs` and must return
-        a Promise. If promise rejects, the cache item corresponding to these arguments will have a rejected status.
-    -   `[mapPropsToArgs]` _(Function)_: A function that takes React props and must return an array of **immutable**
-        values that will be passed to the `promise` function as arguments. Returning `null` from this function will
-        prevent the update which can be utilized for waiting for async tasks or user interactions to finish. Defaults to
-        `() => []`.
+    -   `promise` _(AsyncFunction)_: An async function that takes arguments from `usePriem` and must return a Promise.
+        If promise rejects, the cache item corresponding to these arguments will have a rejected status.
     -   `[maxAge]` _(Number)_: A time in milliseconds after which cache items will expire and trigger a refresh.
     -   `[maxSize]` _(Number)_: A number of maximum cache entries to store. After exceeding this amount the most former
         used item will be removed and a refresh triggered.
     -   `[ssrKey]` _(String)_: A unique key that will be used to place this container to the store. Required for
         server-side rendering.
 
-### `Priem`
+### `usePriem`
 
-A component for subscribing to containers.
+A React Hook for subscribing to containers.
 
-**Props**
+**Arguments**
 
-1.  `sources` _(Object)_: An object of containers to subscribe to.
-2.  `[children]` _(Function)_: One of two ways to render components. Must be a function that takes
-    [props](#passed-props) and returns React component(s).
+1.  `container` _(Container)_: A container to subscribe to.
+2.  `[args]` _(Array|null)_: An array of **immutable** arguments that will be passed to a `promise` function of a
+    container. Can also be `null` which will prevent the update which can be utilized for waiting for other async tasks
+    or user interactions to finish. Defaults to `[]`.
 
-**Passed props**
+**Returns**
 
-The following props will be passed down:
+The function returns an object with the following fields:
 
-1. `props` _(Object)_: An object with all additional properties for `Priem` component and all values from subscribed
-   containers.
-2. `priemBag` _(Object)_: An object that aggregates a state of all subscribed containers.
-    - `pending` _(Boolean)_: `true` if _any_ container is pending.
-    - `fulfilled` _(Boolean)_: `true` if _all_ containers have been fulfilled.
-    - `rejected` _(Boolean)_: `true` if _any_ container has been rejected.
-    - `reason` _(Error|null)_: if _any_ container has been rejected, a error will be provided here. If more than one
-      container has been rejected, only the first error will be stored.
-    - `refresh` _(Function)_: a method to refresh all containers.
+-   `data` _(any)_: The data `promise` resolved with. Defaults to `null`.
+-   `pending` _(Boolean)_.
+-   `rejected` _(Boolean)_.
+-   `reason` _(Error|null)_.
+-   `refresh` _(Function)_: a method to update the container.
 
 ---
 
 ### `getDataFromTree(element)`
 
-An async function that walks the component tree and fetches async values. Returns a promise that either resolves with
-`undefined` or rejects on errors.
+An async function that walks the component tree and fetches data from containers that have `ssrKey` set. Returns a
+promise that either resolves with `undefined` or rejects on errors.
 
 ---
 
