@@ -1,17 +1,17 @@
 import {useRef, useState, useEffect} from 'react';
-import {Container} from './Container';
+import {Resource} from './Resource';
 import {areKeysEqual, PENDING, FULFILLED, REJECTED} from './memoize';
 import {assertType} from './helpers';
 
-function usePriem(container, args = []) {
-    if (!(container instanceof Container)) {
-        throw new TypeError("usePriem: 'source' must be an instance of 'Container'.");
+function usePriem(resource, args = []) {
+    if (!(resource instanceof Resource)) {
+        throw new TypeError("usePriem: 'source' must be an instance of 'Resource'.");
     }
     assertType(args, ['array', 'null'], '`args`');
 
-    const source = useRef(container);
+    const source = useRef(resource);
 
-    if (source.current !== container) {
+    if (source.current !== resource) {
         throw new TypeError("usePriem: it looks like you've passed a different 'source' value after initializing.");
     }
 

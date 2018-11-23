@@ -17,15 +17,15 @@ export function flushStore() {
         store.push([ssrKey, value]);
     }
 
-    storeMap.clear(); // TODO: should flushing clear containers?
+    storeMap.clear(); // TODO: should flushing clear resources?
     renderPromises.splice(0);
     return store;
 }
 
-// TODO: introduce a mechanism to dispose unneeded containers?
-export class Container {
+// TODO: introduce a mechanism to dispose unneeded resource?
+export class Resource {
     constructor(options) {
-        assertType(options, ['object'], "Container argument 'options'");
+        assertType(options, ['object'], "Resource argument 'options'");
 
         const {promise, maxSize, maxAge, ssrKey} = options;
 
@@ -77,7 +77,7 @@ export class Container {
             const cache = storeMap.get(this._ssrKey);
             if (cache !== undefined && cache !== this._memoized.cache) {
                 throw new TypeError(
-                    `usePriem: A container with '${this._ssrKey}' \`ssrKey\` already exists. ` +
+                    `usePriem: A resource with '${this._ssrKey}' \`ssrKey\` already exists. ` +
                         'Please make sure `ssrKey`s are unique.'
                 );
             } else {
