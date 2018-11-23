@@ -10,7 +10,7 @@
 -   [Getting Started](#getting-started)
 -   [Examples](#examples)
 -   [API](#api)
-    -   [`Container`](#container)
+    -   [`Resource`](#resource)
     -   [`usePriem`](#usepriem)
     -   [`getDataFromTree`](#getdatafromtreecomponent)
     -   [`populateStore`](#populatestoreinitialstore)
@@ -28,18 +28,18 @@ yarn add priem@beta
 
 ```jsx
 import React from 'react';
-import {usePriem, Container} from 'priem';
+import {usePriem, Resource} from 'priem';
 
-const redditContainer = new Container({
+const redditResource = new Resource({
     promise: () =>
         fetch('https://www.reddit.com/r/reactjs.json')
             .then(res => res.json())
             .then(res => res.data.children),
-    ssrKey: 'reddit-container',
+    ssrKey: 'reddit-resource',
 });
 
 export default () => {
-    const {data, pending} = usePriem(redditContainer);
+    const {data, pending} = usePriem(redditResource);
 
     if (!data) {
         return pending ? <h2>Loading...</h2> : <h2>Empty.</h2>;
@@ -109,9 +109,9 @@ Example apps can be found under the `examples/` directory.
 
 ## API
 
-### `Container`
+### `Resource`
 
-A container for fetching and caching data. `Priem` components can subscribe to it.
+A resource for fetching and caching data. `Priem` components can subscribe to it.
 
 **Constructor arguments:**
 
@@ -121,18 +121,18 @@ A container for fetching and caching data. `Priem` components can subscribe to i
     -   `[maxAge]` _(Number)_: A time in milliseconds after which cache items will expire and trigger a refresh.
     -   `[maxSize]` _(Number)_: A number of maximum cache entries to store. After exceeding this amount the most former
         used item will be removed and a refresh triggered.
-    -   `[ssrKey]` _(String)_: A unique key that will be used to place this container to the store. Required for
+    -   `[ssrKey]` _(String)_: A unique key that will be used to place this resource to the store. Required for
         server-side rendering.
 
 ### `usePriem`
 
-A React Hook for subscribing to containers.
+A React Hook for subscribing to resources.
 
 **Arguments**
 
-1.  `container` _(Container)_: A container to subscribe to.
+1.  `resource` _(Resource)_: A resource to subscribe to.
 2.  `[args]` _(Array|null)_: An array of **immutable** arguments that will be passed to a `promise` function of a
-    container. Can also be `null` which will prevent the update which can be utilized for waiting for other async tasks
+    resource. Can also be `null` which will prevent the update which can be utilized for waiting for other async tasks
     or user interactions to finish. Defaults to `[]`.
 
 **Returns**
@@ -143,13 +143,13 @@ The function returns an object with the following fields:
 -   `pending` _(Boolean)_.
 -   `rejected` _(Boolean)_.
 -   `reason` _(Error|null)_.
--   `refresh` _(Function)_: a method to update the container.
+-   `refresh` _(Function)_: a method to update the resource.
 
 ---
 
 ### `getDataFromTree(element)`
 
-An async function that walks the component tree and fetches data from containers that have `ssrKey` set. Returns a
+An async function that walks the component tree and fetches data from resources that have `ssrKey` set. Returns a
 promise that either resolves with `undefined` or rejects on errors.
 
 ---

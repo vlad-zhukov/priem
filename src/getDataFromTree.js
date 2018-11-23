@@ -1,5 +1,5 @@
 import ReactDOM from 'react-dom/server';
-import {renderPromises} from './Container';
+import {renderPromises} from './Resource';
 
 export default async function getDataFromTree(tree) {
     while (true) {

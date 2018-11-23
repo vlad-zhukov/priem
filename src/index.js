@@ -1,3 +1,3 @@
 export {default as usePriem} from './usePriem';
-export {Container, populateStore, flushStore} from './Container';
+export {Resource, populateStore, flushStore} from './Resource';
 export {default as getDataFromTree} from './getDataFromTree';

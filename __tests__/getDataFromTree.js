@@ -6,7 +6,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/server';
 import delay from 'delay';
 import usePriem from '../src/usePriem';
-import {Container, flushStore, populateStore} from '../src/Container';
+import {Resource, flushStore, populateStore} from '../src/Resource';
 import getDataFromTree from '../src/getDataFromTree';
 
 afterEach(() => {
@@ -14,14 +14,14 @@ afterEach(() => {
 });
 
 it('should fetch and render to string with data', async () => {
-    const ctr = new Container({
+    const res = new Resource({
         promise: value => delay(100, {value}),
         ssrKey: 'unique-key-1',
     });
 
     function Comp() {
-        const res = usePriem(ctr, ['foo']);
-        return <div>{res.data}</div>;
+        const {data} = usePriem(res, ['foo']);
+        return <div>{data}</div>;
     }
 
     await getDataFromTree(<Comp />);
@@ -51,19 +51,19 @@ Array [
 });
 
 it('should fetch data from a nested component', async () => {
-    const ctr1 = new Container({
+    const res1 = new Resource({
         promise: value => delay(100, {value}),
         ssrKey: 'unique-key-1',
     });
-    const ctr2 = new Container({
-        promise: (ctr1Value, value) => delay(100, {value: ctr1Value + value}),
+    const res2 = new Resource({
+        promise: (res1Value, value) => delay(100, {value: res1Value + value}),
         ssrKey: 'unique-key-2',
     });
 
     function Comp() {
-        const res1 = usePriem(ctr1, ['foo']);
-        const res2 = usePriem(ctr2, !res1.data ? null : [res1.data, 'bar']);
-        return <div>{res2.data}</div>;
+        const {data: data1} = usePriem(res1, ['foo']);
+        const {data: data2} = usePriem(res2, !data1 ? null : [data1, 'bar']);
+        return <div>{data2}</div>;
     }
 
     await getDataFromTree(<Comp />);
@@ -109,19 +109,19 @@ Array [
     expect(content).toBe('<div>foobar</div>');
 });
 
-it('should not fetch data from containers without `ssrKey`', async () => {
-    const ctr1 = new Container({
+it('should not fetch data from resources without `ssrKey`', async () => {
+    const res1 = new Resource({
         promise: value => delay(100, {value}),
         ssrKey: 'unique-key-1',
     });
-    const ctr2 = new Container({
-        promise: (ctr1Value, value) => delay(100, {value: ctr1Value + value}),
+    const res2 = new Resource({
+        promise: (res1Value, value) => delay(100, {value: res1Value + value}),
     });
 
     function Comp() {
-        const res1 = usePriem(ctr1, ['foo']);
-        const res2 = usePriem(ctr2, !res1.data ? null : [res1.data, 'bar']);
-        return <div>{res2.data}</div>;
+        const {data: data1} = usePriem(res1, ['foo']);
+        const {data: data2} = usePriem(res2, !data1 ? null : [data1, 'bar']);
+        return <div>{data2}</div>;
     }
 
     await getDataFromTree(<Comp />);
@@ -152,23 +152,23 @@ Array [
 });
 
 it('should not add non-fulfilled cache items to store', async () => {
-    const ctr1 = new Container({
+    const res1 = new Resource({
         promise: () => delay.reject(100, {value: new Error('Boom!')}),
         ssrKey: 'unique-key-1',
     });
 
-    const ctr2 = new Container({
+    const res2 = new Resource({
         promise: () => delay(10000, {value: 'A very long delay...'}),
         ssrKey: 'unique-key-2',
     });
 
-    ctr1._get([]);
+    res1._get([]);
 
     await delay(300);
 
     function Comp() {
-        usePriem(ctr1);
-        usePriem(ctr2);
+        usePriem(res1);
+        usePriem(res2);
         return null;
     }
 
@@ -194,19 +194,19 @@ it('should rehydrate data from initial store', async () => {
             populateStore(initialStore);
         }
 
-        const ctr1 = new Container({
+        const res1 = new Resource({
             promise: value => delay(100, {value}),
             ssrKey: 'unique-key-1',
         });
-        const ctr2 = new Container({
-            promise: (ctr1Value, value) => delay(100, {value: ctr1Value + value}),
+        const res2 = new Resource({
+            promise: (res1Value, value) => delay(100, {value: res1Value + value}),
             ssrKey: 'unique-key-2',
         });
 
         return function Comp() {
-            const res1 = usePriem(ctr1, ['foo']);
-            const res2 = usePriem(ctr2, !res1.data ? null : [res1.data, 'bar']);
-            return <div>{res2.data}</div>;
+            const {data: data1} = usePriem(res1, ['foo']);
+            const {data: data2} = usePriem(res2, !data1 ? null : [data1, 'bar']);
+            return <div>{data2}</div>;
         };
     }
 

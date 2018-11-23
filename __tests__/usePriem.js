@@ -4,7 +4,7 @@ import React from 'react';
 import delay from 'delay';
 import {render, cleanup, flushEffects, fireEvent} from 'react-testing-library';
 import usePriemOriginal from '../src/usePriem';
-import {Container} from '../src/Container';
+import {Resource} from '../src/Resource';
 
 /* eslint-disable react/no-unused-state */
 class ErrorBoundary extends React.Component {
@@ -27,8 +27,8 @@ class ErrorBoundary extends React.Component {
 /* eslint-enable react/no-unused-state */
 
 const usePriem = jest.fn(usePriemOriginal);
-const getSpy = jest.spyOn(Container.prototype, '_get');
-const onCacheChangeSpy = jest.spyOn(Container.prototype, '_onCacheChange');
+const getSpy = jest.spyOn(Resource.prototype, '_get');
+const onCacheChangeSpy = jest.spyOn(Resource.prototype, '_onCacheChange');
 
 afterEach(() => {
     usePriem.mockClear();
@@ -37,7 +37,7 @@ afterEach(() => {
     cleanup();
 });
 
-it('should throw if `source` is not a `Container` instance', async () => {
+it('should throw if `source` is not a `Resource` instance', async () => {
     function Comp() {
         usePriem({}, []);
         return null;
@@ -56,21 +56,21 @@ it('should throw if `source` is not a `Container` instance', async () => {
     await delay(500);
 
     expect(ref.current.state.hasError).toMatchInlineSnapshot(
-        `[TypeError: usePriem: 'source' must be an instance of 'Container'.]`
+        `[TypeError: usePriem: 'source' must be an instance of 'Resource'.]`
     );
 });
 
 it('should throw if `source` is different after initializing', async () => {
-    const ctr1 = new Container({
+    const res1 = new Resource({
         promise: () => delay(100),
     });
-    const ctr2 = new Container({
+    const res2 = new Resource({
         promise: () => delay(100),
     });
 
     function Comp() {
         const [dummy, setDummy] = React.useState(true);
-        usePriem(dummy ? ctr1 : ctr2, []);
+        usePriem(dummy ? res1 : res2, []);
         setDummy(false);
         return null;
     }
@@ -97,24 +97,24 @@ it('should rerun promises when cache expires if `maxAge` is set', async () => {
      * ASYNC UPDATE FLOW.
      * Numbers mean the order of function calls.
      *
-     *                     | usePriem#render | Container#_onCacheChange | Container#_get
-     * --------------------|-----------------|--------------------------|------------------
-     *  mount (pending)    | 1               |                          | 2
-     *  fulfilled          | 4               | 3                        | 5
-     *  props (pending)    | 6               |                          | 7
-     *  fulfilled          | 9               | 8                        | 10
-     *  expire (pending)   | 12              | 11                       | 13
-     *  fulfilled          | 15              | 14                       | 16
+     *                   | usePriem#render | Resource#_onCacheChange | Resource#_get
+     * ------------------|-----------------|-------------------------|---------------
+     *  mount (pending)  | 1               |                         | 2
+     *  fulfilled        | 4               | 3                       | 5
+     *  props (pending)  | 6               |                         | 7
+     *  fulfilled        | 9               | 8                       | 10
+     *  expire (pending) | 12              | 11                      | 13
+     *  fulfilled        | 15              | 14                      | 16
      */
 
-    const ctr = new Container({
+    const res = new Resource({
         promise: value => delay(200, {value}),
         maxAge: 1000,
     });
 
     function Comp({count}) {
-        const res = usePriem(ctr, [`foo${count}`]);
-        return <div>{res.data}</div>;
+        const {data} = usePriem(res, [`foo${count}`]);
+        return <div>{data}</div>;
     }
 
     const {container, rerender} = render(<Comp count="1" />);
@@ -175,7 +175,7 @@ it('should rerun promises when cache expires if `maxAge` is set', async () => {
 
 it('should return a promise state with a `refresh` method', async () => {
     let shouldReject = false;
-    const ctr = new Container({
+    const res = new Resource({
         promise(value) {
             if (shouldReject) {
                 return delay.reject(10, {value: new Error('error!')});
@@ -187,7 +187,7 @@ it('should return a promise state with a `refresh` method', async () => {
     });
 
     function Comp() {
-        const {data, reason, refresh} = usePriem(ctr, ['foo']);
+        const {data, reason, refresh} = usePriem(res, ['foo']);
         expect(typeof refresh).toBe('function');
         return (
             <>
@@ -226,17 +226,17 @@ it('should return a promise state with a `refresh` method', async () => {
 });
 
 it('should render a nested component', async () => {
-    const ctr1 = new Container({
+    const res1 = new Resource({
         promise: value => delay(100, {value}),
     });
-    const ctr2 = new Container({
-        promise: (ctr1Value, value) => delay(100, {value: ctr1Value + value}),
+    const res2 = new Resource({
+        promise: (res1Value, value) => delay(100, {value: res1Value + value}),
     });
 
     function Comp() {
-        const res1 = usePriem(ctr1, ['foo']);
-        const res2 = usePriem(ctr2, !res1.data ? null : [res1.data, 'bar']);
-        return <div>{res2.data}</div>;
+        const {data: data1} = usePriem(res1, ['foo']);
+        const {data: data2} = usePriem(res2, !data1 ? null : [data1, 'bar']);
+        return <div>{data2}</div>;
     }
 
     const {container} = render(<Comp />);
@@ -247,19 +247,19 @@ it('should render a nested component', async () => {
     expect(container.innerHTML).toBe('<div>foobar</div>');
 });
 
-it('should render `usePriem` hooks that are subscribed to the same container but need different data', async () => {
-    const ctr = new Container({
+it('should render `usePriem` hooks that are subscribed to the same resource but need different data', async () => {
+    const res = new Resource({
         promise: value => delay(100, {value}),
         maxSize: 2,
     });
 
     function Comp() {
-        const res1 = usePriem(ctr, ['foo']);
-        const res2 = usePriem(ctr, ['bar']);
+        const {data: data1} = usePriem(res, ['foo']);
+        const {data: data2} = usePriem(res, ['bar']);
         return (
             <div>
-                <div>{res1.data}</div>
-                <div>{res2.data}</div>
+                <div>{data1}</div>
+                <div>{data2}</div>
             </div>
         );
     }
