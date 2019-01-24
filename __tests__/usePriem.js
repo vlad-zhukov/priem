@@ -328,9 +328,9 @@ it('should debounce calls', async () => {
     });
 
     const usePriemSpy = jest.fn((...args) => {
-        const res = usePriem(...args);
-        delete res.refresh;
-        return res;
+        const ret = usePriem(...args);
+        delete ret.refresh;
+        return ret;
     });
 
     const Comp = props => {
