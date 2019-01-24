@@ -4,7 +4,7 @@ import pkg from './package.json';
 export default {
     input: './src/index.js',
     plugins: [babel()],
-    external: Object.keys(pkg.peerDependencies),
+    external: Object.keys(pkg.peerDependencies).concat('react-dom/server'),
     output: [
         {
             file: pkg.main,

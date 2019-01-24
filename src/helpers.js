@@ -34,22 +34,3 @@ export function assertType(variable, types, variableName = 'The value') {
         throw error;
     }
 }
-
-export function debounce(func, ms) {
-    let timer = null;
-
-    return function(...args) {
-        return new Promise(resolve => {
-            const onComplete = () => {
-                resolve(func.apply(this, args));
-                timer = null;
-            };
-
-            if (timer) {
-                clearTimeout(timer);
-            }
-
-            timer = setTimeout(onComplete, ms);
-        });
-    };
-}
