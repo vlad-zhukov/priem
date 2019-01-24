@@ -1,11 +1,10 @@
 import {Cache, CacheItem, reduce} from '../src/Cache';
 
-function toArray(cache) {
-    return reduce(cache, [], (acc, item) => {
+const toArray = cache =>
+    reduce(cache, [], (acc, item) => {
         acc.push(item);
         return acc;
     });
-}
 
 const createCache = (size = 5) => {
     const items = [

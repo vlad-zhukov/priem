@@ -1,62 +1,98 @@
-import {useRef, useState, useEffect} from 'react';
+import React from 'react';
 import {Resource} from './Resource';
 import {areKeysEqual, PENDING, FULFILLED, REJECTED} from './memoize';
 import {assertType} from './helpers';
 
-function usePriem(resource, args = []) {
+const DEFAULT_DEBOUNCE_MS = 150;
+
+export default function usePriem(resource, args = []) {
     if (!(resource instanceof Resource)) {
-        throw new TypeError("usePriem: 'source' must be an instance of 'Resource'.");
+        throw new TypeError("usePriem: 'resource' must be an instance of 'Resource'.");
     }
     assertType(args, ['array', 'null'], '`args`');
 
-    const source = useRef(resource);
+    const [, rerender] = React.useState();
+    const refs = React.useRef({component: null, shouldForceUpdate: false, lastTimeCalled: 0, prevResult: null});
+    const source = React.useRef(resource);
 
     if (source.current !== resource) {
-        throw new TypeError("usePriem: it looks like you've passed a different 'source' value after initializing.");
+        throw new TypeError("usePriem: it looks like you've passed a different 'resource' value after initializing.");
     }
 
-    const componentRef = useRef(null);
-    const shouldForceUpdate = useRef(false);
-    const dummyState = useState();
-
-    componentRef.current = (prevArgs, forceUpdate) => {
+    refs.current.component = (prevArgs, forceUpdate) => {
         if (prevArgs !== null && args !== null && areKeysEqual(args, prevArgs)) {
-            shouldForceUpdate.current = forceUpdate;
-            dummyState[1]();
+            refs.current.shouldForceUpdate = forceUpdate;
+            rerender();
         }
     };
 
-    useEffect(() => {
-        source.current._subscribe(componentRef);
-        return () => source.current._unsubscribe(componentRef);
+    React.useEffect(() => {
+        source.current._subscribe(refs.current);
+        return () => source.current._unsubscribe(refs.current);
     }, []);
 
-    const forceUpdate = shouldForceUpdate.current;
-    shouldForceUpdate.current = false;
+    const {lastTimeCalled, prevResult, shouldForceUpdate} = refs.current;
+    const now = Date.now();
+    refs.current.lastTimeCalled = now;
+    refs.current.shouldForceUpdate = false;
 
-    const result = source.current._get(args, forceUpdate);
+    /**
+     * Should this call be rescheduled for later and return the previous value?
+     * The reasoning behind it is to reduce the amount of requests.
+     *
+     * When we should debounce:
+     * 1. This call is not forced.
+     * 2. Previous result is valid.
+     * 3. More than 150ms lapsed since the last call.
+     * 4. The cache has no item.
+     */
+    const shouldDebounce =
+        shouldForceUpdate !== true &&
+        prevResult !== null &&
+        prevResult.pending === false &&
+        prevResult.rejected === false &&
+        now - lastTimeCalled < DEFAULT_DEBOUNCE_MS &&
+        source.current._has(args) === false;
 
-    const out = {
+    React.useEffect(() => {
+        let handler;
+        if (shouldDebounce) {
+            handler = setTimeout(rerender, DEFAULT_DEBOUNCE_MS);
+        }
+        return () => clearTimeout(handler);
+    });
+
+    if (shouldDebounce) {
+        return prevResult;
+    }
+
+    const ret = source.current._get(args, shouldForceUpdate);
+
+    if ((ret === null || ret.status === PENDING) && prevResult !== null) {
+        return prevResult;
+    }
+
+    const result = {
         data: null,
         pending: true,
         fulfilled: false,
         rejected: false,
         reason: null,
         refresh() {
-            shouldForceUpdate.current = true;
-            dummyState[1]();
+            refs.current.shouldForceUpdate = true;
+            rerender();
         },
     };
 
-    if (result !== null) {
-        out.data = result.data;
-        out.pending = result.status === PENDING;
-        out.fulfilled = result.status === FULFILLED;
-        out.rejected = result.status === REJECTED;
-        out.reason = result.reason;
+    if (ret !== null) {
+        result.data = ret.data;
+        result.pending = ret.status === PENDING;
+        result.fulfilled = ret.status === FULFILLED;
+        result.rejected = ret.status === REJECTED;
+        result.reason = ret.reason;
     }
 
-    return out;
-}
+    refs.current.prevResult = result;
 
-export default usePriem;
+    return result;
+}

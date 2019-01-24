@@ -52,6 +52,13 @@ export class Resource {
         });
     }
 
+    _has(args) {
+        if (args === null) {
+            return false;
+        }
+        return this._memoized.has(args);
+    }
+
     _get(args, forceRefresh) {
         if (isBrowser === false && !this._ssrKey) {
             return null;
@@ -92,7 +99,7 @@ export class Resource {
 
     _onCacheChange(args, forceRefresh) {
         this._listeners.forEach(comp => {
-            comp.current(args, forceRefresh);
+            comp.component(args, forceRefresh);
         });
     }
 
