@@ -67,12 +67,8 @@ it('should throw if `source` is not a `Resource` instance', async () => {
 });
 
 it('should throw if `source` is different after initializing', async () => {
-    const res1 = new Resource({
-        promise: () => delay(100),
-    });
-    const res2 = new Resource({
-        promise: () => delay(100),
-    });
+    const res1 = new Resource(() => delay(100));
+    const res2 = new Resource(() => delay(100));
 
     const usePriemSpy = jest.fn(usePriem);
 
@@ -115,8 +111,7 @@ it('should rerun promises when cache expires if `maxAge` is set', async () => {
      *  fulfilled        | 15       |                   | 14                      | 16
      */
 
-    const res = new Resource({
-        promise: value => delay(200, {value}),
+    const res = new Resource(value => delay(200, {value}), {
         maxAge: 1000,
     });
 
@@ -190,16 +185,18 @@ it('should rerun promises when cache expires if `maxAge` is set', async () => {
 
 it('should return a promise state with a `refresh` method', async () => {
     let shouldReject = false;
-    const res = new Resource({
-        promise(value) {
+    const res = new Resource(
+        value => {
             if (shouldReject) {
                 return delay.reject(10, {value: new Error('error!')});
             }
             shouldReject = true;
             return delay(100, {value});
         },
-        maxSize: 10,
-    });
+        {
+            maxSize: 10,
+        }
+    );
 
     const usePriemSpy = jest.fn(usePriem);
 
@@ -248,12 +245,8 @@ it('should return a promise state with a `refresh` method', async () => {
 });
 
 it('should render a nested component', async () => {
-    const res1 = new Resource({
-        promise: value => delay(100, {value}),
-    });
-    const res2 = new Resource({
-        promise: (res1Value, value) => delay(100, {value: res1Value + value}),
-    });
+    const res1 = new Resource(value => delay(100, {value}));
+    const res2 = new Resource((res1Value, value) => delay(100, {value: res1Value + value}));
 
     const usePriemSpy = jest.fn(usePriem);
 
@@ -272,8 +265,7 @@ it('should render a nested component', async () => {
 });
 
 it('should render `usePriem` hooks that are subscribed to the same resource but need different data', async () => {
-    const res = new Resource({
-        promise: value => delay(100, {value}),
+    const res = new Resource(value => delay(100, {value}), {
         maxSize: 2,
     });
 
@@ -299,9 +291,7 @@ it('should render `usePriem` hooks that are subscribed to the same resource but 
 });
 
 it('should unsubscribe from resource on unmount', async () => {
-    const res = new Resource({
-        promise: value => delay(100, {value}),
-    });
+    const res = new Resource(value => delay(100, {value}));
 
     const usePriemSpy = jest.fn(usePriem);
 
@@ -322,8 +312,7 @@ it('should unsubscribe from resource on unmount', async () => {
 });
 
 it('should debounce calls', async () => {
-    const res = new Resource({
-        promise: value => delay(100, {value}),
+    const res = new Resource(value => delay(100, {value}), {
         maxSize: 10,
     });
 

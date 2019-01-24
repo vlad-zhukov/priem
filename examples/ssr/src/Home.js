@@ -1,9 +1,8 @@
 import React from 'react';
-import {usePriem, Container} from 'priem';
+import {usePriem, Resource} from 'priem';
 import delay from 'delay';
 
-const aLongPromise = new Container({
-    promise: () => delay(1000, {value: 'SpongeBob'}),
+const aLongPromise = new Resource(() => delay(1000, {value: 'SpongeBob'}), {
     ssrKey: 'a-long-promise',
 });
 

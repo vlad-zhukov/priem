@@ -17,8 +17,7 @@ it('should populate store', () => {
 });
 
 it('should return `null` if `args` have not been provided', () => {
-    const res = new Resource({
-        promise: () => delay(100),
+    const res = new Resource(() => delay(100), {
         ssrKey: 'unique-key',
     });
 
@@ -27,8 +26,7 @@ it('should return `null` if `args` have not been provided', () => {
 });
 
 it('should not automatically populate store in browser environments', () => {
-    const res = new Resource({
-        promise: value => delay(100, {value}),
+    const res = new Resource(value => delay(100, {value}), {
         ssrKey: 'unique-key',
     });
 
@@ -51,27 +49,25 @@ Array [
 });
 
 it('should guard against passing reference types to `promise` function', () => {
-    const res = new Resource({
-        promise: value => delay(100, {value}),
+    const res = new Resource(value => delay(100, {value}), {
         ssrKey: 'unique-key',
     });
 
     expect(() => res._get([{}])).toThrowErrorMatchingInlineSnapshot(
-        `"usePriem: Passing reference types (such as objects and arrays) to \`promise\` function is discouraged as it's very error prone and often causes infinite rerenders. Please change this function signature to only use primitive types."`
+        `"usePriem: Passing reference types (such as objects and arrays) to \`fn\` is discouraged as it's very error prone and often causes infinite rerenders. Please change this function signature to only use primitive types."`
     );
 });
 
 it('should throw when there is a store entry with such `ssrKey` already exists', async () => {
-    const res1 = new Resource({
-        promise: value => delay(100, {value}),
+    const res1 = new Resource(value => delay(100, {value}), {
         ssrKey: 'unique-key',
     });
-    const res2 = new Resource({
-        promise: value => delay(100, {value}),
+    const res2 = new Resource(value => delay(100, {value}), {
         ssrKey: 'unique-key',
     });
 
     res1._get(['foo']);
+    expect(res1._has(['foo'])).toBe(true);
     await delay(150);
 
     expect(() => res2._get(['bar'])).toThrowErrorMatchingInlineSnapshot(

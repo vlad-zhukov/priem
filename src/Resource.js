@@ -24,12 +24,12 @@ export function flushStore() {
 
 // TODO: introduce a mechanism to dispose unneeded resource?
 export class Resource {
-    constructor(options) {
+    constructor(fn, options = {}) {
+        assertType(fn, ['function'], "'fn'");
         assertType(options, ['object'], "Resource argument 'options'");
 
-        const {promise, maxSize, maxAge, ssrKey} = options;
+        const {maxSize, maxAge, ssrKey} = options;
 
-        assertType(promise, ['function'], "'promise'");
         assertType(ssrKey, ['string', 'undefined'], "'ssrKey'");
 
         this._ssrKey = ssrKey;
@@ -44,7 +44,7 @@ export class Resource {
         }
 
         this._memoized = memoize({
-            fn: promise,
+            fn,
             initialCache,
             maxSize,
             maxAge,
@@ -72,7 +72,7 @@ export class Resource {
             const typeOfArg = type(arg);
             if (typeOfArg === 'object' || typeOfArg === 'array') {
                 throw new TypeError(
-                    'usePriem: Passing reference types (such as objects and arrays) to `promise` function is ' +
+                    'usePriem: Passing reference types (such as objects and arrays) to `fn` is ' +
                         "discouraged as it's very error prone and often causes infinite rerenders. " +
                         'Please change this function signature to only use primitive types.'
                 );
