@@ -12,13 +12,12 @@
   "dependencies": {
     "delay": "^4.1.0",
     "express": "^4.16.4",
-    "priem": "../../priem-v1.0.15.tgz",
-    "razzle": "^3.0.0-alpha.0",
-    "react": "^16.7.0-alpha.2",
-    "react-dom": "^16.7.0-alpha.2",
+    "razzle": "3.0.0-alpha.2",
+    "react": "16.8.0-alpha.1",
+    "react-dom": "16.8.0-alpha.1",
     "react-router-dom": "^4.3.1"
   },
   "devDependencies": {
-    "@babel/runtime": "^7.1.5"
+    "@babel/runtime": "^7.3.1"
   }
 }
