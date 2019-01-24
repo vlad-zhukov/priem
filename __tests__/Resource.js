@@ -16,12 +16,13 @@ it('should populate store', () => {
     expect(flushStore()).toEqual([]);
 });
 
-it('should return a pending state if `args` have not been provided', () => {
+it('should return `null` if `args` have not been provided', () => {
     const res = new Resource({
         promise: () => delay(100),
         ssrKey: 'unique-key',
     });
 
+    expect(res._has(null)).toBe(false);
     expect(res._get(null)).toBe(null);
 });
 

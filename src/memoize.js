@@ -1,6 +1,8 @@
 import {Cache, CacheItem, reduce} from './Cache';
 import {type, isBrowser} from './helpers';
 
+const DEFAULT_THROTTLE_MS = 150;
+
 const noop = () => true;
 
 export const PENDING = 0;
@@ -77,9 +79,10 @@ export default function memoize({fn, initialCache = [], maxSize = 1, maxAge = In
         }
 
         if (shouldRefresh) {
+            // Throttle refreshes
             const now = Date.now();
             const lastRefreshAt = item.lastRefreshAt || 0;
-            if (now - lastRefreshAt > 150) {
+            if (now - lastRefreshAt > DEFAULT_THROTTLE_MS) {
                 item.lastRefreshAt = now;
                 createTimeout(cache, item, normalizeMaxAge, onCacheChange);
                 const itemValue = Object.assign(item.value, {status: PENDING, reason: null});
@@ -99,8 +102,15 @@ export default function memoize({fn, initialCache = [], maxSize = 1, maxAge = In
         return item.value;
     }
 
-    Object.defineProperty(memoized, 'cache', {
-        value: cache,
+    Object.defineProperties(memoized, {
+        cache: {
+            value: cache,
+        },
+        has: {
+            value: function has(args) {
+                return !!cache.findBy(cacheItem => areKeysEqual(cacheItem.key, args));
+            },
+        },
     });
 
     return memoized;
