@@ -1,5 +1,4 @@
-import delay from 'delay';
-import {type, assertType, debounce} from '../src/helpers';
+import {type, assertType} from '../src/helpers';
 
 describe('type', () => {
     it('should return types of values', () => {
