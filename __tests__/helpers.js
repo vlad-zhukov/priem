@@ -38,18 +38,3 @@ describe('assertType', () => {
         expect(() => assertType({}, ['object'], "'myProps'")).not.toThrow();
     });
 });
-
-describe('debounce', () => {
-    it('should debounce function calls', async () => {
-        const func = jest.fn();
-        const debouncedFunc = debounce(func, 300);
-
-        debouncedFunc();
-        debouncedFunc();
-
-        expect(func).toHaveBeenCalledTimes(0);
-
-        await delay(400);
-        expect(func).toHaveBeenCalledTimes(1);
-    });
-});
