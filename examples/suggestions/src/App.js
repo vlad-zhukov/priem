@@ -1,18 +1,17 @@
 import React from 'react';
 import Autosuggest from 'react-autosuggest';
-import {usePriem, Container} from 'priem';
+import {usePriem, Resource} from 'priem';
 
-const suggestions = new Container({
-    promise: value =>
+const suggestions = new Resource(
+    value =>
         fetch('https://jsonplaceholder.typicode.com/photos')
             .then(res => res.json())
             .then(res => res.filter(item => item.title && item.title.includes(value)).slice(0, 5))
             .then(res => {
                 console.log(res);
-                return res;
             }),
-    maxSize: 10,
-});
+    {maxSize: 10}
+);
 
 const getSuggestionValue = suggestion => (suggestion ? suggestion.value : null);
 

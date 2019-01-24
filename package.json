@@ -17,6 +17,7 @@
     "prettier": "prettier \"**/*.{js,md}\" --write",
     "prepublishOnly": "yarn build && yarn lint && prettier \"**/*.{js,md}\" --check && yarn test"
   },
+  "dependencies": {},
   "devDependencies": {
     "@babel/core": "^7.2.2",
     "@babel/plugin-proposal-object-rest-spread": "^7.3.1",

@@ -1,17 +1,18 @@
 import React from 'react';
-import {usePriem, Container} from 'priem';
+import {usePriem, Resource} from 'priem';
 import Picker from '../components/Picker';
 import Posts from '../components/Posts';
 
-const redditContainer = new Container({
-    promise: reddit => {
-        return fetch(`https://www.reddit.com/r/${reddit}.json`)
+const redditContainer = new Resource(
+    reddit =>
+        fetch(`https://www.reddit.com/r/${reddit}.json`)
             .then(res => res.json())
-            .then(res => res.data.children);
-    },
-    maxSize: 2,
-    maxAge: 10000,
-});
+            .then(res => res.data.children),
+    {
+        maxSize: 2,
+        maxAge: 10000,
+    }
+);
 
 export default () => {
     const [redditName, setReddit] = React.useState('reactjs');

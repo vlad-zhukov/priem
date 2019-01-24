@@ -30,13 +30,15 @@ yarn add priem@beta
 import React from 'react';
 import {usePriem, Resource} from 'priem';
 
-const redditResource = new Resource({
-    promise: () =>
+const redditResource = new Resource(
+    () =>
         fetch('https://www.reddit.com/r/reactjs.json')
             .then(res => res.json())
             .then(res => res.data.children),
-    ssrKey: 'reddit-resource',
-});
+    {
+        ssrKey: 'reddit-resource',
+    }
+);
 
 export default () => {
     const {data, pending} = usePriem(redditResource);
@@ -115,12 +117,12 @@ A resource for fetching and caching data. `Priem` components can subscribe to it
 
 **Constructor arguments:**
 
-1.  `options` _(Object)_: An options object, that can have the following properties:
-    -   `promise` _(AsyncFunction)_: An async function that takes arguments from `usePriem` and must return a Promise.
-        If promise rejects, the cache item corresponding to these arguments will have a rejected status.
+1.  `fn`: _(AsyncFunction)_: An async function that takes arguments from `usePriem` and must return a Promise. If
+    promise rejects, the cache item corresponding to these arguments will have a rejected status.
+2.  `options` _(Object)_: An options object, that can have the following properties:
     -   `[maxAge]` _(Number)_: A time in milliseconds after which cache items will expire and trigger a refresh.
     -   `[maxSize]` _(Number)_: A number of maximum cache entries to store. After exceeding this amount the most former
-        used item will be removed and a refresh triggered.
+        used item will be removed and a refresh triggered. Defaults to 1.
     -   `[ssrKey]` _(String)_: A unique key that will be used to place this resource to the store. Required for
         server-side rendering.
 

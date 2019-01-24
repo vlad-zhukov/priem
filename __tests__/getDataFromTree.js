@@ -14,8 +14,7 @@ afterEach(() => {
 });
 
 it('should fetch and render to string with data', async () => {
-    const res = new Resource({
-        promise: value => delay(100, {value}),
+    const res = new Resource(value => delay(100, {value}), {
         ssrKey: 'unique-key-1',
     });
 
@@ -51,12 +50,10 @@ Array [
 });
 
 it('should fetch data from a nested component', async () => {
-    const res1 = new Resource({
-        promise: value => delay(100, {value}),
+    const res1 = new Resource(value => delay(100, {value}), {
         ssrKey: 'unique-key-1',
     });
-    const res2 = new Resource({
-        promise: (res1Value, value) => delay(100, {value: res1Value + value}),
+    const res2 = new Resource((res1Value, value) => delay(100, {value: res1Value + value}), {
         ssrKey: 'unique-key-2',
     });
 
@@ -110,13 +107,10 @@ Array [
 });
 
 it('should not fetch data from resources without `ssrKey`', async () => {
-    const res1 = new Resource({
-        promise: value => delay(100, {value}),
+    const res1 = new Resource(value => delay(100, {value}), {
         ssrKey: 'unique-key-1',
     });
-    const res2 = new Resource({
-        promise: (res1Value, value) => delay(100, {value: res1Value + value}),
-    });
+    const res2 = new Resource((res1Value, value) => delay(100, {value: res1Value + value}));
 
     function Comp() {
         const {data: data1} = usePriem(res1, ['foo']);
@@ -152,13 +146,11 @@ Array [
 });
 
 it('should not add non-fulfilled cache items to store', async () => {
-    const res1 = new Resource({
-        promise: () => delay.reject(100, {value: new Error('Boom!')}),
+    const res1 = new Resource(() => delay.reject(100, {value: new Error('Boom!')}), {
         ssrKey: 'unique-key-1',
     });
 
-    const res2 = new Resource({
-        promise: () => delay(10000, {value: 'A very long delay...'}),
+    const res2 = new Resource(() => delay(10000, {value: 'A very long delay...'}), {
         ssrKey: 'unique-key-2',
     });
 
@@ -166,11 +158,11 @@ it('should not add non-fulfilled cache items to store', async () => {
 
     await delay(300);
 
-    function Comp() {
+    const Comp = () => {
         usePriem(res1);
         usePriem(res2);
         return null;
-    }
+    };
 
     ReactDOM.renderToStaticMarkup(<Comp />);
 
@@ -194,12 +186,10 @@ it('should rehydrate data from initial store', async () => {
             populateStore(initialStore);
         }
 
-        const res1 = new Resource({
-            promise: value => delay(100, {value}),
+        const res1 = new Resource(value => delay(100, {value}), {
             ssrKey: 'unique-key-1',
         });
-        const res2 = new Resource({
-            promise: (res1Value, value) => delay(100, {value: res1Value + value}),
+        const res2 = new Resource((res1Value, value) => delay(100, {value: res1Value + value}), {
             ssrKey: 'unique-key-2',
         });
 
