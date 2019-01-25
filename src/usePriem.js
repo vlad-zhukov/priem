@@ -12,14 +12,15 @@ export default function usePriem(resource, args = []) {
     assertType(args, ['array', 'null'], '`args`');
 
     const [, rerender] = React.useState();
-    const refs = React.useRef({component: null, shouldForceUpdate: false, lastTimeCalled: 0, prevResult: null});
     const source = React.useRef(resource);
+    const refs = React.useRef({onChange: null, shouldForceUpdate: false, lastTimeCalled: 0, prevResult: null});
 
     if (source.current !== resource) {
         throw new TypeError("usePriem: it looks like you've passed a different 'resource' value after initializing.");
     }
 
-    refs.current.component = (prevArgs, forceUpdate) => {
+    // A callback for onCacheChange
+    refs.current.onChange = (prevArgs, forceUpdate) => {
         if (prevArgs !== null && args !== null && areKeysEqual(args, prevArgs)) {
             refs.current.shouldForceUpdate = forceUpdate;
             rerender();
@@ -43,14 +44,12 @@ export default function usePriem(resource, args = []) {
      * When we should debounce:
      * 1. This call is not forced.
      * 2. Previous result is valid.
-     * 3. More than 150ms lapsed since the last call.
-     * 4. The cache has no item.
+     * 3. Less than 150ms lapsed since the last call.
+     * 4. The item is not in the cache.
      */
     const shouldDebounce =
         shouldForceUpdate !== true &&
         prevResult !== null &&
-        prevResult.pending === false &&
-        prevResult.rejected === false &&
         now - lastTimeCalled < DEFAULT_DEBOUNCE_MS &&
         source.current._has(args) === false;
 

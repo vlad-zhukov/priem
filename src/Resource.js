@@ -73,7 +73,7 @@ export class Resource {
             if (typeOfArg === 'object' || typeOfArg === 'array') {
                 throw new TypeError(
                     'usePriem: Passing reference types (such as objects and arrays) to `fn` is ' +
-                        "discouraged as it's very error prone and often causes infinite rerenders. " +
+                        "discouraged as it's error prone and is usually a cause of infinite rerenders. " +
                         'Please change this function signature to only use primitive types.'
                 );
             }
@@ -99,7 +99,7 @@ export class Resource {
 
     _onCacheChange(args, forceRefresh) {
         this._listeners.forEach(comp => {
-            comp.component(args, forceRefresh);
+            comp.onChange(args, forceRefresh);
         });
     }
 
