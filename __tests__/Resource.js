@@ -54,7 +54,7 @@ it('should guard against passing reference types to `promise` function', () => {
     });
 
     expect(() => res._get([{}])).toThrowErrorMatchingInlineSnapshot(
-        `"usePriem: Passing reference types (such as objects and arrays) to \`fn\` is discouraged as it's very error prone and often causes infinite rerenders. Please change this function signature to only use primitive types."`
+        `"usePriem: Passing reference types (such as objects and arrays) to \`fn\` is discouraged as it's error prone and is usually a cause of infinite rerenders. Please change this function signature to only use primitive types."`
     );
 });
 

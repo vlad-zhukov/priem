@@ -258,8 +258,7 @@ it('should render a nested component', async () => {
 
     const {container} = render(<Comp />);
     await waitEffects();
-
-    await delay(300);
+    await delay(400);
 
     expect(container.innerHTML).toBe('<div>foobar</div>');
 });
@@ -312,7 +311,7 @@ it('should unsubscribe from resource on unmount', async () => {
 });
 
 it('should debounce calls', async () => {
-    const res = new Resource(value => delay(100, {value}), {
+    const res = new Resource(value => delay(200, {value}), {
         maxSize: 10,
     });
 
@@ -328,25 +327,36 @@ it('should debounce calls', async () => {
     };
 
     const {rerender} = render(<Comp arg="foo" />);
+    rerender(<Comp arg="bar" />);
+    rerender(<Comp arg="baz" />);
+
     await waitEffects();
+
+    expect(usePriemSpy).toHaveLastReturnedWith({
+        data: null,
+        fulfilled: false,
+        pending: true,
+        reason: null,
+        rejected: false,
+    });
+    expect(getSpy).toHaveBeenCalledTimes(1);
+
     await delay(200);
 
     expect(usePriemSpy).toHaveLastReturnedWith({
-        data: 'foo',
-        fulfilled: true,
-        pending: false,
+        data: null,
+        fulfilled: false,
+        pending: true,
         reason: null,
         rejected: false,
     });
     expect(getSpy).toHaveBeenCalledTimes(2);
 
-    rerender(<Comp arg="bar" />);
-    rerender(<Comp arg="baz" />);
-    rerender(<Comp arg="qux" />);
+    await delay(200);
     await waitEffects();
 
     expect(usePriemSpy).toHaveLastReturnedWith({
-        data: 'foo',
+        data: 'baz',
         fulfilled: true,
         pending: false,
         reason: null,
@@ -354,61 +364,33 @@ it('should debounce calls', async () => {
     });
     expect(getSpy).toHaveBeenCalledTimes(3);
 
-    await delay(200);
-    await waitEffects();
-
-    expect(usePriemSpy).toHaveLastReturnedWith({
-        data: 'qux',
-        fulfilled: true,
-        pending: false,
-        reason: null,
-        rejected: false,
-    });
-    expect(getSpy).toHaveBeenCalledTimes(5);
-
     await delay(300);
     await waitEffects();
 
     expect(usePriemSpy).toHaveLastReturnedWith({
-        data: 'qux',
+        data: 'baz',
         fulfilled: true,
         pending: false,
         reason: null,
         rejected: false,
     });
-    expect(getSpy).toHaveBeenCalledTimes(5);
+    expect(getSpy).toHaveBeenCalledTimes(3);
 
-    const toArray = cache =>
-        reduce(cache, [], (acc, item) => {
-            acc.push(item);
-            return acc;
-        });
-
-    expect(toArray(res._memoized.cache)).toMatchInlineSnapshot(`
-Array [
-  CacheItem {
+    expect(res._memoized.cache).toMatchInlineSnapshot(`
+Cache {
+  "head": CacheItem {
     "key": Array [
-      "qux",
+      "baz",
     ],
     "value": Object {
-      "data": "qux",
+      "data": "baz",
       "promise": Promise {},
       "reason": null,
       "status": 1,
     },
   },
-  CacheItem {
-    "key": Array [
-      "bar",
-    ],
-    "value": Object {
-      "data": "bar",
-      "promise": Promise {},
-      "reason": null,
-      "status": 1,
-    },
-  },
-  CacheItem {
+  "size": 2,
+  "tail": CacheItem {
     "key": Array [
       "foo",
     ],
@@ -419,6 +401,6 @@ Array [
       "status": 1,
     },
   },
-]
+}
 `);
 });
