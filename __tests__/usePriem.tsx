@@ -1,11 +1,11 @@
 /* eslint-disable import/no-extraneous-dependencies, react/no-multi-comp */
 
-import React from 'react';
+import * as React from 'react';
 import delay from 'delay';
 import {render, cleanup, flushEffects, fireEvent} from 'react-testing-library';
 import usePriem from '../src/usePriem';
 import {Resource} from '../src/Resource';
-import {reduce} from '../src/Cache';
+import {MemoizedKey} from '../src/memoize';
 
 async function waitEffects() {
     flushEffects();
@@ -13,13 +13,13 @@ async function waitEffects() {
 }
 
 /* eslint-disable react/no-unused-state */
-class ErrorBoundary extends React.Component {
-    constructor() {
-        super();
-        this.state = {initTime: Date.now(), hasError: null};
+class ErrorBoundary extends React.Component<unknown, {initTime: number; hasError?: Error; catchTime?: number}> {
+    constructor(props: unknown) {
+        super(props);
+        this.state = {initTime: Date.now()};
     }
 
-    componentDidCatch(error) {
+    componentDidCatch(error: Error) {
         this.setState({hasError: error, catchTime: Date.now()});
     }
 
@@ -49,7 +49,7 @@ it('should throw if `source` is not a `Resource` instance', async () => {
         return null;
     }
 
-    const ref = React.createRef();
+    const ref = React.createRef<ErrorBoundary>();
     const element = (
         <ErrorBoundary ref={ref}>
             <Comp />
@@ -61,7 +61,7 @@ it('should throw if `source` is not a `Resource` instance', async () => {
 
     await delay(500);
 
-    expect(ref.current.state.hasError).toMatchInlineSnapshot(
+    expect(ref.current!.state.hasError).toMatchInlineSnapshot(
         `[TypeError: usePriem: 'resource' must be an instance of 'Resource'.]`
     );
 });
@@ -79,7 +79,7 @@ it('should throw if `source` is different after initializing', async () => {
         return null;
     }
 
-    const ref = React.createRef();
+    const ref = React.createRef<ErrorBoundary>();
     const element = (
         <ErrorBoundary ref={ref}>
             <Comp />
@@ -91,7 +91,7 @@ it('should throw if `source` is different after initializing', async () => {
 
     await delay(500);
 
-    expect(ref.current.state.hasError).toMatchInlineSnapshot(
+    expect(ref.current!.state.hasError).toMatchInlineSnapshot(
         `[TypeError: usePriem: it looks like you've passed a different 'resource' value after initializing.]`
     );
 });
@@ -117,10 +117,10 @@ it('should rerun promises when cache expires if `maxAge` is set', async () => {
 
     const usePriemSpy = jest.fn(usePriem);
 
-    function Comp({count}) {
+    const Comp: React.FunctionComponent<{count: string}> = ({count}) => {
         const {data} = usePriemSpy(res, [`foo${count}`]);
         return <div>{data}</div>;
-    }
+    };
 
     const {container, rerender} = render(<Comp count="1" />);
     await waitEffects();
@@ -226,7 +226,7 @@ it('should return a promise state with a `refresh` method', async () => {
     expect(usePriemSpy).toHaveBeenCalledTimes(2);
     expect(getSpy).toHaveBeenCalledTimes(2);
 
-    fireEvent.click(container.querySelector('button'));
+    fireEvent.click(container.querySelector('button') as HTMLButtonElement);
     expect(container.innerHTML).toBe('<button type="button">foo</button>');
     expect(usePriemSpy).toHaveBeenCalledTimes(3);
     expect(getSpy).toHaveBeenCalledTimes(3);
@@ -246,6 +246,7 @@ it('should return a promise state with a `refresh` method', async () => {
 
 it('should render a nested component', async () => {
     const res1 = new Resource(value => delay(100, {value}));
+    // @ts-ignore
     const res2 = new Resource((res1Value, value) => delay(100, {value: res1Value + value}));
 
     const usePriemSpy = jest.fn(usePriem);
@@ -302,11 +303,13 @@ it('should unsubscribe from resource on unmount', async () => {
     const {unmount} = render(<Comp />);
     await waitEffects();
 
+    // @ts-ignore
     expect(res._listeners).toHaveLength(1);
 
     unmount();
     await waitEffects();
 
+    // @ts-ignore
     expect(res._listeners).toHaveLength(0);
 });
 
@@ -315,13 +318,13 @@ it('should debounce calls', async () => {
         maxSize: 10,
     });
 
-    const usePriemSpy = jest.fn((...args) => {
-        const ret = usePriem(...args);
+    const usePriemSpy = jest.fn((res: Resource, args: MemoizedKey) => {
+        const ret = usePriem(res, args);
         delete ret.refresh;
         return ret;
     });
 
-    const Comp = props => {
+    const Comp: React.FunctionComponent<{arg: unknown}> = props => {
         usePriemSpy(res, [props.arg]);
         return null;
     };
@@ -376,6 +379,7 @@ it('should debounce calls', async () => {
     });
     expect(getSpy).toHaveBeenCalledTimes(3);
 
+    // @ts-ignore
     expect(res._memoized.cache).toMatchInlineSnapshot(`
 Cache {
   "head": CacheItem {

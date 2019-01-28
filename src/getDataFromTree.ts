@@ -1,7 +1,8 @@
-import ReactDOM from 'react-dom/server';
+import {ReactElement} from 'react';
+import * as ReactDOM from 'react-dom/server';
 import {renderPromises} from './Resource';
 
-export default async function getDataFromTree(tree) {
+export default async function getDataFromTree(tree: ReactElement<any>) {
     while (true) {
         ReactDOM.renderToStaticMarkup(tree);
         if (renderPromises.length === 0) {

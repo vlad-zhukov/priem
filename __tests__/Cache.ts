@@ -1,12 +1,12 @@
 import {Cache, CacheItem, reduce} from '../src/Cache';
 
-const toArray = cache =>
+const toArray = (cache: Cache): CacheItem[] =>
     reduce(cache, [], (acc, item) => {
         acc.push(item);
         return acc;
     });
 
-const createCache = (size = 5) => {
+function createCache(size: number = 5): Cache {
     const items = [
         new CacheItem('foo', 123),
         new CacheItem('bar', 234),
@@ -15,7 +15,7 @@ const createCache = (size = 5) => {
         new CacheItem('quux', 567),
     ];
     return new Cache(items.slice(0, size));
-};
+}
 
 it('should construct with items', () => {
     const cache = createCache(2);

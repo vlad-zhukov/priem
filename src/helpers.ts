@@ -1,6 +1,6 @@
-export const isBrowser = typeof window === 'object' && typeof document === 'object' && document.nodeType === 9;
+export const isBrowser: boolean = typeof window === 'object' && typeof document === 'object' && document.nodeType === 9;
 
-export function type(value) {
+export function type(value: unknown): string {
     if (value !== value) return 'NaN'; // eslint-disable-line no-self-compare
     if (value === null) return 'null';
     if (value === undefined) return 'undefined';
@@ -10,7 +10,7 @@ export function type(value) {
     return 'object';
 }
 
-export function assertType(variable, types, variableName = 'The value') {
+export function assertType(variable: unknown, types: string[], variableName: string = 'The value') {
     const typeOfVariable = type(variable);
 
     let typesAsString = '';
@@ -27,10 +27,8 @@ export function assertType(variable, types, variableName = 'The value') {
     }
 
     if (isValid === false) {
-        const error = new TypeError(
+        throw new TypeError(
             `Priem: ${variableName} must be one of the following: '${typesAsString}', but got: '${typeOfVariable}'.`
         );
-        error.framesToPop = 1;
-        throw error;
     }
 }
