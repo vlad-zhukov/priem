@@ -1,19 +1,39 @@
-import React from 'react';
-import {Resource} from './Resource';
-import {areKeysEqual, PENDING, FULFILLED, REJECTED} from './memoize';
+import * as React from 'react';
+import {Resource, Subscriber} from './Resource';
+import {MemoizedKey, areKeysEqual, STATUS} from './memoize';
 import {assertType} from './helpers';
 
 const DEFAULT_DEBOUNCE_MS = 150;
 
-export default function usePriem(resource, args = []) {
+type Result<DataType> = {
+    data: DataType | null;
+    pending: boolean;
+    fulfilled: boolean;
+    rejected: boolean;
+    reason: Error | null;
+    refresh: () => void;
+};
+
+type Refs<DataType> = Subscriber & {
+    shouldForceUpdate: boolean;
+    lastTimeCalled: number;
+    prevResult: Result<DataType> | null;
+};
+
+export default function usePriem<DataType>(resource: Resource, args: MemoizedKey | null = []): Result<DataType> {
     if (!(resource instanceof Resource)) {
         throw new TypeError("usePriem: 'resource' must be an instance of 'Resource'.");
     }
     assertType(args, ['array', 'null'], '`args`');
 
-    const [, rerender] = React.useState();
+    const [, rerender] = React.useState(null);
     const source = React.useRef(resource);
-    const refs = React.useRef({onChange: null, shouldForceUpdate: false, lastTimeCalled: 0, prevResult: null});
+    const refs = React.useRef<Refs<DataType>>({
+        onChange: () => {},
+        shouldForceUpdate: false,
+        lastTimeCalled: 0,
+        prevResult: null,
+    });
 
     if (source.current !== resource) {
         throw new TypeError("usePriem: it looks like you've passed a different 'resource' value after initializing.");
@@ -23,7 +43,7 @@ export default function usePriem(resource, args = []) {
     refs.current.onChange = (prevArgs, forceUpdate) => {
         if (prevArgs !== null && args !== null && areKeysEqual(args, prevArgs)) {
             refs.current.shouldForceUpdate = forceUpdate;
-            rerender();
+            rerender(null);
         }
     };
 
@@ -54,7 +74,7 @@ export default function usePriem(resource, args = []) {
         source.current._has(args) === false;
 
     React.useEffect(() => {
-        let handler;
+        let handler: number | undefined;
         if (shouldDebounce) {
             handler = setTimeout(rerender, DEFAULT_DEBOUNCE_MS);
         }
@@ -62,16 +82,16 @@ export default function usePriem(resource, args = []) {
     });
 
     if (shouldDebounce) {
-        return prevResult;
+        return prevResult as Result<DataType>;
     }
 
     const ret = source.current._get(args, shouldForceUpdate);
 
-    if ((ret === null || ret.status === PENDING) && prevResult !== null) {
+    if ((ret === null || ret.status === STATUS.PENDING) && prevResult !== null) {
         return prevResult;
     }
 
-    const result = {
+    const result: Result<DataType> = {
         data: null,
         pending: true,
         fulfilled: false,
@@ -79,15 +99,15 @@ export default function usePriem(resource, args = []) {
         reason: null,
         refresh() {
             refs.current.shouldForceUpdate = true;
-            rerender();
+            rerender(null);
         },
     };
 
     if (ret !== null) {
-        result.data = ret.data;
-        result.pending = ret.status === PENDING;
-        result.fulfilled = ret.status === FULFILLED;
-        result.rejected = ret.status === REJECTED;
+        result.data = ret.data as DataType;
+        result.pending = ret.status === STATUS.PENDING;
+        result.fulfilled = ret.status === STATUS.FULFILLED;
+        result.rejected = ret.status === STATUS.REJECTED;
         result.reason = ret.reason;
     }
 
