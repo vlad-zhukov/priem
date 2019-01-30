@@ -1,4 +1,5 @@
 import {ReactElement} from 'react';
+// tslint:disable-next-line no-submodule-imports
 import * as ReactDOM from 'react-dom/server';
 
 export default function createGetDataFromTree(renderPromises: (Promise<unknown> | undefined)[]) {
