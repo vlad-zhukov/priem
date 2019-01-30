@@ -3,7 +3,7 @@
  */
 
 import delay from 'delay';
-import {Resource, populateStore, flushStore} from '../src/Resource';
+import {Resource, populateStore, flushStore} from '../Resource';
 
 afterEach(() => {
     flushStore();
@@ -21,8 +21,8 @@ it('should return `null` if `args` have not been provided', () => {
         ssrKey: 'unique-key',
     });
 
-    expect(res._has(null)).toBe(false);
-    expect(res._get(null)).toBe(null);
+    expect(res.has(null)).toBe(false);
+    expect(res.get(null)).toBe(null);
 });
 
 it('should not automatically populate store in browser environments', () => {
@@ -30,7 +30,7 @@ it('should not automatically populate store in browser environments', () => {
         ssrKey: 'unique-key',
     });
 
-    expect(res._get(['foo'])).toMatchInlineSnapshot(`
+    expect(res.get(['foo'])).toMatchInlineSnapshot(`
 Object {
   "data": null,
   "promise": Promise {},
@@ -53,7 +53,7 @@ it('should guard against passing reference types to `promise` function', () => {
         ssrKey: 'unique-key',
     });
 
-    expect(() => res._get([{}])).toThrowErrorMatchingInlineSnapshot(
+    expect(() => res.get([{}])).toThrowErrorMatchingInlineSnapshot(
         `"usePriem: Passing reference types (such as objects and arrays) to \`fn\` is discouraged as it's error prone and is usually a cause of infinite rerenders. Please change this function signature to only use primitive types."`
     );
 });
@@ -66,11 +66,11 @@ it('should throw when there is a store entry with such `ssrKey` already exists',
         ssrKey: 'unique-key',
     });
 
-    res1._get(['foo']);
-    expect(res1._has(['foo'])).toBe(true);
+    res1.get(['foo']);
+    expect(res1.has(['foo'])).toBe(true);
     await delay(150);
 
-    expect(() => res2._get(['bar'])).toThrowErrorMatchingInlineSnapshot(
+    expect(() => res2.get(['bar'])).toThrowErrorMatchingInlineSnapshot(
         `"usePriem: A resource with 'unique-key' \`ssrKey\` already exists. Please make sure \`ssrKey\`s are unique."`
     );
 });

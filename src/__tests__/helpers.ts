@@ -1,4 +1,4 @@
-import {type, assertType} from '../src/helpers';
+import {type, assertType} from '../helpers';
 
 describe('type', () => {
     it('should return types of values', () => {
@@ -10,7 +10,7 @@ describe('type', () => {
         expect(type(true)).toBe('boolean');
         expect(type([])).toBe('array');
         expect(type({})).toBe('object');
-        expect(type(() => {})).toBe('function');
+        expect(type(() => {})).toBe('function'); // tslint:disable-line no-empty
     });
 });
 

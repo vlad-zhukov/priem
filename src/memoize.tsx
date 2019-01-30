@@ -5,14 +5,10 @@ const DEFAULT_THROTTLE_MS = 150;
 
 const noop = () => true;
 
-export const PENDING = 0;
-export const FULFILLED = 1;
-export const REJECTED = 2;
-
 export const enum STATUS {
     PENDING = 0,
-    FULFILLED = 0,
-    REJECTED = 0,
+    FULFILLED = 1,
+    REJECTED = 2,
 }
 
 export type MemoizedKey = unknown[];
@@ -31,7 +27,6 @@ export type MemoizedCacheItem = CacheItem<MemoizedKey, MemoizedValue>;
 export type MemoizedSerializableCacheItem = SerializableCacheItem<MemoizedKey, MemoizedValue>;
 
 function isSameValueZero(object1: unknown, object2: unknown): boolean {
-    // eslint-disable-next-line no-self-compare
     return object1 === object2 || (object1 !== object1 && object2 !== object2);
 }
 
@@ -70,7 +65,7 @@ function createTimeout(
     item: MemoizedCacheItem,
     maxAge: number | null,
     onCacheChange: cacheChangeCallback
-) {
+): void {
     if (isBrowser === true && maxAge !== null) {
         clearTimeout(item.expireId);
         // eslint-disable-next-line no-param-reassign
@@ -103,7 +98,6 @@ export default function memoize({
     onCacheChange = noop,
 }: MemoizeOptions): MemoizedFunction {
     const cache: MemoizedCache = new Cache(initialCache);
-    // eslint-disable-next-line no-restricted-globals
     const normalizeMaxAge = type(maxAge) === 'number' && isFinite(maxAge) ? maxAge : null;
 
     function memoized(args: MemoizedKey, forceRefresh: boolean = false): MemoizedValue {
@@ -138,7 +132,7 @@ export default function memoize({
                 item.lastRefreshAt = now;
                 createTimeout(cache, item, normalizeMaxAge, onCacheChange);
                 const itemValue = Object.assign(item.value, {status: STATUS.PENDING, reason: null});
-                itemValue.promise = fn(args)
+                itemValue.promise = fn(...args)
                     .then(data => {
                         Object.assign(itemValue, {status: STATUS.FULFILLED, data, reason: null});
                         onCacheChange(args, false);

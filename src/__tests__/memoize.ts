@@ -1,5 +1,5 @@
 import delay from 'delay';
-import memoize, {toSerializableArray} from '../src/memoize';
+import memoize, {toSerializableArray} from '../memoize';
 
 it('should memoize promises', async () => {
     const memoized = memoize({fn: name => delay(200, {value: `Hello ${name}!`}), maxSize: 2});
@@ -400,7 +400,6 @@ Array [
 it('should throttle refreshing', async () => {
     const memoized = memoize({
         fn: () => delay(200, {value: 'SquarePants'}),
-        onCacheChange() {},
     });
 
     memoized(['SpongeBob']);

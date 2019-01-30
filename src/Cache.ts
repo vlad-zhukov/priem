@@ -98,7 +98,7 @@ export class Cache<K = unknown, V = unknown> {
     }
 
     prepend(item: CacheItem<K, V>): void {
-        item[NEXT] = this.head; // eslint-disable-line no-param-reassign
+        item[NEXT] = this.head;
         if (this.head !== null) {
             this.head[PREV] = item;
         }
@@ -111,7 +111,7 @@ export class Cache<K = unknown, V = unknown> {
 
     // eslint-disable-next-line consistent-return
     remove(item: CacheItem<K, V> | null): null | void {
-        if (item === null || item.lastRefreshAt === null) {
+        if (item === null || !item.lastRefreshAt) {
             return null;
         }
 

@@ -1,7 +1,7 @@
-import {Cache, CacheItem, reduce} from '../src/Cache';
+import {Cache, CacheItem, reduce} from '../Cache';
 
 const toArray = (cache: Cache): CacheItem[] =>
-    reduce(cache, [], (acc, item) => {
+    reduce<CacheItem[]>(cache, [], (acc, item) => {
         acc.push(item);
         return acc;
     });
@@ -129,7 +129,7 @@ it('should remove an item by reference', () => {
     const cache = createCache(3);
 
     const res1 = cache.findBy(item => item.key === 'foo');
-    res1.lastRefreshAt = Date.now();
+    res1!.lastRefreshAt = Date.now();
     expect(res1).toMatchInlineSnapshot(`
 CacheItem {
   "key": "foo",
@@ -138,7 +138,7 @@ CacheItem {
 `);
 
     const res2 = cache.findBy(item => item.key === 'baz');
-    res2.lastRefreshAt = Date.now();
+    res2!.lastRefreshAt = Date.now();
     expect(res2).toMatchInlineSnapshot(`
 CacheItem {
   "key": "baz",
@@ -159,11 +159,11 @@ Array [
 `);
 });
 
-it('should not remove an item if it is `null` or `item.lastRefreshAt` is `null`', () => {
+it('should not remove an item if it is `null` or `item.lastRefreshAt` is `undefined`', () => {
     const cache = createCache(3);
 
     const item = cache.head;
-    item.lastRefreshAt = null;
+    item!.lastRefreshAt = undefined;
 
     cache.remove(null);
     cache.remove(item);

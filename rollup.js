@@ -1,11 +1,10 @@
 const path = require('path');
 const rollup = require('rollup');
-const babel = require('rollup-plugin-babel');
 const typescript = require('rollup-plugin-typescript2');
 const pkg = require('./package');
 
 const cacheRoot = path.resolve(process.cwd(), 'node_modules/.rts2_cache');
-const plugins = [babel(), typescript({include: ['src/**/*'], cacheRoot})];
+const plugins = [typescript({include: ['src/**/*'], cacheRoot})];
 const external = Object.keys(pkg.dependencies).concat(Object.keys(pkg.peerDependencies), 'react-dom/server');
 
 rollup

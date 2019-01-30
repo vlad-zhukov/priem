@@ -29,6 +29,7 @@ export default function usePriem<DataType>(resource: Resource, args: MemoizedKey
     const [, rerender] = React.useState(null);
     const source = React.useRef(resource);
     const refs = React.useRef<Refs<DataType>>({
+        // tslint:disable-next-line no-empty
         onChange: () => {},
         shouldForceUpdate: false,
         lastTimeCalled: 0,
@@ -48,8 +49,8 @@ export default function usePriem<DataType>(resource: Resource, args: MemoizedKey
     };
 
     React.useEffect(() => {
-        source.current._subscribe(refs.current);
-        return () => source.current._unsubscribe(refs.current);
+        source.current.subscribe(refs.current);
+        return () => source.current.unsubscribe(refs.current);
     }, []);
 
     const {lastTimeCalled, prevResult, shouldForceUpdate} = refs.current;
@@ -71,7 +72,7 @@ export default function usePriem<DataType>(resource: Resource, args: MemoizedKey
         shouldForceUpdate !== true &&
         prevResult !== null &&
         now - lastTimeCalled < DEFAULT_DEBOUNCE_MS &&
-        source.current._has(args) === false;
+        source.current.has(args) === false;
 
     React.useEffect(() => {
         let handler: number | undefined;
@@ -85,7 +86,7 @@ export default function usePriem<DataType>(resource: Resource, args: MemoizedKey
         return prevResult as Result<DataType>;
     }
 
-    const ret = source.current._get(args, shouldForceUpdate);
+    const ret = source.current.get(args, shouldForceUpdate);
 
     if ((ret === null || ret.status === STATUS.PENDING) && prevResult !== null) {
         return prevResult;
