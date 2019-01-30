@@ -64,7 +64,8 @@ export default () => {
 ```jsx
 import React from 'react';
 import ReactDOM from 'react-dom/server';
-import {getDataFromTree, flushStore} from 'priem';
+import {getDataFromTree} from 'priem/server';
+import {flushStore} from 'priem';
 import App from './App';
 
 app.get(async (req, res) => {

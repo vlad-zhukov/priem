@@ -5,6 +5,7 @@
     "lib": ["es5", "es2015", "es2016", "es2017", "dom"],
     "sourceMap": true,
     "declaration": true,
+    "declarationDir": "dist/types",
     "allowJs": false,
     "jsx": "react",
     "moduleResolution": "node",

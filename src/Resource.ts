@@ -3,17 +3,17 @@ import memoize, {
     MemoizedCacheItem,
     MemoizedFunction,
     MemoizedKey,
-    MemoizedSerializableCacheItem,
     MemoizedValue,
+    MemoizedSerializableCacheItem,
     STATUS,
     toSerializableArray,
 } from './memoize';
 import {assertType, isBrowser, type} from './helpers';
 
 let storeMap = new Map<string, MemoizedSerializableCacheItem[] | MemoizedCacheItem[] | MemoizedCache>();
-export const renderPromises: (Promise<void> | undefined)[] = [];
+export const renderPromises: (Promise<unknown> | undefined)[] = [];
 
-export function populateStore(initialStore: [string, (MemoizedSerializableCacheItem | MemoizedCacheItem)[]][]): void {
+export function populateStore(initialStore: [string, MemoizedSerializableCacheItem[]][]): void {
     assertType(initialStore, ['array'], "'initialStore'");
     storeMap = new Map(initialStore);
 }
@@ -48,9 +48,9 @@ type ResourceOptions = {
 
 // TODO: introduce a mechanism to dispose unneeded resource?
 export class Resource {
-    private ssrKey?: string;
-    private listeners: Subscriber[] = [];
-    private memoized: MemoizedFunction;
+    /** @internal */ private ssrKey?: string;
+    /** @internal */ private listeners: Subscriber[] = [];
+    /** @internal */ private memoized: MemoizedFunction;
 
     constructor(fn: (...args: unknown[]) => Promise<unknown>, options: ResourceOptions = {}) {
         assertType(fn, ['function'], "'fn'");
@@ -81,6 +81,7 @@ export class Resource {
         });
     }
 
+    /** @internal */
     has(args: MemoizedKey | null): boolean {
         if (args === null) {
             return false;
@@ -88,6 +89,7 @@ export class Resource {
         return this.memoized.has(args);
     }
 
+    /** @internal */
     get(args: MemoizedKey | null, forceRefresh: boolean = false): MemoizedValue | null {
         if (isBrowser === false && !this.ssrKey) {
             return null;
@@ -128,17 +130,20 @@ export class Resource {
         return ret;
     }
 
+    /** @internal */
     onCacheChange(args: MemoizedKey, forceRefresh: boolean): void {
         this.listeners.forEach(comp => {
             comp.onChange(args, forceRefresh);
         });
     }
 
+    /** @internal */
     subscribe(component: Subscriber): void {
         // TODO: Handle cases when the same component subscribes multiple times?
         this.listeners.push(component);
     }
 
+    /** @internal */
     unsubscribe(component: Subscriber): void {
         const index = this.listeners.findIndex(copm => copm === component);
         this.listeners.splice(index, 1);
