@@ -1,9 +1,7 @@
 import * as React from 'react';
 import delay from 'delay';
 import {render, cleanup, flushEffects, fireEvent} from 'react-testing-library';
-import usePriem from '../usePriem';
-import {Resource} from '../Resource';
-import {MemoizedKey} from '../memoize';
+import {usePriem, Resource} from '../index';
 
 async function waitEffects() {
     flushEffects();
@@ -310,12 +308,12 @@ it('should unsubscribe from resource on unmount', async () => {
     expect(res.listeners).toHaveLength(0);
 });
 
-it.only('should debounce calls', async () => {
+it('should debounce calls', async () => {
     const res = new Resource(value => delay(200, {value}), {
         maxSize: 10,
     });
 
-    const usePriemSpy = jest.fn((resource: Resource, args: MemoizedKey) => {
+    const usePriemSpy = jest.fn((resource: Resource, args: unknown[]) => {
         const ret = usePriem(resource, args);
         delete ret.refresh;
         return ret;

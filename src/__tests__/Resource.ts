@@ -3,7 +3,7 @@
  */
 
 import delay from 'delay';
-import {Resource, populateStore, flushStore} from '../Resource';
+import {Resource, populateStore, flushStore} from '../index';
 
 afterEach(() => {
     flushStore();

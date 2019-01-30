@@ -6,9 +6,7 @@ import * as React from 'react';
 // tslint:disable-next-line no-submodule-imports
 import * as ReactDOM from 'react-dom/server';
 import delay from 'delay';
-import usePriem from '../usePriem';
-import {Resource, flushStore, populateStore} from '../Resource';
-import getDataFromTree from '../getDataFromTree';
+import {usePriem, Resource, flushStore, populateStore, getDataFromTree} from '../index.server';
 
 afterEach(() => {
     flushStore();
