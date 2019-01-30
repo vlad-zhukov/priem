@@ -241,7 +241,6 @@ it('should return a promise state with a `refresh` method', async () => {
 
 it('should render a nested component', async () => {
     const res1 = new Resource(value => delay(100, {value}));
-    // @ts-ignore
     const res2 = new Resource((res1Value, value) => delay(100, {value: res1Value + value}));
 
     const usePriemSpy = jest.fn(usePriem);
@@ -298,14 +297,14 @@ it('should unsubscribe from resource on unmount', async () => {
     const {unmount} = render(<Comp />);
     await waitEffects();
 
-    // @ts-ignore
-    expect(res.listeners).toHaveLength(1);
+    // tslint:disable-next-line no-string-literal
+    expect(res['listeners']).toHaveLength(1);
 
     unmount();
     await waitEffects();
 
-    // @ts-ignore
-    expect(res.listeners).toHaveLength(0);
+    // tslint:disable-next-line no-string-literal
+    expect(res['listeners']).toHaveLength(0);
 });
 
 it('should debounce calls', async () => {

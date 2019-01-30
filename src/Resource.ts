@@ -49,10 +49,10 @@ type ResourceOptions = {
 // TODO: introduce a mechanism to dispose unneeded resource?
 export class Resource {
     /** @internal */ private ssrKey?: string;
-    /** @internal */ private listeners: Subscriber[] = [];
-    /** @internal */ private memoized: MemoizedFunction;
+    /** @internal */ private readonly listeners: Subscriber[] = [];
+    /** @internal */ private readonly memoized: MemoizedFunction;
 
-    constructor(fn: (...args: unknown[]) => Promise<unknown>, options: ResourceOptions = {}) {
+    constructor(fn: (...args: any[]) => Promise<unknown>, options: ResourceOptions = {}) {
         assertType(fn, ['function'], "'fn'");
         assertType(options, ['object'], "Resource argument 'options'");
 

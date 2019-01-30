@@ -55,7 +55,6 @@ it('should fetch data from a nested component', async () => {
     const res1 = new Resource(value => delay(100, {value}), {
         ssrKey: 'unique-key-1',
     });
-    // @ts-ignore
     const res2 = new Resource((res1Value, value) => delay(100, {value: res1Value + value}), {
         ssrKey: 'unique-key-2',
     });
@@ -113,7 +112,6 @@ it('should not fetch data from resources without `ssrKey`', async () => {
     const res1 = new Resource(value => delay(100, {value}), {
         ssrKey: 'unique-key-1',
     });
-    // @ts-ignore
     const res2 = new Resource((res1Value, value) => delay(100, {value: res1Value + value}));
 
     function Comp() {
@@ -193,7 +191,6 @@ it('should rehydrate data from initial store', async () => {
         const res1 = new Resource(value => delay(100, {value}), {
             ssrKey: 'unique-key-1',
         });
-        // @ts-ignore
         const res2 = new Resource((res1Value, value) => delay(100, {value: res1Value + value}), {
             ssrKey: 'unique-key-2',
         });

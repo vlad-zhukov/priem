@@ -3,7 +3,7 @@ import {type, isBrowser, noop} from './helpers';
 
 const DEFAULT_THROTTLE_MS = 150;
 
-export const enum STATUS {
+export enum STATUS {
     PENDING = 0,
     FULFILLED = 1,
     REJECTED = 2,
