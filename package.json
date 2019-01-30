@@ -1,6 +1,6 @@
 {
   "name": "priem",
-  "version": "1.0.0",
+  "version": "2.0.0-alpha.0",
   "description": "Rich async state management.",
   "author": "Vlad Zhukov (http://github.com/Vlad-Zhukov)",
   "license": "MIT",
@@ -26,8 +26,8 @@
     "@types/react-dom": "^16.0.11",
     "delay": "^4.1.0",
     "fs-extra": "^7.0.1",
-    "jest": "24.0.0",
-    "jest-circus": "24.0.0",
+    "jest": "^24.0.0",
+    "jest-circus": "^24.0.0",
     "prettier": "^1.16.2",
     "raf": "^3.4.1",
     "react": "16.8.0-alpha.1",
