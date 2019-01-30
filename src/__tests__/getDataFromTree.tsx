@@ -6,7 +6,10 @@ import * as React from 'react';
 // tslint:disable-next-line no-submodule-imports
 import * as ReactDOM from 'react-dom/server';
 import delay from 'delay';
-import {usePriem, Resource, flushStore, populateStore, getDataFromTree} from '../index.server';
+import {usePriem, Resource, flushStore, populateStore, __INTERNALS__} from '../index';
+import createGetDataFromTree from '../index.server';
+
+const getDataFromTree = createGetDataFromTree(__INTERNALS__.renderPromises);
 
 afterEach(() => {
     flushStore();
