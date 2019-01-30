@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {Resource, Subscriber} from './Resource';
 import {MemoizedKey, areKeysEqual, STATUS} from './memoize';
-import {assertType} from './helpers';
+import {assertType, noop} from './helpers';
 
 const DEFAULT_DEBOUNCE_MS = 150;
 
@@ -30,7 +30,7 @@ export default function usePriem<DataType>(resource: Resource, args: MemoizedKey
     const source = React.useRef(resource);
     const refs = React.useRef<Refs<DataType>>({
         // tslint:disable-next-line no-empty
-        onChange: () => {},
+        onChange: noop,
         shouldForceUpdate: false,
         lastTimeCalled: 0,
         prevResult: null,

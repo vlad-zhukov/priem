@@ -1,9 +1,7 @@
 import {Cache, CacheItem, SerializableCacheItem, reduce} from './Cache';
-import {type, isBrowser} from './helpers';
+import {type, isBrowser, noop} from './helpers';
 
 const DEFAULT_THROTTLE_MS = 150;
-
-const noop = () => true;
 
 export const enum STATUS {
     PENDING = 0,
