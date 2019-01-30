@@ -1,11 +1,9 @@
-/* eslint-disable import/no-extraneous-dependencies, react/no-multi-comp */
-
 import * as React from 'react';
 import delay from 'delay';
 import {render, cleanup, flushEffects, fireEvent} from 'react-testing-library';
-import usePriem from '../src/usePriem';
-import {Resource} from '../src/Resource';
-import {MemoizedKey} from '../src/memoize';
+import usePriem from '../usePriem';
+import {Resource} from '../Resource';
+import {MemoizedKey} from '../memoize';
 
 async function waitEffects() {
     flushEffects();
@@ -30,10 +28,9 @@ class ErrorBoundary extends React.Component<unknown, {initTime: number; hasError
         return this.props.children;
     }
 }
-/* eslint-enable react/no-unused-state */
 
-const getSpy = jest.spyOn(Resource.prototype, '_get');
-const onCacheChangeSpy = jest.spyOn(Resource.prototype, '_onCacheChange');
+const getSpy = jest.spyOn(Resource.prototype, 'get');
+const onCacheChangeSpy = jest.spyOn(Resource.prototype, 'onCacheChange');
 
 afterEach(() => {
     getSpy.mockClear();
@@ -101,7 +98,7 @@ it('should rerun promises when cache expires if `maxAge` is set', async () => {
      * ASYNC UPDATE FLOW.
      * Numbers mean the order of function calls.
      *
-     *                   | usePriem | usePriem debounce | Resource#_onCacheChange | Resource#_get
+     *                   | usePriem | usePriem debounce | Resource#onCacheChange | Resource#get
      * ------------------|------------------------------|-------------------------|---------------
      *  mount (pending)  | 1        |                   |                         | 2
      *  fulfilled        | 4        |                   | 3                       | 5
@@ -304,22 +301,22 @@ it('should unsubscribe from resource on unmount', async () => {
     await waitEffects();
 
     // @ts-ignore
-    expect(res._listeners).toHaveLength(1);
+    expect(res.listeners).toHaveLength(1);
 
     unmount();
     await waitEffects();
 
     // @ts-ignore
-    expect(res._listeners).toHaveLength(0);
+    expect(res.listeners).toHaveLength(0);
 });
 
-it('should debounce calls', async () => {
+it.only('should debounce calls', async () => {
     const res = new Resource(value => delay(200, {value}), {
         maxSize: 10,
     });
 
-    const usePriemSpy = jest.fn((res: Resource, args: MemoizedKey) => {
-        const ret = usePriem(res, args);
+    const usePriemSpy = jest.fn((resource: Resource, args: MemoizedKey) => {
+        const ret = usePriem(resource, args);
         delete ret.refresh;
         return ret;
     });
@@ -380,7 +377,7 @@ it('should debounce calls', async () => {
     expect(getSpy).toHaveBeenCalledTimes(3);
 
     // @ts-ignore
-    expect(res._memoized.cache).toMatchInlineSnapshot(`
+    expect(res.memoized.cache).toMatchInlineSnapshot(`
 Cache {
   "head": CacheItem {
     "key": Array [

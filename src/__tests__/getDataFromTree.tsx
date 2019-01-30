@@ -3,11 +3,12 @@
  */
 
 import * as React from 'react';
+// tslint:disable-next-line no-submodule-imports
 import * as ReactDOM from 'react-dom/server';
 import delay from 'delay';
-import usePriem from '../src/usePriem';
-import {Resource, flushStore, populateStore} from '../src/Resource';
-import getDataFromTree from '../src/getDataFromTree';
+import usePriem from '../usePriem';
+import {Resource, flushStore, populateStore} from '../Resource';
+import getDataFromTree from '../getDataFromTree';
 
 afterEach(() => {
     flushStore();
@@ -156,7 +157,7 @@ it('should not add non-fulfilled cache items to store', async () => {
         ssrKey: 'unique-key-2',
     });
 
-    res1._get([]);
+    res1.get([]);
 
     await delay(300);
 
@@ -183,7 +184,7 @@ Array [
 });
 
 it('should rehydrate data from initial store', async () => {
-    function createComponent(initialStore) {
+    function createComponent(initialStore?: any) {
         if (initialStore) {
             populateStore(initialStore);
         }
@@ -191,6 +192,7 @@ it('should rehydrate data from initial store', async () => {
         const res1 = new Resource(value => delay(100, {value}), {
             ssrKey: 'unique-key-1',
         });
+        // @ts-ignore
         const res2 = new Resource((res1Value, value) => delay(100, {value: res1Value + value}), {
             ssrKey: 'unique-key-2',
         });
@@ -204,9 +206,8 @@ it('should rehydrate data from initial store', async () => {
 
     const ServerComp = createComponent();
     await getDataFromTree(<ServerComp />);
-    const initialStore = flushStore();
 
-    const ClientComp = createComponent(initialStore);
+    const ClientComp = createComponent(flushStore());
     const content = ReactDOM.renderToStaticMarkup(<ClientComp />);
 
     expect(content).toBe('<div>foobar</div>');

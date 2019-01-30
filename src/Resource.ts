@@ -24,9 +24,8 @@ function isSerializableCache(
     return type(maybeCache) === 'array';
 }
 
-export function flushStore() {
+export function flushStore(): [string, MemoizedSerializableCacheItem[]][] {
     const store: [string, MemoizedSerializableCacheItem[]][] = [];
-    // eslint-disable-next-line no-restricted-syntax
     for (const [ssrKey, maybeCache] of storeMap.entries()) {
         const value = isSerializableCache(maybeCache) ? maybeCache : toSerializableArray(maybeCache, true);
         store.push([ssrKey, value]);
@@ -49,9 +48,9 @@ type ResourceOptions = {
 
 // TODO: introduce a mechanism to dispose unneeded resource?
 export class Resource {
-    private _ssrKey?: string;
-    private _listeners: Subscriber[];
-    private _memoized: MemoizedFunction;
+    private ssrKey?: string;
+    private listeners: Subscriber[] = [];
+    private memoized: MemoizedFunction;
 
     constructor(fn: (...args: unknown[]) => Promise<unknown>, options: ResourceOptions = {}) {
         assertType(fn, ['function'], "'fn'");
@@ -61,10 +60,10 @@ export class Resource {
 
         assertType(ssrKey, ['string', 'undefined'], "'ssrKey'");
 
-        this._ssrKey = ssrKey;
-        this._listeners = [];
+        this.ssrKey = ssrKey;
+        this.listeners = [];
 
-        this._onCacheChange = this._onCacheChange.bind(this);
+        this.onCacheChange = this.onCacheChange.bind(this);
 
         let initialCache: (MemoizedSerializableCacheItem | MemoizedCacheItem)[] | undefined;
         if (ssrKey) {
@@ -73,24 +72,24 @@ export class Resource {
             storeMap.delete(ssrKey);
         }
 
-        this._memoized = memoize({
+        this.memoized = memoize({
             fn,
             initialCache,
             maxSize,
             maxAge,
-            onCacheChange: this._onCacheChange,
+            onCacheChange: this.onCacheChange,
         });
     }
 
-    _has(args: MemoizedKey | null): boolean {
+    has(args: MemoizedKey | null): boolean {
         if (args === null) {
             return false;
         }
-        return this._memoized.has(args);
+        return this.memoized.has(args);
     }
 
-    _get(args: MemoizedKey | null, forceRefresh: boolean = false): MemoizedValue | null {
-        if (isBrowser === false && !this._ssrKey) {
+    get(args: MemoizedKey | null, forceRefresh: boolean = false): MemoizedValue | null {
+        if (isBrowser === false && !this.ssrKey) {
             return null;
         }
 
@@ -109,17 +108,17 @@ export class Resource {
             }
         });
 
-        const ret = this._memoized(args, forceRefresh);
+        const ret = this.memoized(args, forceRefresh);
 
-        if (isBrowser === false && this._ssrKey) {
-            const cache = storeMap.get(this._ssrKey);
-            if (cache !== undefined && cache !== this._memoized.cache) {
+        if (isBrowser === false && this.ssrKey) {
+            const cache = storeMap.get(this.ssrKey);
+            if (cache !== undefined && cache !== this.memoized.cache) {
                 throw new TypeError(
-                    `usePriem: A resource with '${this._ssrKey}' \`ssrKey\` already exists. ` +
+                    `usePriem: A resource with '${this.ssrKey}' \`ssrKey\` already exists. ` +
                         'Please make sure `ssrKey`s are unique.'
                 );
             } else {
-                storeMap.set(this._ssrKey, this._memoized.cache);
+                storeMap.set(this.ssrKey, this.memoized.cache);
             }
             if (ret.status === STATUS.PENDING) {
                 renderPromises.push(ret.promise);
@@ -129,19 +128,19 @@ export class Resource {
         return ret;
     }
 
-    _onCacheChange(args: MemoizedKey, forceRefresh: boolean): void {
-        this._listeners.forEach(comp => {
+    onCacheChange(args: MemoizedKey, forceRefresh: boolean): void {
+        this.listeners.forEach(comp => {
             comp.onChange(args, forceRefresh);
         });
     }
 
-    _subscribe(component: Subscriber): void {
+    subscribe(component: Subscriber): void {
         // TODO: Handle cases when the same component subscribes multiple times?
-        this._listeners.push(component);
+        this.listeners.push(component);
     }
 
-    _unsubscribe(component: Subscriber): void {
-        const index = this._listeners.findIndex(copm => copm === component);
-        this._listeners.splice(index, 1);
+    unsubscribe(component: Subscriber): void {
+        const index = this.listeners.findIndex(copm => copm === component);
+        this.listeners.splice(index, 1);
     }
 }
