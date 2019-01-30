@@ -7083,6 +7083,11 @@ pretty-time@^1.1.0:
   resolved "https://registry.yarnpkg.com/pretty-time/-/pretty-time-1.1.0.tgz#ffb7429afabb8535c346a34e41873adf3d74dd0e"
   integrity sha512-28iF6xPQrP8Oa6uxE6a1biz+lWeTOAPKggvjB8HAs6nVMKZwf5bG++632Dx614hIWgUPkgivRfG+a8uAXGTIbA==
 
+priem@^2.0.0-alpha.0:
+  version "2.0.0-alpha.0"
+  resolved "https://registry.yarnpkg.com/priem/-/priem-2.0.0-alpha.0.tgz#18242e84651ef412a6b592406c733868aae6ab34"
+  integrity sha512-vIKDJBdujHVxa7RSUWaFuFvTAOBHQtn47SWhVccTYY9+WbxEraEnN1s4B1kg5JJkNorD5JW5oSmwB7b4E/OSvA==
+
 private@^0.1.6, private@^0.1.8:
   version "0.1.8"
   resolved "https://registry.yarnpkg.com/private/-/private-0.1.8.tgz#2381edb3689f7a53d653190060fcf822d2f368ff"

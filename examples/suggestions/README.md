@@ -156,7 +156,7 @@ my-app/
 For the project to build, **these files must exist with exact filenames**:
 
 -   `public/index.html` is the page template;
--   `src/index.js` is the JavaScript entry point.
+-   `src/index.ts` is the JavaScript entry point.
 
 You can delete or rename the other files.
 
@@ -579,7 +579,7 @@ In development, expressing dependencies this way allows your styles to be reload
 production, all CSS files will be concatenated into a single minified `.css` file in the build output.
 
 If you are concerned about using Webpack-specific semantics, you can put all your CSS right into `src/index.css`. It
-would still be imported from `src/index.js`, but you could always remove that import if you later migrate to a different
+would still be imported from `src/index.ts`, but you could always remove that import if you later migrate to a different
 build tool.
 
 ## Adding a CSS Modules Stylesheet
@@ -905,7 +905,7 @@ Alternatively you may use `yarn`:
 yarn add bootstrap@4 reactstrap
 ```
 
-Import Bootstrap CSS and optionally Bootstrap theme CSS in the beginning of your `src/index.js` file:
+Import Bootstrap CSS and optionally Bootstrap theme CSS in the beginning of your `src/index.ts` file:
 
 ```js
 import 'bootstrap/dist/css/bootstrap.css';
@@ -948,7 +948,7 @@ $body-bg: #000;
 > **Note:** You must prefix imports from `node_modules` with `~` as displayed above.
 
 Finally, import the newly created `.scss` file instead of the default Bootstrap `.css` in the beginning of your
-`src/index.js` file, for example:
+`src/index.ts` file, for example:
 
 ```javascript
 import './custom.scss';
@@ -2063,7 +2063,7 @@ is opt-in only**. By default, the build process will generate a service worker f
 it will not take control of your production web app.
 
 In order to opt-in to the offline-first behavior, developers should look for the following in their
-[`src/index.js`](src/index.js) file:
+[`src/index.ts`](src/index.js) file:
 
 ```js
 // If you want your app to work offline and load faster, you can change
@@ -2720,7 +2720,7 @@ When you save a file while `npm start` is running, the browser should refresh wi
 happen, try one of the following workarounds:
 
 -   If your project is in a Dropbox folder, try moving it out.
--   If the watcher doesn’t see a file called `index.js` and you’re referencing it by the folder name, you
+-   If the watcher doesn’t see a file called `index.ts` and you’re referencing it by the folder name, you
     [need to restart the watcher](https://github.com/facebook/create-react-app/issues/1164) due to a Webpack bug.
 -   Some editors like Vim and IntelliJ have a “safe write” feature that currently breaks the watcher. You will need to
     disable it. Follow the instructions in

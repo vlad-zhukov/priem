@@ -1,6 +1,16 @@
 import React from 'react';
 
-const Posts = ({posts}) => (
+export type Post = {
+    data: {
+        title: string;
+    };
+};
+
+type PostsProps = {
+    posts: Post[];
+};
+
+const Posts: React.FunctionComponent<PostsProps> = ({posts}) => (
     <ol>
         {posts.map((post, i) => (
             // eslint-disable-next-line react/no-array-index-key

@@ -2,7 +2,8 @@ import React from 'react';
 import {renderToString} from 'react-dom/server';
 import {StaticRouter} from 'react-router-dom';
 import express from 'express';
-import {getDataFromTree, flushStore} from 'priem';
+import {getDataFromTree} from 'priem/server';
+import {flushStore} from 'priem';
 import App from './App';
 
 const assets = require(process.env.RAZZLE_ASSETS_MANIFEST);

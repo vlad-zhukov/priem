@@ -1,7 +1,7 @@
-import React from 'react';
+import * as React from 'react';
 import {usePriem, Resource} from 'priem';
 import Picker from '../components/Picker';
-import Posts from '../components/Posts';
+import Posts, {Post} from '../components/Posts';
 
 const redditContainer = new Resource(
     reddit =>
@@ -17,7 +17,7 @@ const redditContainer = new Resource(
 export default () => {
     const [redditName, setReddit] = React.useState('reactjs');
 
-    const reddit = usePriem(redditContainer, [redditName]);
+    const reddit = usePriem<Post[]>(redditContainer, [redditName]);
 
     return (
         <div>

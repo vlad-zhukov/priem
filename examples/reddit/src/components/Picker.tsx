@@ -1,6 +1,12 @@
 import React from 'react';
 
-const Picker = ({value, onChange, options}) => (
+type PickerProps = {
+    value: string;
+    onChange: (value: string) => void;
+    options: string[];
+};
+
+const Picker: React.FunctionComponent<PickerProps> = ({value, onChange, options}) => (
     <span>
         <h1>{value}</h1>
         <select onChange={e => onChange(e.target.value)} value={value}>
