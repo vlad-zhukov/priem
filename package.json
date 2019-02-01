@@ -16,11 +16,11 @@
     "test": "jest",
     "lint": "tslint -p tsconfig.json -t codeFrame \"src/**/*.{ts,tsx}\"",
     "prettier": "prettier \"**/*.{ts,tsx,js,md}\" --write",
-    "prepublishOnly": "yarn lint && prettier \"**/*.{ts,tsx,js,md}\" --check && yarn test && yarn build"
+    "prepublishOnly": "yarn build && yarn lint && prettier \"**/*.{ts,tsx,js,md}\" --check && yarn test"
   },
   "dependencies": {},
   "devDependencies": {
-    "@microsoft/api-extractor": "^7.0.13",
+    "@microsoft/api-extractor": "^7.0.14",
     "@types/jest": "^23.3.13",
     "@types/react": "^16.7.22",
     "@types/react-dom": "^16.0.11",
@@ -28,7 +28,7 @@
     "fs-extra": "^7.0.1",
     "jest": "^24.0.0",
     "jest-circus": "^24.0.0",
-    "prettier": "^1.16.2",
+    "prettier": "^1.16.3",
     "raf": "^3.4.1",
     "react": "16.8.0-alpha.1",
     "react-dom": "16.8.0-alpha.1",
@@ -39,7 +39,7 @@
     "tslint": "^5.12.1",
     "tslint-config-prettier": "^1.17.0",
     "tslint-react": "^3.6.0",
-    "typescript": "^3.2.4"
+    "typescript": "^3.3.1"
   },
   "peerDependencies": {
     "react": ">=16.8",
