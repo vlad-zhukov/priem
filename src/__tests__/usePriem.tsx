@@ -154,7 +154,11 @@ it('should rerun promises when cache expires if `maxAge` is set', async () => {
 
     // mount (pending)
 
-    expect(container.innerHTML).toBe('<div></div>');
+    expect(container.children).toMatchInlineSnapshot(`
+HTMLCollection [
+  <div />,
+]
+`);
     expect(usePriemSpy).toHaveBeenCalledTimes(1);
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(0);
     expect(getSpy).toHaveBeenCalledTimes(1);
@@ -164,7 +168,13 @@ it('should rerun promises when cache expires if `maxAge` is set', async () => {
 
     // fulfilled
 
-    expect(container.innerHTML).toBe('<div>foo1</div>');
+    expect(container.children).toMatchInlineSnapshot(`
+HTMLCollection [
+  <div>
+    foo1
+  </div>,
+]
+`);
     expect(usePriemSpy).toHaveBeenCalledTimes(2);
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(1);
     expect(getSpy).toHaveBeenCalledTimes(2);
@@ -174,7 +184,13 @@ it('should rerun promises when cache expires if `maxAge` is set', async () => {
 
     // change props (pending)
 
-    expect(container.innerHTML).toBe('<div>foo1</div>');
+    expect(container.children).toMatchInlineSnapshot(`
+HTMLCollection [
+  <div>
+    foo1
+  </div>,
+]
+`);
     expect(usePriemSpy).toHaveBeenCalledTimes(3);
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(1);
     expect(getSpy).toHaveBeenCalledTimes(3);
@@ -184,7 +200,13 @@ it('should rerun promises when cache expires if `maxAge` is set', async () => {
 
     // fulfilled
 
-    expect(container.innerHTML).toBe('<div>foo2</div>');
+    expect(container.children).toMatchInlineSnapshot(`
+HTMLCollection [
+  <div>
+    foo2
+  </div>,
+]
+`);
     expect(usePriemSpy).toHaveBeenCalledTimes(4);
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(2);
     expect(getSpy).toHaveBeenCalledTimes(4);
@@ -194,7 +216,13 @@ it('should rerun promises when cache expires if `maxAge` is set', async () => {
 
     // expire (pending)
 
-    expect(container.innerHTML).toBe('<div>foo2</div>');
+    expect(container.children).toMatchInlineSnapshot(`
+HTMLCollection [
+  <div>
+    foo2
+  </div>,
+]
+`);
     expect(usePriemSpy).toHaveBeenCalledTimes(5);
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(3);
     expect(getSpy).toHaveBeenCalledTimes(5);
@@ -204,7 +232,13 @@ it('should rerun promises when cache expires if `maxAge` is set', async () => {
 
     // fulfilled
 
-    expect(container.innerHTML).toBe('<div>foo2</div>');
+    expect(container.children).toMatchInlineSnapshot(`
+HTMLCollection [
+  <div>
+    foo2
+  </div>,
+]
+`);
     expect(usePriemSpy).toHaveBeenCalledTimes(6);
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(4);
     expect(getSpy).toHaveBeenCalledTimes(6);
@@ -243,30 +277,74 @@ it('should have a `refresh` method', async () => {
     const {container} = render(<Comp />);
     await waitEffects();
 
-    expect(container.innerHTML).toBe('<button type="button"></button>');
+    expect(container.children).toMatchInlineSnapshot(`
+HTMLCollection [
+  <button
+    type="button"
+  />,
+]
+`);
     expect(usePriemSpy).toHaveBeenCalledTimes(1);
     expect(getSpy).toHaveBeenCalledTimes(1);
 
     await delay(200);
 
-    expect(container.innerHTML).toBe('<button type="button">foo</button>');
+    expect(container.children).toMatchInlineSnapshot(`
+HTMLCollection [
+  <button
+    type="button"
+  >
+    foo
+  </button>,
+]
+`);
     expect(usePriemSpy).toHaveBeenCalledTimes(2);
     expect(getSpy).toHaveBeenCalledTimes(2);
 
     fireEvent.click(container.querySelector('button') as HTMLButtonElement);
-    expect(container.innerHTML).toBe('<button type="button">foo</button>');
+    expect(container.children).toMatchInlineSnapshot(`
+HTMLCollection [
+  <button
+    type="button"
+  >
+    foo
+  </button>,
+]
+`);
     expect(usePriemSpy).toHaveBeenCalledTimes(3);
     expect(getSpy).toHaveBeenCalledTimes(3);
 
     await delay(100);
 
-    expect(container.innerHTML).toBe('<button type="button">foo</button><p>error!</p>');
+    expect(container.children).toMatchInlineSnapshot(`
+HTMLCollection [
+  <button
+    type="button"
+  >
+    foo
+  </button>,
+  <p>
+    error!
+  </p>,
+]
+`);
     expect(usePriemSpy).toHaveBeenCalledTimes(4);
     expect(getSpy).toHaveBeenCalledTimes(4);
 
     await delay(500);
 
-    expect(container.innerHTML).toBe('<button type="button">foo</button><p>error!</p>');
+    expect(container.children).toMatchInlineSnapshot(`
+HTMLCollection [
+  <button
+    type="button"
+  >
+    foo
+  </button>,
+  <p>
+    error!
+  </p>,
+]
+`);
     expect(usePriemSpy).toHaveBeenCalledTimes(4);
     expect(getSpy).toHaveBeenCalledTimes(4);
 });
@@ -287,7 +365,13 @@ it('should render a nested component', async () => {
     await waitEffects();
     await delay(400);
 
-    expect(container.innerHTML).toBe('<div>foobar</div>');
+    expect(container.children).toMatchInlineSnapshot(`
+HTMLCollection [
+  <div>
+    foobar
+  </div>,
+]
+`);
 });
 
 it('should render `usePriem` hooks that are subscribed to the same resource but need different data', async () => {
@@ -313,7 +397,18 @@ it('should render `usePriem` hooks that are subscribed to the same resource but 
 
     await delay(300);
 
-    expect(container.innerHTML).toBe('<div><div>foo</div><div>bar</div></div>');
+    expect(container.children).toMatchInlineSnapshot(`
+HTMLCollection [
+  <div>
+    <div>
+      foo
+    </div>
+    <div>
+      bar
+    </div>
+  </div>,
+]
+`);
 });
 
 it('should unsubscribe from resource on unmount', async () => {
