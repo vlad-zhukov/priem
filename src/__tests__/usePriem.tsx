@@ -36,7 +36,7 @@ afterEach(() => {
     cleanup();
 });
 
-it('should throw if `source` is not a `Resource` instance', async () => {
+it('should throw if `resource` is not a `Resource` instance', async () => {
     const usePriemSpy = jest.fn(usePriem);
 
     function Comp() {
@@ -61,7 +61,7 @@ it('should throw if `source` is not a `Resource` instance', async () => {
     );
 });
 
-it('should throw if `source` is different after initializing', async () => {
+it('should throw if `resource` is different after initializing', async () => {
     const res1 = new Resource(() => delay(100));
     const res2 = new Resource(() => delay(100));
 
@@ -91,19 +91,49 @@ it('should throw if `source` is different after initializing', async () => {
     );
 });
 
+it('should not run if `args` is `null`', async () => {
+    const res = new Resource(value => delay(200, {value}));
+
+    const usePriemSpy = jest.fn((args) => {
+        const ret = usePriem(res, args);
+        delete ret.refresh;
+        return ret;
+    });
+
+    const Comp: React.FunctionComponent = () => {
+        usePriemSpy(null);
+        return null;
+    };
+
+    render(<Comp />);
+    await delay(300);
+    await waitEffects();
+
+    expect(usePriemSpy).toHaveBeenCalledTimes(1);
+    expect(onCacheChangeSpy).toHaveBeenCalledTimes(0);
+    expect(getSpy).toHaveBeenCalledTimes(1);
+    expect(usePriemSpy).toHaveLastReturnedWith({
+        data: null,
+        fulfilled: false,
+        pending: false,
+        reason: null,
+        rejected: false,
+    });
+});
+
 it('should rerun promises when cache expires if `maxAge` is set', async () => {
     /**
      * ASYNC UPDATE FLOW.
      * Numbers mean the order of function calls.
      *
-     *                   | usePriem | usePriem debounce | Resource#onCacheChange | Resource#get
-     * ------------------|------------------------------|-------------------------|---------------
-     *  mount (pending)  | 1        |                   |                         | 2
-     *  fulfilled        | 4        |                   | 3                       | 5
-     *  props (pending)  | 6        |                   |                         | 7
-     *  fulfilled        | 9        |                   | 8                       | 10
-     *  expire (pending) | 12       |                   | 11                      | 13
-     *  fulfilled        | 15       |                   | 14                      | 16
+     *                   | usePriem | Resource#onCacheChange | Resource#get
+     * ------------------|----------|------------------------|---------------
+     *  mount (pending)  | 1        |                        | 2
+     *  fulfilled        | 4        | 3                      | 5
+     *  props (pending)  | 6        |                        | 7
+     *  fulfilled        | 9        | 8                      | 10
+     *  expire (pending) | 12       | 11                     | 13
+     *  fulfilled        | 15       | 14                     | 16
      */
 
     const res = new Resource(value => delay(200, {value}), {
@@ -178,7 +208,7 @@ it('should rerun promises when cache expires if `maxAge` is set', async () => {
     expect(getSpy).toHaveBeenCalledTimes(6);
 });
 
-it('should return a promise state with a `refresh` method', async () => {
+it('should have a `refresh` method', async () => {
     let shouldReject = false;
     const res = new Resource(
         value => {

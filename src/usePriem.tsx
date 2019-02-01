@@ -94,7 +94,7 @@ export default function usePriem<DataType>(resource: Resource, args: MemoizedKey
 
     const result: Result<DataType> = {
         data: null,
-        pending: true,
+        pending: false,
         fulfilled: false,
         rejected: false,
         reason: null,
