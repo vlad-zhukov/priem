@@ -16,16 +16,15 @@ const redditContainer = new Resource(
 
 export default () => {
     const [redditName, setReddit] = React.useState('reactjs');
-
-    const reddit = usePriem<Post[]>(redditContainer, [redditName]);
+    const [reddit, {pending, refresh}] = usePriem<Post[]>(redditContainer, [redditName]);
 
     return (
         <div>
             <Picker value={redditName} onChange={setReddit} options={['reactjs', 'frontend']} />
-            <p>{reddit.data && <button onClick={reddit.refresh}>Refresh</button>}</p>
-            {reddit.data ? (
-                <div style={{opacity: reddit.pending ? 0.5 : 1}}>
-                    <Posts posts={reddit.data} />
+            <p>{reddit && <button onClick={refresh}>Refresh</button>}</p>
+            {reddit ? (
+                <div style={{opacity: pending ? 0.5 : 1}}>
+                    <Posts posts={reddit} />
                 </div>
             ) : (
                 <h2>Loading...</h2>

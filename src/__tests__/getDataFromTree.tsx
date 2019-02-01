@@ -21,7 +21,7 @@ it('should fetch and render to string with data', async () => {
     });
 
     const Comp: React.FunctionComponent = () => {
-        const {data} = usePriem<string>(res, ['foo']);
+        const [data] = usePriem<string>(res, ['foo']);
         return <div>{data}</div>;
     };
 
@@ -60,8 +60,8 @@ it('should fetch data from a nested component', async () => {
     });
 
     const Comp: React.FunctionComponent = () => {
-        const {data: data1} = usePriem<string>(res1, ['foo']);
-        const {data: data2} = usePriem<string>(res2, !data1 ? null : [data1, 'bar']);
+        const [data1] = usePriem<string>(res1, ['foo']);
+        const [data2] = usePriem<string>(res2, !data1 ? null : [data1, 'bar']);
         return <div>{data2}</div>;
     };
 
@@ -115,8 +115,8 @@ it('should not fetch data from resources without `ssrKey`', async () => {
     const res2 = new Resource((res1Value, value) => delay(100, {value: res1Value + value}));
 
     function Comp() {
-        const {data: data1} = usePriem(res1, ['foo']);
-        const {data: data2} = usePriem(res2, !data1 ? null : [data1, 'bar']);
+        const [data1] = usePriem(res1, ['foo']);
+        const [data2] = usePriem(res2, !data1 ? null : [data1, 'bar']);
         return <div>{data2}</div>;
     }
 
@@ -196,8 +196,8 @@ it('should rehydrate data from initial store', async () => {
         });
 
         return function Comp() {
-            const {data: data1} = usePriem(res1, ['foo']);
-            const {data: data2} = usePriem(res2, !data1 ? null : [data1, 'bar']);
+            const [data1] = usePriem(res1, ['foo']);
+            const [data2] = usePriem(res2, !data1 ? null : [data1, 'bar']);
             return <div>{data2}</div>;
         };
     }

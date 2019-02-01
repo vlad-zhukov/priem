@@ -41,16 +41,16 @@ const redditResource = new Resource(
 );
 
 export default () => {
-    const {data, pending} = usePriem(redditResource);
+    const [redditData, {pending}] = usePriem(redditResource);
 
-    if (!data) {
+    if (!redditData) {
         return pending ? <h2>Loading...</h2> : <h2>Empty.</h2>;
     }
 
     return (
         <div style={{opacity: pending ? 0.5 : 1}}>
             <ul>
-                {data.map((post, i) => (
+                {redditData.map((post, i) => (
                     <li key={i}>{post.title}</li>
                 ))}
             </ul>
@@ -140,13 +140,14 @@ A React Hook for subscribing to resources.
 
 **Returns**
 
-The function returns an object with the following fields:
+The function returns a tuple with data and a meta object:
 
--   `data` _(any)_: The data `promise` resolved with. Defaults to `null`.
--   `pending` _(Boolean)_.
--   `rejected` _(Boolean)_.
--   `reason` _(Error|null)_.
--   `refresh` _(Function)_: a method to update the resource.
+1.  `data` _(any)_: The data `promise` resolved with. Defaults to `null`.
+2.  `meta` _(Object)_:
+    -   `pending` _(Boolean)_.
+    -   `rejected` _(Boolean)_.
+    -   `reason` _(Error|null)_.
+    -   `refresh` _(Function)_: a method to update the resource.
 
 ---
 

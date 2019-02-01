@@ -94,9 +94,9 @@ it('should throw if `resource` is different after initializing', async () => {
 it('should not run if `args` is `null`', async () => {
     const res = new Resource(value => delay(200, {value}));
 
-    const usePriemSpy = jest.fn((args) => {
+    const usePriemSpy = jest.fn(args => {
         const ret = usePriem(res, args);
-        delete ret.refresh;
+        delete ret[1].refresh;
         return ret;
     });
 
@@ -112,13 +112,15 @@ it('should not run if `args` is `null`', async () => {
     expect(usePriemSpy).toHaveBeenCalledTimes(1);
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(0);
     expect(getSpy).toHaveBeenCalledTimes(1);
-    expect(usePriemSpy).toHaveLastReturnedWith({
-        data: null,
-        fulfilled: false,
-        pending: false,
-        reason: null,
-        rejected: false,
-    });
+    expect(usePriemSpy).toHaveLastReturnedWith([
+        null,
+        {
+            fulfilled: false,
+            pending: false,
+            reason: null,
+            rejected: false,
+        },
+    ]);
 });
 
 it('should rerun promises when cache expires if `maxAge` is set', async () => {
@@ -143,7 +145,7 @@ it('should rerun promises when cache expires if `maxAge` is set', async () => {
     const usePriemSpy = jest.fn(usePriem);
 
     const Comp: React.FunctionComponent<{count: string}> = ({count}) => {
-        const {data} = usePriemSpy(res, [`foo${count}`]);
+        const [data] = usePriemSpy(res, [`foo${count}`]);
         return <div>{data}</div>;
     };
 
@@ -226,7 +228,7 @@ it('should have a `refresh` method', async () => {
     const usePriemSpy = jest.fn(usePriem);
 
     function Comp() {
-        const {data, reason, refresh} = usePriemSpy(res, ['foo']);
+        const [data, {reason, refresh}] = usePriemSpy(res, ['foo']);
         expect(typeof refresh).toBe('function');
         return (
             <>
@@ -276,8 +278,8 @@ it('should render a nested component', async () => {
     const usePriemSpy = jest.fn(usePriem);
 
     function Comp() {
-        const {data: data1} = usePriemSpy(res1, ['foo']);
-        const {data: data2} = usePriemSpy(res2, !data1 ? null : [data1, 'bar']);
+        const [data1] = usePriemSpy(res1, ['foo']);
+        const [data2] = usePriemSpy(res2, !data1 ? null : [data1, 'bar']);
         return <div>{data2}</div>;
     }
 
@@ -296,8 +298,8 @@ it('should render `usePriem` hooks that are subscribed to the same resource but 
     const usePriemSpy = jest.fn(usePriem);
 
     function Comp() {
-        const {data: data1} = usePriemSpy(res, ['foo']);
-        const {data: data2} = usePriemSpy(res, ['bar']);
+        const [data1] = usePriemSpy(res, ['foo']);
+        const [data2] = usePriemSpy(res, ['bar']);
         return (
             <div>
                 <div>{data1}</div>
@@ -344,7 +346,7 @@ it('should debounce calls', async () => {
 
     const usePriemSpy = jest.fn((resource: Resource, args: unknown[]) => {
         const ret = usePriem(resource, args);
-        delete ret.refresh;
+        delete ret[1].refresh;
         return ret;
     });
 
@@ -359,48 +361,56 @@ it('should debounce calls', async () => {
 
     await waitEffects();
 
-    expect(usePriemSpy).toHaveLastReturnedWith({
-        data: null,
-        fulfilled: false,
-        pending: true,
-        reason: null,
-        rejected: false,
-    });
+    expect(usePriemSpy).toHaveLastReturnedWith([
+        null,
+        {
+            fulfilled: false,
+            pending: true,
+            reason: null,
+            rejected: false,
+        },
+    ]);
     expect(getSpy).toHaveBeenCalledTimes(1);
 
     await delay(200);
 
-    expect(usePriemSpy).toHaveLastReturnedWith({
-        data: null,
-        fulfilled: false,
-        pending: true,
-        reason: null,
-        rejected: false,
-    });
+    expect(usePriemSpy).toHaveLastReturnedWith([
+        null,
+        {
+            fulfilled: false,
+            pending: true,
+            reason: null,
+            rejected: false,
+        },
+    ]);
     expect(getSpy).toHaveBeenCalledTimes(2);
 
     await delay(200);
     await waitEffects();
 
-    expect(usePriemSpy).toHaveLastReturnedWith({
-        data: 'baz',
-        fulfilled: true,
-        pending: false,
-        reason: null,
-        rejected: false,
-    });
+    expect(usePriemSpy).toHaveLastReturnedWith([
+        'baz',
+        {
+            fulfilled: true,
+            pending: false,
+            reason: null,
+            rejected: false,
+        },
+    ]);
     expect(getSpy).toHaveBeenCalledTimes(3);
 
     await delay(300);
     await waitEffects();
 
-    expect(usePriemSpy).toHaveLastReturnedWith({
-        data: 'baz',
-        fulfilled: true,
-        pending: false,
-        reason: null,
-        rejected: false,
-    });
+    expect(usePriemSpy).toHaveLastReturnedWith([
+        'baz',
+        {
+            fulfilled: true,
+            pending: false,
+            reason: null,
+            rejected: false,
+        },
+    ]);
     expect(getSpy).toHaveBeenCalledTimes(3);
 
     // @ts-ignore

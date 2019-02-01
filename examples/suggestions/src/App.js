@@ -2,7 +2,7 @@ import React from 'react';
 import Autosuggest from 'react-autosuggest';
 import {usePriem, Resource} from 'priem';
 
-const suggestions = new Resource(
+const suggestionsResource = new Resource(
     value =>
         fetch('https://jsonplaceholder.typicode.com/photos')
             .then(res => res.json())
@@ -21,12 +21,12 @@ const noop = () => {};
 
 export default function App() {
     const [value, setValue] = React.useState('');
-    const {data} = usePriem(suggestions, value === '' ? null : [value]);
+    const [suggestions] = usePriem(suggestionsResource, value === '' ? null : [value]);
 
     return (
         <>
             <Autosuggest
-                suggestions={data || []}
+                suggestions={suggestions || []}
                 getSuggestionValue={getSuggestionValue}
                 renderSuggestion={renderSuggestion}
                 inputProps={{value, onChange: (e, {newValue}) => setValue(newValue), placeholder: 'Input something'}}

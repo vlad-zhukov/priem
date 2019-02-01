@@ -5,14 +5,15 @@ import {assertType, noop} from './helpers';
 
 const DEFAULT_DEBOUNCE_MS = 150;
 
-type Result<DataType> = {
-    data: DataType | null;
+type ResultMeta = {
     pending: boolean;
     fulfilled: boolean;
     rejected: boolean;
     reason: Error | null;
     refresh: () => void;
 };
+
+type Result<DataType> = [DataType | null, ResultMeta];
 
 type Refs<DataType> = Subscriber & {
     shouldForceUpdate: boolean;
@@ -92,8 +93,8 @@ export default function usePriem<DataType>(resource: Resource, args: MemoizedKey
         return prevResult;
     }
 
-    const result: Result<DataType> = {
-        data: null,
+    let data = null;
+    const meta: ResultMeta = {
         pending: false,
         fulfilled: false,
         rejected: false,
@@ -105,13 +106,14 @@ export default function usePriem<DataType>(resource: Resource, args: MemoizedKey
     };
 
     if (ret !== null) {
-        result.data = ret.data as DataType;
-        result.pending = ret.status === STATUS.PENDING;
-        result.fulfilled = ret.status === STATUS.FULFILLED;
-        result.rejected = ret.status === STATUS.REJECTED;
-        result.reason = ret.reason;
+        data = ret.data as DataType;
+        meta.pending = ret.status === STATUS.PENDING;
+        meta.fulfilled = ret.status === STATUS.FULFILLED;
+        meta.rejected = ret.status === STATUS.REJECTED;
+        meta.reason = ret.reason;
     }
 
+    const result: Result<DataType> = [data, meta];
     refs.current.prevResult = result;
 
     return result;
