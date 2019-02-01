@@ -260,13 +260,13 @@ it('should have a `refresh` method', async () => {
 
     await delay(100);
 
-    expect(container.innerHTML).toBe('<button type="button"></button><p>error!</p>');
+    expect(container.innerHTML).toBe('<button type="button">foo</button><p>error!</p>');
     expect(usePriemSpy).toHaveBeenCalledTimes(4);
     expect(getSpy).toHaveBeenCalledTimes(4);
 
     await delay(500);
 
-    expect(container.innerHTML).toBe('<button type="button"></button><p>error!</p>');
+    expect(container.innerHTML).toBe('<button type="button">foo</button><p>error!</p>');
     expect(usePriemSpy).toHaveBeenCalledTimes(4);
     expect(getSpy).toHaveBeenCalledTimes(4);
 });

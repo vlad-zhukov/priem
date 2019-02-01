@@ -93,7 +93,7 @@ export default function usePriem<DataType>(resource: Resource, args: MemoizedKey
         return prevResult;
     }
 
-    let data = null;
+    let data = prevResult ? prevResult[0] : null;
     const meta: ResultMeta = {
         pending: false,
         fulfilled: false,
@@ -106,7 +106,9 @@ export default function usePriem<DataType>(resource: Resource, args: MemoizedKey
     };
 
     if (ret !== null) {
-        data = ret.data as DataType;
+        if (ret.data !== null) {
+            data = ret.data as DataType;
+        }
         meta.pending = ret.status === STATUS.PENDING;
         meta.fulfilled = ret.status === STATUS.FULFILLED;
         meta.rejected = ret.status === STATUS.REJECTED;
