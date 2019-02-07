@@ -8,7 +8,6 @@ async function waitEffects() {
     await delay(50);
 }
 
-/* eslint-disable react/no-unused-state */
 class ErrorBoundary extends React.Component<unknown, {initTime: number; hasError?: Error; catchTime?: number}> {
     constructor(props: unknown) {
         super(props);

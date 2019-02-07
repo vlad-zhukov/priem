@@ -99,17 +99,6 @@ export class Resource {
             return null;
         }
 
-        args.forEach(arg => {
-            const typeOfArg = type(arg);
-            if (typeOfArg === 'object' || typeOfArg === 'array') {
-                throw new TypeError(
-                    'usePriem: Passing reference types (such as objects and arrays) to `fn` is ' +
-                        "discouraged as it's error prone and is usually a cause of infinite rerenders. " +
-                        'Please change this function signature to only use primitive types.'
-                );
-            }
-        });
-
         const ret = this.memoized(args, forceRefresh);
 
         if (isBrowser === false && this.ssrKey) {

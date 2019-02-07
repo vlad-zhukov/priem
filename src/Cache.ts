@@ -109,7 +109,6 @@ export class Cache<K = unknown, V = unknown> {
         this.size += 1;
     }
 
-    // eslint-disable-next-line consistent-return
     remove(item: CacheItem<K, V> | null): null | void {
         if (item === null || !item.lastRefreshAt) {
             return null;

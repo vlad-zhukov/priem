@@ -48,16 +48,6 @@ Array [
 `);
 });
 
-it('should guard against passing reference types to `promise` function', () => {
-    const res = new Resource(value => delay(100, {value}), {
-        ssrKey: 'unique-key',
-    });
-
-    expect(() => res.get([{}])).toThrowErrorMatchingInlineSnapshot(
-        `"usePriem: Passing reference types (such as objects and arrays) to \`fn\` is discouraged as it's error prone and is usually a cause of infinite rerenders. Please change this function signature to only use primitive types."`
-    );
-});
-
 it('should throw when there is a store entry with such `ssrKey` already exists', async () => {
     const res1 = new Resource(value => delay(100, {value}), {
         ssrKey: 'unique-key',

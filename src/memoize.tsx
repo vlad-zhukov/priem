@@ -65,10 +65,8 @@ function createTimeout(
     onCacheChange: cacheChangeCallback
 ): void {
     if (isBrowser === true && maxAge !== null) {
-        clearTimeout(item.expireId);
-        // eslint-disable-next-line no-param-reassign
-        // @ts-ignore
-        item.expireId = setTimeout(() => {
+        window.clearTimeout(item.expireId);
+        item.expireId = window.setTimeout(() => {
             onCacheChange(item.key, true);
         }, maxAge);
     }
