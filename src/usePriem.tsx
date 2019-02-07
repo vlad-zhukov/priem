@@ -3,6 +3,14 @@ import {Resource, Subscriber} from './Resource';
 import {MemoizedKey, areKeysEqual, STATUS} from './memoize';
 import {assertType, noop} from './helpers';
 
+function useForceUpdate(): () => void {
+    const [, setTick] = React.useState(0);
+
+    return React.useCallback(() => {
+        setTick(tick => tick + 1);
+    }, []);
+}
+
 const DEFAULT_DEBOUNCE_MS = 150;
 
 type ResultMeta = {
@@ -27,7 +35,7 @@ export default function usePriem<DataType>(resource: Resource, args: MemoizedKey
     }
     assertType(args, ['array', 'null'], '`args`');
 
-    const [, rerender] = React.useState(null);
+    const rerender = useForceUpdate();
     const source = React.useRef(resource);
     const refs = React.useRef<Refs<DataType>>({
         // tslint:disable-next-line no-empty
@@ -45,7 +53,7 @@ export default function usePriem<DataType>(resource: Resource, args: MemoizedKey
     refs.current.onChange = (prevArgs, forceUpdate) => {
         if (prevArgs !== null && args !== null && areKeysEqual(args, prevArgs)) {
             refs.current.shouldForceUpdate = forceUpdate;
-            rerender(null);
+            rerender();
         }
     };
 
@@ -78,9 +86,9 @@ export default function usePriem<DataType>(resource: Resource, args: MemoizedKey
     React.useEffect(() => {
         let handler: number | undefined;
         if (shouldDebounce) {
-            handler = setTimeout(rerender, DEFAULT_DEBOUNCE_MS);
+            handler = window.setTimeout(rerender, DEFAULT_DEBOUNCE_MS);
         }
-        return () => clearTimeout(handler);
+        return () => window.clearTimeout(handler);
     });
 
     if (shouldDebounce) {
@@ -101,7 +109,7 @@ export default function usePriem<DataType>(resource: Resource, args: MemoizedKey
         reason: null,
         refresh() {
             refs.current.shouldForceUpdate = true;
-            rerender(null);
+            rerender();
         },
     };
 
