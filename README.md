@@ -28,9 +28,9 @@ yarn add priem@beta
 
 ```jsx
 import React from 'react';
-import {usePriem, Resource} from 'priem';
+import {createResource} from 'priem';
 
-const redditResource = new Resource(
+const useReddit = createResource(
     () =>
         fetch('https://www.reddit.com/r/reactjs.json')
             .then(res => res.json())
@@ -41,7 +41,7 @@ const redditResource = new Resource(
 );
 
 export default () => {
-    const [redditData, {pending}] = usePriem(redditResource);
+    const [redditData, {pending}] = useReddit();
 
     if (!redditData) {
         return pending ? <h2>Loading...</h2> : <h2>Empty.</h2>;
@@ -112,11 +112,11 @@ Example apps can be found under the `examples/` directory.
 
 ## API
 
-### `Resource`
+### `createResource`
 
-A resource for fetching and caching data. `Priem` components can subscribe to it.
+Creates a React Hook that fetches and caches data.
 
-**Constructor arguments:**
+**Arguments**
 
 1.  `fn`: _(AsyncFunction)_: An async function that takes arguments from `usePriem` and must return a Promise. If
     promise rejects, the cache item corresponding to these arguments will have a rejected status.
@@ -127,23 +127,26 @@ A resource for fetching and caching data. `Priem` components can subscribe to it
     -   `[ssrKey]` _(String)_: A unique key that will be used to place this resource to the store. Required for
         server-side rendering.
 
-### `usePriem`
+**Returns**
+
+`useResource`.
+
+### `useResource`
 
 A React Hook for subscribing to resources.
 
 **Arguments**
 
-1.  `resource` _(Resource)_: A resource to subscribe to.
-2.  `[args]` _(Array|null)_: An array of **immutable** arguments that will be passed to a `promise` function of a
-    resource. Can also be `null` which will prevent the update which can be utilized for waiting for other async tasks
-    or user interactions to finish. Defaults to `[]`.
+1.  `[args]` _(Array|null)_: An array of arguments that will be passed to a function in `createResource`. Can also be
+    `null` which will prevent the update which can be utilized for waiting for other async tasks or user interactions to
+    finish. Defaults to `[]`.
 
 **Returns**
 
 The function returns a tuple with data and a meta object:
 
 1.  `data` _(any)_: The data `promise` resolved with. Defaults to `null`.
-2.  `meta` _(Object)_:
+2.  `meta` _(Object)_: Meta properties of the most **recent** promise.
     -   `pending` _(Boolean)_.
     -   `rejected` _(Boolean)_.
     -   `reason` _(Error|null)_.

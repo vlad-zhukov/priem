@@ -1,29 +1,12 @@
 import * as React from 'react';
 import delay from 'delay';
 import {render, cleanup, flushEffects, fireEvent} from 'react-testing-library';
-import {usePriem, Resource} from '../index';
+import {createResource} from '../index';
+import {Resource} from '../Resource';
 
 async function waitEffects() {
     flushEffects();
     await delay(50);
-}
-
-class ErrorBoundary extends React.Component<unknown, {initTime: number; hasError?: Error; catchTime?: number}> {
-    constructor(props: unknown) {
-        super(props);
-        this.state = {initTime: Date.now()};
-    }
-
-    componentDidCatch(error: Error) {
-        this.setState({hasError: error, catchTime: Date.now()});
-    }
-
-    render() {
-        if (this.state.hasError) {
-            return null;
-        }
-        return this.props.children;
-    }
 }
 
 const getSpy = jest.spyOn(Resource.prototype, 'get');
@@ -35,72 +18,17 @@ afterEach(() => {
     cleanup();
 });
 
-it('should throw if `resource` is not a `Resource` instance', async () => {
-    const usePriemSpy = jest.fn(usePriem);
-
-    function Comp() {
-        usePriemSpy({}, []);
-        return null;
-    }
-
-    const ref = React.createRef<ErrorBoundary>();
-    const element = (
-        <ErrorBoundary ref={ref}>
-            <Comp />
-        </ErrorBoundary>
-    );
-
-    render(element);
-    await waitEffects();
-
-    await delay(500);
-
-    expect(ref.current!.state.hasError).toMatchInlineSnapshot(
-        `[TypeError: usePriem: 'resource' must be an instance of 'Resource'.]`
-    );
-});
-
-it('should throw if `resource` is different after initializing', async () => {
-    const res1 = new Resource(() => delay(100));
-    const res2 = new Resource(() => delay(100));
-
-    const usePriemSpy = jest.fn(usePriem);
-
-    function Comp() {
-        const [dummy, setDummy] = React.useState(true);
-        usePriemSpy(dummy ? res1 : res2, []);
-        setDummy(false);
-        return null;
-    }
-
-    const ref = React.createRef<ErrorBoundary>();
-    const element = (
-        <ErrorBoundary ref={ref}>
-            <Comp />
-        </ErrorBoundary>
-    );
-
-    render(element);
-    await waitEffects();
-
-    await delay(500);
-
-    expect(ref.current!.state.hasError).toMatchInlineSnapshot(
-        `[TypeError: usePriem: it looks like you've passed a different 'resource' value after initializing.]`
-    );
-});
-
 it('should not run if `args` is `null`', async () => {
-    const res = new Resource(value => delay(200, {value}));
+    const useResource = createResource(value => delay(200, {value}));
 
-    const usePriemSpy = jest.fn(args => {
-        const ret = usePriem(res, args);
+    const useResourceSpy = jest.fn(args => {
+        const ret = useResource(args);
         delete ret[1].refresh;
         return ret;
     });
 
     const Comp: React.FunctionComponent = () => {
-        usePriemSpy(null);
+        useResourceSpy(null);
         return null;
     };
 
@@ -108,10 +36,10 @@ it('should not run if `args` is `null`', async () => {
     await delay(300);
     await waitEffects();
 
-    expect(usePriemSpy).toHaveBeenCalledTimes(1);
+    expect(useResourceSpy).toHaveBeenCalledTimes(1);
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(0);
     expect(getSpy).toHaveBeenCalledTimes(1);
-    expect(usePriemSpy).toHaveLastReturnedWith([
+    expect(useResourceSpy).toHaveLastReturnedWith([
         null,
         {
             fulfilled: false,
@@ -137,14 +65,14 @@ it('should rerun promises when cache expires if `maxAge` is set', async () => {
      *  fulfilled        | 15       | 14                     | 16
      */
 
-    const res = new Resource(value => delay(200, {value}), {
+    const useResource = createResource(value => delay(200, {value}), {
         maxAge: 1000,
     });
 
-    const usePriemSpy = jest.fn(usePriem);
+    const useResourceSpy = jest.fn(useResource);
 
     const Comp: React.FunctionComponent<{count: string}> = ({count}) => {
-        const [data] = usePriemSpy(res, [`foo${count}`]);
+        const [data] = useResourceSpy([`foo${count}`]);
         return <div>{data}</div>;
     };
 
@@ -158,7 +86,7 @@ HTMLCollection [
   <div />,
 ]
 `);
-    expect(usePriemSpy).toHaveBeenCalledTimes(1);
+    expect(useResourceSpy).toHaveBeenCalledTimes(1);
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(0);
     expect(getSpy).toHaveBeenCalledTimes(1);
 
@@ -174,7 +102,7 @@ HTMLCollection [
   </div>,
 ]
 `);
-    expect(usePriemSpy).toHaveBeenCalledTimes(2);
+    expect(useResourceSpy).toHaveBeenCalledTimes(2);
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(1);
     expect(getSpy).toHaveBeenCalledTimes(2);
 
@@ -190,7 +118,7 @@ HTMLCollection [
   </div>,
 ]
 `);
-    expect(usePriemSpy).toHaveBeenCalledTimes(3);
+    expect(useResourceSpy).toHaveBeenCalledTimes(3);
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(1);
     expect(getSpy).toHaveBeenCalledTimes(3);
 
@@ -206,7 +134,7 @@ HTMLCollection [
   </div>,
 ]
 `);
-    expect(usePriemSpy).toHaveBeenCalledTimes(4);
+    expect(useResourceSpy).toHaveBeenCalledTimes(4);
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(2);
     expect(getSpy).toHaveBeenCalledTimes(4);
 
@@ -222,7 +150,7 @@ HTMLCollection [
   </div>,
 ]
 `);
-    expect(usePriemSpy).toHaveBeenCalledTimes(5);
+    expect(useResourceSpy).toHaveBeenCalledTimes(5);
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(3);
     expect(getSpy).toHaveBeenCalledTimes(5);
 
@@ -238,14 +166,14 @@ HTMLCollection [
   </div>,
 ]
 `);
-    expect(usePriemSpy).toHaveBeenCalledTimes(6);
+    expect(useResourceSpy).toHaveBeenCalledTimes(6);
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(4);
     expect(getSpy).toHaveBeenCalledTimes(6);
 });
 
 it('should have a `refresh` method', async () => {
     let shouldReject = false;
-    const res = new Resource(
+    const useResource = createResource(
         value => {
             if (shouldReject) {
                 return delay.reject(10, {value: new Error('error!')});
@@ -258,10 +186,10 @@ it('should have a `refresh` method', async () => {
         }
     );
 
-    const usePriemSpy = jest.fn(usePriem);
+    const useResourceSpy = jest.fn(useResource);
 
     function Comp() {
-        const [data, {reason, refresh}] = usePriemSpy(res, ['foo']);
+        const [data, {reason, refresh}] = useResourceSpy(['foo']);
         expect(typeof refresh).toBe('function');
         return (
             <>
@@ -283,7 +211,7 @@ HTMLCollection [
   />,
 ]
 `);
-    expect(usePriemSpy).toHaveBeenCalledTimes(1);
+    expect(useResourceSpy).toHaveBeenCalledTimes(1);
     expect(getSpy).toHaveBeenCalledTimes(1);
 
     await delay(200);
@@ -297,7 +225,7 @@ HTMLCollection [
   </button>,
 ]
 `);
-    expect(usePriemSpy).toHaveBeenCalledTimes(2);
+    expect(useResourceSpy).toHaveBeenCalledTimes(2);
     expect(getSpy).toHaveBeenCalledTimes(2);
 
     fireEvent.click(container.querySelector('button') as HTMLButtonElement);
@@ -310,7 +238,7 @@ HTMLCollection [
   </button>,
 ]
 `);
-    expect(usePriemSpy).toHaveBeenCalledTimes(3);
+    expect(useResourceSpy).toHaveBeenCalledTimes(3);
     expect(getSpy).toHaveBeenCalledTimes(3);
 
     await delay(100);
@@ -327,7 +255,7 @@ HTMLCollection [
   </p>,
 ]
 `);
-    expect(usePriemSpy).toHaveBeenCalledTimes(4);
+    expect(useResourceSpy).toHaveBeenCalledTimes(4);
     expect(getSpy).toHaveBeenCalledTimes(4);
 
     await delay(500);
@@ -344,19 +272,17 @@ HTMLCollection [
   </p>,
 ]
 `);
-    expect(usePriemSpy).toHaveBeenCalledTimes(4);
+    expect(useResourceSpy).toHaveBeenCalledTimes(4);
     expect(getSpy).toHaveBeenCalledTimes(4);
 });
 
 it('should render a nested component', async () => {
-    const res1 = new Resource(value => delay(100, {value}));
-    const res2 = new Resource((res1Value, value) => delay(100, {value: res1Value + value}));
-
-    const usePriemSpy = jest.fn(usePriem);
+    const useResource1 = createResource(value => delay(100, {value}));
+    const useResource2 = createResource((res1Value, value) => delay(100, {value: res1Value + value}));
 
     function Comp() {
-        const [data1] = usePriemSpy(res1, ['foo']);
-        const [data2] = usePriemSpy(res2, !data1 ? null : [data1, 'bar']);
+        const [data1] = useResource1(['foo']);
+        const [data2] = useResource2(!data1 ? null : [data1, 'bar']);
         return <div>{data2}</div>;
     }
 
@@ -374,15 +300,13 @@ HTMLCollection [
 });
 
 it('should render `usePriem` hooks that are subscribed to the same resource but need different data', async () => {
-    const res = new Resource(value => delay(100, {value}), {
+    const useResource = createResource(value => delay(100, {value}), {
         maxSize: 2,
     });
 
-    const usePriemSpy = jest.fn(usePriem);
-
     function Comp() {
-        const [data1] = usePriemSpy(res, ['foo']);
-        const [data2] = usePriemSpy(res, ['bar']);
+        const [data1] = useResource(['foo']);
+        const [data2] = useResource(['bar']);
         return (
             <div>
                 <div>{data1}</div>
@@ -410,42 +334,19 @@ HTMLCollection [
 `);
 });
 
-it('should unsubscribe from resource on unmount', async () => {
-    const res = new Resource(value => delay(100, {value}));
-
-    const usePriemSpy = jest.fn(usePriem);
-
-    function Comp() {
-        usePriemSpy(res, ['foo']);
-        return <div />;
-    }
-
-    const {unmount} = render(<Comp />);
-    await waitEffects();
-
-    // tslint:disable-next-line no-string-literal
-    expect(res['listeners']).toHaveLength(1);
-
-    unmount();
-    await waitEffects();
-
-    // tslint:disable-next-line no-string-literal
-    expect(res['listeners']).toHaveLength(0);
-});
-
 it('should debounce calls', async () => {
-    const res = new Resource(value => delay(200, {value}), {
+    const useResource = createResource(value => delay(200, {value}), {
         maxSize: 10,
     });
 
-    const usePriemSpy = jest.fn((resource: Resource, args: unknown[]) => {
-        const ret = usePriem(resource, args);
+    const useResourceSpy = jest.fn((args: unknown[]) => {
+        const ret = useResource(args);
         delete ret[1].refresh;
         return ret;
     });
 
     const Comp: React.FunctionComponent<{arg: unknown}> = props => {
-        usePriemSpy(res, [props.arg]);
+        useResourceSpy([props.arg]);
         return null;
     };
 
@@ -455,7 +356,7 @@ it('should debounce calls', async () => {
 
     await waitEffects();
 
-    expect(usePriemSpy).toHaveLastReturnedWith([
+    expect(useResourceSpy).toHaveLastReturnedWith([
         null,
         {
             fulfilled: false,
@@ -468,7 +369,7 @@ it('should debounce calls', async () => {
 
     await delay(200);
 
-    expect(usePriemSpy).toHaveLastReturnedWith([
+    expect(useResourceSpy).toHaveLastReturnedWith([
         null,
         {
             fulfilled: false,
@@ -482,7 +383,7 @@ it('should debounce calls', async () => {
     await delay(200);
     await waitEffects();
 
-    expect(usePriemSpy).toHaveLastReturnedWith([
+    expect(useResourceSpy).toHaveLastReturnedWith([
         'baz',
         {
             fulfilled: true,
@@ -496,7 +397,7 @@ it('should debounce calls', async () => {
     await delay(300);
     await waitEffects();
 
-    expect(usePriemSpy).toHaveLastReturnedWith([
+    expect(useResourceSpy).toHaveLastReturnedWith([
         'baz',
         {
             fulfilled: true,
@@ -506,33 +407,4 @@ it('should debounce calls', async () => {
         },
     ]);
     expect(getSpy).toHaveBeenCalledTimes(3);
-
-    // @ts-ignore
-    expect(res.memoized.cache).toMatchInlineSnapshot(`
-Cache {
-  "head": CacheItem {
-    "key": Array [
-      "baz",
-    ],
-    "value": Object {
-      "data": "baz",
-      "promise": Promise {},
-      "reason": null,
-      "status": 1,
-    },
-  },
-  "size": 2,
-  "tail": CacheItem {
-    "key": Array [
-      "foo",
-    ],
-    "value": Object {
-      "data": "foo",
-      "promise": Promise {},
-      "reason": null,
-      "status": 1,
-    },
-  },
-}
-`);
 });

@@ -1,5 +1,5 @@
-export {default as usePriem} from './usePriem';
-export {Resource, populateStore, flushStore} from './Resource';
+export {default as createResource} from './createResource';
+export {populateStore, flushStore} from './Resource';
 
 import {renderPromises} from './Resource';
 

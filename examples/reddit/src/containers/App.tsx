@@ -1,9 +1,9 @@
 import * as React from 'react';
-import {usePriem, Resource} from 'priem';
+import {createResource} from 'priem';
 import Picker from '../components/Picker';
 import Posts, {Post} from '../components/Posts';
 
-const redditContainer = new Resource(
+const useRedditContainer = createResource<Post[]>(
     reddit =>
         fetch(`https://www.reddit.com/r/${reddit}.json`)
             .then(res => res.json())
@@ -16,7 +16,7 @@ const redditContainer = new Resource(
 
 export default () => {
     const [redditName, setReddit] = React.useState('reactjs');
-    const [reddit, {pending, refresh}] = usePriem<Post[]>(redditContainer, [redditName]);
+    const [reddit, {pending, refresh}] = useRedditContainer([redditName]);
 
     return (
         <div>

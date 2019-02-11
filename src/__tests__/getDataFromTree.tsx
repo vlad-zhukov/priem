@@ -6,7 +6,7 @@ import * as React from 'react';
 // tslint:disable-next-line no-submodule-imports
 import * as ReactDOM from 'react-dom/server';
 import delay from 'delay';
-import {usePriem, Resource, flushStore, populateStore, __INTERNALS__} from '../index';
+import {createResource, flushStore, populateStore, __INTERNALS__} from '../index';
 import createGetDataFromTree from '../index.server';
 
 const getDataFromTree = createGetDataFromTree(__INTERNALS__.renderPromises);
@@ -16,12 +16,12 @@ afterEach(() => {
 });
 
 it('should fetch and render to string with data', async () => {
-    const res = new Resource(value => delay(100, {value}), {
+    const useResource = createResource<string>(value => delay(100, {value}), {
         ssrKey: 'unique-key-1',
     });
 
     const Comp: React.FunctionComponent = () => {
-        const [data] = usePriem<string>(res, ['foo']);
+        const [data] = useResource(['foo']);
         return <div>{data}</div>;
     };
 
@@ -52,16 +52,16 @@ Array [
 });
 
 it('should fetch data from a nested component', async () => {
-    const res1 = new Resource(value => delay(100, {value}), {
+    const useResource1 = createResource<string>(value => delay(100, {value}), {
         ssrKey: 'unique-key-1',
     });
-    const res2 = new Resource((res1Value, value) => delay(100, {value: res1Value + value}), {
+    const useResource2 = createResource<string>((res1Value, value) => delay(100, {value: res1Value + value}), {
         ssrKey: 'unique-key-2',
     });
 
     const Comp: React.FunctionComponent = () => {
-        const [data1] = usePriem<string>(res1, ['foo']);
-        const [data2] = usePriem<string>(res2, !data1 ? null : [data1, 'bar']);
+        const [data1] = useResource1(['foo']);
+        const [data2] = useResource2(!data1 ? null : [data1, 'bar']);
         return <div>{data2}</div>;
     };
 
@@ -109,14 +109,14 @@ Array [
 });
 
 it('should not fetch data from resources without `ssrKey`', async () => {
-    const res1 = new Resource(value => delay(100, {value}), {
+    const useResource1 = createResource(value => delay(100, {value}), {
         ssrKey: 'unique-key-1',
     });
-    const res2 = new Resource((res1Value, value) => delay(100, {value: res1Value + value}));
+    const useResource2 = createResource((res1Value, value) => delay(100, {value: res1Value + value}));
 
     function Comp() {
-        const [data1] = usePriem(res1, ['foo']);
-        const [data2] = usePriem(res2, !data1 ? null : [data1, 'bar']);
+        const [data1] = useResource1(['foo']);
+        const [data2] = useResource2(!data1 ? null : [data1, 'bar']);
         return <div>{data2}</div>;
     }
 
@@ -148,21 +148,19 @@ Array [
 });
 
 it('should not add non-fulfilled cache items to store', async () => {
-    const res1 = new Resource(() => delay.reject(100, {value: new Error('Boom!')}), {
+    const useResource1 = createResource(() => delay.reject(100, {value: new Error('Boom!')}), {
         ssrKey: 'unique-key-1',
     });
 
-    const res2 = new Resource(() => delay(10000, {value: 'A very long delay...'}), {
+    const useResource2 = createResource(() => delay(10000, {value: 'A very long delay...'}), {
         ssrKey: 'unique-key-2',
     });
-
-    res1.get([]);
 
     await delay(300);
 
     const Comp = () => {
-        usePriem(res1);
-        usePriem(res2);
+        useResource1();
+        useResource2();
         return null;
     };
 
@@ -188,16 +186,16 @@ it('should rehydrate data from initial store', async () => {
             populateStore(initialStore);
         }
 
-        const res1 = new Resource(value => delay(100, {value}), {
+        const useResource1 = createResource(value => delay(100, {value}), {
             ssrKey: 'unique-key-1',
         });
-        const res2 = new Resource((res1Value, value) => delay(100, {value: res1Value + value}), {
+        const useResource2 = createResource((res1Value, value) => delay(100, {value: res1Value + value}), {
             ssrKey: 'unique-key-2',
         });
 
         return function Comp() {
-            const [data1] = usePriem(res1, ['foo']);
-            const [data2] = usePriem(res2, !data1 ? null : [data1, 'bar']);
+            const [data1] = useResource1(['foo']);
+            const [data2] = useResource2(!data1 ? null : [data1, 'bar']);
             return <div>{data2}</div>;
         };
     }

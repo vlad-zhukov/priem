@@ -40,7 +40,7 @@ export type Subscriber = {
     onChange: (prevArgs: MemoizedKey, forceRefresh: boolean) => void;
 };
 
-type ResourceOptions = {
+export type ResourceOptions = {
     maxSize?: number;
     maxAge?: number;
     ssrKey?: string;
@@ -52,7 +52,7 @@ export class Resource {
     /** @internal */ private readonly listeners: Subscriber[] = [];
     /** @internal */ private readonly memoized: MemoizedFunction;
 
-    constructor(fn: (...args: any[]) => Promise<unknown>, options: ResourceOptions = {}) {
+    constructor(fn: (...args: any[]) => Promise<unknown>, options: ResourceOptions) {
         assertType(fn, ['function'], "'fn'");
         assertType(options, ['object'], "Resource argument 'options'");
 
