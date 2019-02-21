@@ -35,10 +35,8 @@ export default function createResource<DataType = unknown, Args extends Memoized
 ) {
     const resource = new Resource(fn, options);
 
-    return function useResource(args?: Args | null): Result<DataType> {
-        const currArgs = typeof args !== 'undefined' ? args : [];
-
-        assertType(currArgs, ['array', 'null'], '`args`');
+    return function useResource(args: Args | null): Result<DataType> {
+        assertType(args, ['array', 'null'], '`args`');
 
         const rerender = useForceUpdate();
         const refs = React.useRef<Refs<DataType>>({
@@ -50,7 +48,7 @@ export default function createResource<DataType = unknown, Args extends Memoized
 
         // A callback for onCacheChange
         refs.current.onChange = (prevArgs, forceUpdate) => {
-            if (prevArgs !== null && currArgs !== null && areKeysEqual(currArgs, prevArgs)) {
+            if (prevArgs !== null && args !== null && areKeysEqual(args, prevArgs)) {
                 refs.current.shouldForceUpdate = forceUpdate;
                 rerender();
             }
@@ -80,7 +78,7 @@ export default function createResource<DataType = unknown, Args extends Memoized
             shouldForceUpdate !== true &&
             prevResult !== null &&
             now - lastTimeCalled < DEFAULT_DEBOUNCE_MS &&
-            resource.has(currArgs) === false;
+            resource.has(args) === false;
 
         React.useEffect(() => {
             let handler: number | undefined;
@@ -94,7 +92,7 @@ export default function createResource<DataType = unknown, Args extends Memoized
             return prevResult as Result<DataType>;
         }
 
-        const ret = resource.get(currArgs, shouldForceUpdate);
+        const ret = resource.get(args, shouldForceUpdate);
 
         if ((ret === null || ret.status === STATUS.PENDING) && prevResult !== null) {
             return prevResult;

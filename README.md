@@ -39,7 +39,7 @@ const useReddit = createResource(
 );
 
 export default () => {
-    const [redditData, {pending}] = useReddit();
+    const [redditData, {pending}] = useReddit([]);
 
     if (!redditData) {
         return pending ? <h2>Loading...</h2> : <h2>Empty.</h2>;
