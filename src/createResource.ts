@@ -5,7 +5,6 @@ import {assertType, noop} from './helpers';
 
 function useForceUpdate(): () => void {
     const [, setTick] = React.useState(0);
-
     return React.useCallback(() => {
         setTick(tick => tick + 1);
     }, []);

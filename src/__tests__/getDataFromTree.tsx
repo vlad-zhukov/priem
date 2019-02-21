@@ -151,19 +151,19 @@ Array [
 });
 
 it('should not add non-fulfilled cache items to store', async () => {
-    const useResource1 = createResource<string>(() => delay.reject(100, {value: new Error('Boom!')}), {
+    const useResource1 = createResource(() => delay.reject(100, {value: new Error('Boom!')}), {
         ssrKey: 'unique-key-1',
     });
 
-    const useResource2 = createResource<string, never>(() => delay(10000, {value: 'A very long delay...'}), {
+    const useResource2 = createResource<string>(() => delay(10000, {value: 'A very long delay...'}), {
         ssrKey: 'unique-key-2',
     });
 
     await delay(300);
 
     const Comp = () => {
-        useResource1();
-        useResource2();
+        useResource1([]);
+        useResource2([]);
         return null;
     };
 

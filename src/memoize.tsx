@@ -56,13 +56,13 @@ export function toSerializableArray(
     });
 }
 
-export type cacheChangeCallback = (key: MemoizedKey, forceUpdate: boolean) => void;
+export type CacheChangeCallback = (key: MemoizedKey, forceUpdate: boolean) => void;
 
 function createTimeout(
     cache: MemoizedCache,
     item: MemoizedCacheItem,
     maxAge: number | null,
-    onCacheChange: cacheChangeCallback
+    onCacheChange: CacheChangeCallback
 ): void {
     if (isBrowser === true && maxAge !== null) {
         window.clearTimeout(item.expireId);
@@ -77,7 +77,7 @@ type MemoizeOptions<Args extends MemoizedKey> = {
     initialCache?: (MemoizedSerializableCacheItem | MemoizedCacheItem)[];
     maxSize?: number;
     maxAge?: number;
-    onCacheChange?: cacheChangeCallback;
+    onCacheChange?: CacheChangeCallback;
 };
 
 export type MemoizedFunction = {

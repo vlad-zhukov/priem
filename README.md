@@ -143,8 +143,8 @@ A React Hook for subscribing to resources.
 
 The function returns a tuple with data and a meta object:
 
-1.  `data` _(any)_: The data `promise` resolved with. Defaults to `null`.
-2.  `meta` _(Object)_: Meta properties of the most **recent** promise.
+1.  `data` _(any)_: The last successful data. Defaults to `null`.
+2.  `meta` _(Object)_: Meta properties of **most recent** promise.
     -   `pending` _(Boolean)_.
     -   `rejected` _(Boolean)_.
     -   `reason` _(Error|null)_.

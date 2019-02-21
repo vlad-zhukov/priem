@@ -11,7 +11,7 @@ import memoize, {
 import {assertType, isBrowser, type} from './helpers';
 
 let storeMap = new Map<string, MemoizedSerializableCacheItem[] | MemoizedCacheItem[] | MemoizedCache>();
-export const renderPromises: (Promise<unknown> | undefined)[] = [];
+export const renderPromises: (Promise<unknown>)[] = [];
 
 export function populateStore(initialStore: [string, MemoizedSerializableCacheItem[]][]): void {
     assertType(initialStore, ['array'], "'initialStore'");
@@ -48,7 +48,7 @@ export type ResourceOptions = {
 
 // TODO: introduce a mechanism to dispose unneeded resource?
 export class Resource<Args extends MemoizedKey> {
-    /** @internal */ private ssrKey?: string;
+    /** @internal */ private readonly ssrKey?: string;
     /** @internal */ private readonly listeners: Subscriber[] = [];
     /** @internal */ private readonly memoized: MemoizedFunction;
 
@@ -82,7 +82,7 @@ export class Resource<Args extends MemoizedKey> {
     }
 
     /** @internal */
-    has(args: MemoizedKey | null): boolean {
+    has(args: Args | null): boolean {
         if (args === null) {
             return false;
         }
@@ -90,7 +90,7 @@ export class Resource<Args extends MemoizedKey> {
     }
 
     /** @internal */
-    get(args: MemoizedKey | null, forceRefresh: boolean = false): MemoizedValue | null {
+    get(args: Args | null, forceRefresh: boolean = false): MemoizedValue | null {
         if (isBrowser === false && !this.ssrKey) {
             return null;
         }
@@ -111,7 +111,7 @@ export class Resource<Args extends MemoizedKey> {
             } else {
                 storeMap.set(this.ssrKey, this.memoized.cache);
             }
-            if (ret.status === STATUS.PENDING) {
+            if (ret.status === STATUS.PENDING && ret.promise) {
                 renderPromises.push(ret.promise);
             }
         }
