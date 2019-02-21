@@ -47,12 +47,12 @@ export type ResourceOptions = {
 };
 
 // TODO: introduce a mechanism to dispose unneeded resource?
-export class Resource {
+export class Resource<Args extends MemoizedKey> {
     /** @internal */ private ssrKey?: string;
     /** @internal */ private readonly listeners: Subscriber[] = [];
     /** @internal */ private readonly memoized: MemoizedFunction;
 
-    constructor(fn: (...args: any[]) => Promise<unknown>, options: ResourceOptions) {
+    constructor(fn: (...args: Args) => Promise<unknown>, options: ResourceOptions) {
         assertType(fn, ['function'], "'fn'");
         assertType(options, ['object'], "Resource argument 'options'");
 
@@ -72,7 +72,7 @@ export class Resource {
             storeMap.delete(ssrKey);
         }
 
-        this.memoized = memoize({
+        this.memoized = memoize<Args>({
             fn,
             initialCache,
             maxSize,

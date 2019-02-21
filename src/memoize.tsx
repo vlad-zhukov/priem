@@ -72,8 +72,8 @@ function createTimeout(
     }
 }
 
-type MemoizeOptions = {
-    fn: (...args: MemoizedKey) => Promise<unknown>;
+type MemoizeOptions<Args extends MemoizedKey> = {
+    fn: (...args: Args) => Promise<unknown>;
     initialCache?: (MemoizedSerializableCacheItem | MemoizedCacheItem)[];
     maxSize?: number;
     maxAge?: number;
@@ -86,17 +86,17 @@ export type MemoizedFunction = {
     has: (args: MemoizedKey) => boolean;
 };
 
-export default function memoize({
+export default function memoize<Args extends MemoizedKey>({
     fn,
     initialCache = [],
     maxSize = 1,
     maxAge = Infinity,
     onCacheChange = noop,
-}: MemoizeOptions): MemoizedFunction {
+}: MemoizeOptions<Args>): MemoizedFunction {
     const cache: MemoizedCache = new Cache(initialCache);
     const normalizeMaxAge = type(maxAge) === 'number' && isFinite(maxAge) ? maxAge : null;
 
-    function memoized(args: MemoizedKey, forceRefresh: boolean = false): MemoizedValue {
+    function memoized(args: Args, forceRefresh: boolean = false): MemoizedValue {
         let item: MemoizedCacheItem | null = cache.findBy(cacheItem => areKeysEqual(cacheItem.key, args));
         let shouldRefresh = false;
 
