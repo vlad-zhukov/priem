@@ -29,14 +29,16 @@ type Refs<DataType> = Subscriber & {
     prevResult: Result<DataType> | null;
 };
 
-export default function createResource<DataType, Args extends MemoizedKey>(
+export default function createResource<DataType = unknown, Args extends MemoizedKey = MemoizedKey>(
     fn: (...args: Args) => Promise<unknown>,
     options: ResourceOptions = {}
 ) {
     const resource = new Resource(fn, options);
 
-    return function useResource(args: Args | null): Result<DataType> {
-        assertType(args, ['array', 'null'], '`args`');
+    return function useResource(args?: Args | null): Result<DataType> {
+        const currArgs = typeof args !== 'undefined' ? args : [];
+
+        assertType(currArgs, ['array', 'null'], '`args`');
 
         const rerender = useForceUpdate();
         const refs = React.useRef<Refs<DataType>>({
@@ -48,7 +50,7 @@ export default function createResource<DataType, Args extends MemoizedKey>(
 
         // A callback for onCacheChange
         refs.current.onChange = (prevArgs, forceUpdate) => {
-            if (prevArgs !== null && args !== null && areKeysEqual(args, prevArgs)) {
+            if (prevArgs !== null && currArgs !== null && areKeysEqual(currArgs, prevArgs)) {
                 refs.current.shouldForceUpdate = forceUpdate;
                 rerender();
             }
@@ -65,8 +67,8 @@ export default function createResource<DataType, Args extends MemoizedKey>(
         refs.current.shouldForceUpdate = false;
 
         /**
-         * Should this call be rescheduled for later and return the previous value?
-         * The reasoning behind it is to reduce the amount of requests.
+         * Should this call get debounced and rescheduled,
+         * and return the previous value to reduce the amount of requests?
          *
          * When we should debounce:
          * 1. This call is not forced.
@@ -78,7 +80,7 @@ export default function createResource<DataType, Args extends MemoizedKey>(
             shouldForceUpdate !== true &&
             prevResult !== null &&
             now - lastTimeCalled < DEFAULT_DEBOUNCE_MS &&
-            resource.has(args) === false;
+            resource.has(currArgs) === false;
 
         React.useEffect(() => {
             let handler: number | undefined;
@@ -92,7 +94,7 @@ export default function createResource<DataType, Args extends MemoizedKey>(
             return prevResult as Result<DataType>;
         }
 
-        const ret = resource.get(args, shouldForceUpdate);
+        const ret = resource.get(currArgs, shouldForceUpdate);
 
         if ((ret === null || ret.status === STATUS.PENDING) && prevResult !== null) {
             return prevResult;

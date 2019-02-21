@@ -65,7 +65,7 @@ it('should rerun promises when cache expires if `maxAge` is set', async () => {
      *  fulfilled        | 15       | 14                     | 16
      */
 
-    const useResource = createResource(value => delay(200, {value}), {
+    const useResource = createResource<string>(value => delay(200, {value}), {
         maxAge: 1000,
     });
 
@@ -173,7 +173,7 @@ HTMLCollection [
 
 it('should have a `refresh` method', async () => {
     let shouldReject = false;
-    const useResource = createResource(
+    const useResource = createResource<string>(
         value => {
             if (shouldReject) {
                 return delay.reject(10, {value: new Error('error!')});
@@ -277,8 +277,8 @@ HTMLCollection [
 });
 
 it('should render a nested component', async () => {
-    const useResource1 = createResource(value => delay(100, {value}));
-    const useResource2 = createResource((res1Value, value) => delay(100, {value: res1Value + value}));
+    const useResource1 = createResource<string, [string]>(value => delay(100, {value}));
+    const useResource2 = createResource<string, string[]>((res1Value, value) => delay(100, {value: res1Value + value}));
 
     function Comp() {
         const [data1] = useResource1(['foo']);
@@ -300,7 +300,7 @@ HTMLCollection [
 });
 
 it('should render `usePriem` hooks that are subscribed to the same resource but need different data', async () => {
-    const useResource = createResource(value => delay(100, {value}), {
+    const useResource = createResource<string>(value => delay(100, {value}), {
         maxSize: 2,
     });
 

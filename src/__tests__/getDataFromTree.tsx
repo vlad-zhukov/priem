@@ -52,12 +52,15 @@ Array [
 });
 
 it('should fetch data from a nested component', async () => {
-    const useResource1 = createResource<string>(value => delay(100, {value}), {
+    const useResource1 = createResource<string, [string]>(value => delay(100, {value}), {
         ssrKey: 'unique-key-1',
     });
-    const useResource2 = createResource<string>((res1Value, value) => delay(100, {value: res1Value + value}), {
-        ssrKey: 'unique-key-2',
-    });
+    const useResource2 = createResource<string, [string, string]>(
+        (res1Value, value) => delay(100, {value: res1Value + value}),
+        {
+            ssrKey: 'unique-key-2',
+        }
+    );
 
     const Comp: React.FunctionComponent = () => {
         const [data1] = useResource1(['foo']);
@@ -109,10 +112,10 @@ Array [
 });
 
 it('should not fetch data from resources without `ssrKey`', async () => {
-    const useResource1 = createResource(value => delay(100, {value}), {
+    const useResource1 = createResource<string, [string]>(value => delay(100, {value}), {
         ssrKey: 'unique-key-1',
     });
-    const useResource2 = createResource((res1Value, value) => delay(100, {value: res1Value + value}));
+    const useResource2 = createResource<string, string[]>((res1Value, value) => delay(100, {value: res1Value + value}));
 
     function Comp() {
         const [data1] = useResource1(['foo']);
@@ -148,11 +151,11 @@ Array [
 });
 
 it('should not add non-fulfilled cache items to store', async () => {
-    const useResource1 = createResource(() => delay.reject(100, {value: new Error('Boom!')}), {
+    const useResource1 = createResource<string>(() => delay.reject(100, {value: new Error('Boom!')}), {
         ssrKey: 'unique-key-1',
     });
 
-    const useResource2 = createResource(() => delay(10000, {value: 'A very long delay...'}), {
+    const useResource2 = createResource<string, never>(() => delay(10000, {value: 'A very long delay...'}), {
         ssrKey: 'unique-key-2',
     });
 
@@ -186,12 +189,15 @@ it('should rehydrate data from initial store', async () => {
             populateStore(initialStore);
         }
 
-        const useResource1 = createResource(value => delay(100, {value}), {
+        const useResource1 = createResource<string, [string]>(value => delay(100, {value}), {
             ssrKey: 'unique-key-1',
         });
-        const useResource2 = createResource((res1Value, value) => delay(100, {value: res1Value + value}), {
-            ssrKey: 'unique-key-2',
-        });
+        const useResource2 = createResource<string, string[]>(
+            (res1Value, value) => delay(100, {value: res1Value + value}),
+            {
+                ssrKey: 'unique-key-2',
+            }
+        );
 
         return function Comp() {
             const [data1] = useResource1(['foo']);
