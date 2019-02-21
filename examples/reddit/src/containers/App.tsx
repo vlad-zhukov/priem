@@ -3,7 +3,7 @@ import {createResource} from 'priem';
 import Picker from '../components/Picker';
 import Posts, {Post} from '../components/Posts';
 
-const useRedditContainer = createResource<Post[]>(
+const useRedditContainer = createResource<Post[], [string]>(
     reddit =>
         fetch(`https://www.reddit.com/r/${reddit}.json`)
             .then(res => res.json())
