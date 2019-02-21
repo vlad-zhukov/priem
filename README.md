@@ -1,8 +1,6 @@
 # priem · [![npm][1]][2] [![Build Status][3]][4] [![codecov][5]][6] [![bundlephobia][7]][8]
 
-> Rich async state management.
-
-**`priem` v2 is currently in beta!**
+A React Hook to decoratively "subscribe" to data with automatic refreshes on argument changes.
 
 ## Table of Contents
 
@@ -19,7 +17,7 @@
 ## Installation
 
 ```bash
-yarn add priem@beta
+yarn add priem
 ```
 
 ## Getting Started
