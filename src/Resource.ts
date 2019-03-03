@@ -8,7 +8,7 @@ import memoize, {
     STATUS,
     toSerializableArray,
 } from './memoize';
-import {assertType, isBrowser, type} from './helpers';
+import {assertType, isBrowser, type} from './utils';
 
 let storeMap = new Map<string, MemoizedSerializableCacheItem[] | MemoizedCacheItem[] | MemoizedCache>();
 export const renderPromises: (Promise<unknown>)[] = [];

@@ -1,5 +1,5 @@
 import {Cache, CacheItem, SerializableCacheItem, reduce} from './Cache';
-import {type, isBrowser, noop} from './helpers';
+import {type, isBrowser, noop, areKeysEqual} from './utils';
 
 const DEFAULT_THROTTLE_MS = 150;
 
@@ -23,22 +23,6 @@ export type MemoizedCache = Cache<MemoizedKey, MemoizedValue>;
 export type MemoizedCacheItem = CacheItem<MemoizedKey, MemoizedValue>;
 
 export type MemoizedSerializableCacheItem = SerializableCacheItem<MemoizedKey, MemoizedValue>;
-
-function isSameValueZero(object1: unknown, object2: unknown): boolean {
-    return object1 === object2 || (object1 !== object1 && object2 !== object2);
-}
-
-export function areKeysEqual(keys1: MemoizedKey, keys2: MemoizedKey): boolean {
-    if (keys1.length !== keys2.length) {
-        return false;
-    }
-    for (let i = 0; i < keys1.length; i++) {
-        if (isSameValueZero(keys1[i], keys2[i]) === false) {
-            return false;
-        }
-    }
-    return true;
-}
 
 export function toSerializableArray(
     cache: MemoizedCache,

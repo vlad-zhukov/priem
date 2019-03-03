@@ -19,9 +19,9 @@ afterEach(() => {
 });
 
 it('should not run if `args` is `null`', async () => {
-    const useResource = createResource<string, [string]>(value => delay(200, {value}));
+    const useResource = createResource<string>(() => delay(200, {value: 'foo'}));
 
-    const useResourceSpy = jest.fn(args => {
+    const useResourceSpy = jest.fn((args) => {
         const ret = useResource(args);
         delete ret[1].refresh;
         return ret;

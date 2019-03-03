@@ -1,4 +1,4 @@
-import {type, assertType} from '../helpers';
+import {type, assertType} from '../utils';
 
 describe('type', () => {
     it('should return types of values', () => {

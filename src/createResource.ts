@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {Resource, ResourceOptions, Subscriber} from './Resource';
-import {MemoizedKey, areKeysEqual, STATUS} from './memoize';
-import {assertType, noop} from './helpers';
+import {MemoizedKey, STATUS} from './memoize';
+import {assertType, noop, areKeysEqual} from './utils';
 
 function useForceUpdate(): () => void {
     const [, setTick] = React.useState(0);
@@ -45,7 +45,7 @@ export default function createResource<DataType, Args extends MemoizedKey = []>(
             prevResult: null,
         });
 
-        // A callback for onCacheChange
+        // A callback for Resource#onCacheChange
         refs.current.onChange = (prevArgs, forceUpdate) => {
             if (prevArgs !== null && args !== null && areKeysEqual(args, prevArgs)) {
                 refs.current.shouldForceUpdate = forceUpdate;
@@ -71,7 +71,7 @@ export default function createResource<DataType, Args extends MemoizedKey = []>(
          * Should this call get debounced and rescheduled,
          * and return the previous value to reduce the amount of requests?
          *
-         * When we should debounce:
+         * We should debounce when all conditions are met:
          * 1. This call is not forced.
          * 2. Previous result is valid.
          * 3. Less than 150ms lapsed since the last call.
