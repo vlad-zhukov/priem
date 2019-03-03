@@ -68,7 +68,7 @@ async function build() {
         },
         tsdocMetadata: {
             enabled: false,
-        }
+        },
     };
 
     const extractor = new Extractor(extractorConfig);
