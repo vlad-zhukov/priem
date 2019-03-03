@@ -27,7 +27,7 @@ it('should not run if `args` is `null`', async () => {
         return ret;
     });
 
-    const Comp: React.FunctionComponent = () => {
+    const Comp: React.FC = () => {
         useResourceSpy(null);
         return null;
     };
@@ -36,9 +36,9 @@ it('should not run if `args` is `null`', async () => {
     await delay(300);
     await waitEffects();
 
-    expect(useResourceSpy).toHaveBeenCalledTimes(1);
+    expect(useResourceSpy).toHaveBeenCalledTimes(3);
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(0);
-    expect(getSpy).toHaveBeenCalledTimes(1);
+    expect(getSpy).toHaveBeenCalledTimes(2);
     expect(useResourceSpy).toHaveLastReturnedWith([
         null,
         {
@@ -71,7 +71,7 @@ it('should rerun promises when cache expires if `maxAge` is set', async () => {
 
     const useResourceSpy = jest.fn(useResource);
 
-    const Comp: React.FunctionComponent<{count: string}> = ({count}) => {
+    const Comp: React.FC<{count: string}> = ({count}) => {
         const [data] = useResourceSpy([`foo${count}`]);
         return <div>{data}</div>;
     };
@@ -86,9 +86,9 @@ HTMLCollection [
   <div />,
 ]
 `);
-    expect(useResourceSpy).toHaveBeenCalledTimes(1);
+    expect(useResourceSpy).toHaveBeenCalledTimes(2);
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(0);
-    expect(getSpy).toHaveBeenCalledTimes(1);
+    expect(getSpy).toHaveBeenCalledTimes(2);
 
     await delay(300);
     await waitEffects();
@@ -102,9 +102,9 @@ HTMLCollection [
   </div>,
 ]
 `);
-    expect(useResourceSpy).toHaveBeenCalledTimes(2);
+    expect(useResourceSpy).toHaveBeenCalledTimes(3);
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(1);
-    expect(getSpy).toHaveBeenCalledTimes(2);
+    expect(getSpy).toHaveBeenCalledTimes(3);
 
     rerender(<Comp count="2" />);
     await waitEffects();
@@ -118,9 +118,9 @@ HTMLCollection [
   </div>,
 ]
 `);
-    expect(useResourceSpy).toHaveBeenCalledTimes(3);
+    expect(useResourceSpy).toHaveBeenCalledTimes(4);
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(1);
-    expect(getSpy).toHaveBeenCalledTimes(3);
+    expect(getSpy).toHaveBeenCalledTimes(4);
 
     await delay(400);
     await waitEffects();
@@ -134,9 +134,9 @@ HTMLCollection [
   </div>,
 ]
 `);
-    expect(useResourceSpy).toHaveBeenCalledTimes(4);
+    expect(useResourceSpy).toHaveBeenCalledTimes(5);
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(2);
-    expect(getSpy).toHaveBeenCalledTimes(4);
+    expect(getSpy).toHaveBeenCalledTimes(5);
 
     await delay(500);
     await waitEffects();
@@ -150,9 +150,9 @@ HTMLCollection [
   </div>,
 ]
 `);
-    expect(useResourceSpy).toHaveBeenCalledTimes(5);
+    expect(useResourceSpy).toHaveBeenCalledTimes(6);
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(3);
-    expect(getSpy).toHaveBeenCalledTimes(5);
+    expect(getSpy).toHaveBeenCalledTimes(6);
 
     await delay(200);
     await waitEffects();
@@ -166,9 +166,9 @@ HTMLCollection [
   </div>,
 ]
 `);
-    expect(useResourceSpy).toHaveBeenCalledTimes(6);
+    expect(useResourceSpy).toHaveBeenCalledTimes(7);
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(4);
-    expect(getSpy).toHaveBeenCalledTimes(6);
+    expect(getSpy).toHaveBeenCalledTimes(7);
 });
 
 it('should have a `refresh` method', async () => {
@@ -211,8 +211,8 @@ HTMLCollection [
   />,
 ]
 `);
-    expect(useResourceSpy).toHaveBeenCalledTimes(1);
-    expect(getSpy).toHaveBeenCalledTimes(1);
+    expect(useResourceSpy).toHaveBeenCalledTimes(2);
+    expect(getSpy).toHaveBeenCalledTimes(2);
 
     await delay(200);
 
@@ -225,8 +225,8 @@ HTMLCollection [
   </button>,
 ]
 `);
-    expect(useResourceSpy).toHaveBeenCalledTimes(2);
-    expect(getSpy).toHaveBeenCalledTimes(2);
+    expect(useResourceSpy).toHaveBeenCalledTimes(3);
+    expect(getSpy).toHaveBeenCalledTimes(3);
 
     fireEvent.click(container.querySelector('button') as HTMLButtonElement);
     expect(container.children).toMatchInlineSnapshot(`
@@ -238,8 +238,8 @@ HTMLCollection [
   </button>,
 ]
 `);
-    expect(useResourceSpy).toHaveBeenCalledTimes(3);
-    expect(getSpy).toHaveBeenCalledTimes(3);
+    expect(useResourceSpy).toHaveBeenCalledTimes(4);
+    expect(getSpy).toHaveBeenCalledTimes(4);
 
     await delay(100);
 
@@ -255,8 +255,8 @@ HTMLCollection [
   </p>,
 ]
 `);
-    expect(useResourceSpy).toHaveBeenCalledTimes(4);
-    expect(getSpy).toHaveBeenCalledTimes(4);
+    expect(useResourceSpy).toHaveBeenCalledTimes(5);
+    expect(getSpy).toHaveBeenCalledTimes(5);
 
     await delay(500);
 
@@ -272,8 +272,8 @@ HTMLCollection [
   </p>,
 ]
 `);
-    expect(useResourceSpy).toHaveBeenCalledTimes(4);
-    expect(getSpy).toHaveBeenCalledTimes(4);
+    expect(useResourceSpy).toHaveBeenCalledTimes(5);
+    expect(getSpy).toHaveBeenCalledTimes(5);
 });
 
 it('should render a nested component', async () => {
@@ -345,7 +345,7 @@ it('should debounce calls', async () => {
         return ret;
     });
 
-    const Comp: React.FunctionComponent<{arg: unknown}> = props => {
+    const Comp: React.FC<{arg: unknown}> = props => {
         useResourceSpy([props.arg]);
         return null;
     };
@@ -365,7 +365,7 @@ it('should debounce calls', async () => {
             rejected: false,
         },
     ]);
-    expect(getSpy).toHaveBeenCalledTimes(1);
+    expect(getSpy).toHaveBeenCalledTimes(2);
 
     await delay(200);
 
@@ -378,7 +378,7 @@ it('should debounce calls', async () => {
             rejected: false,
         },
     ]);
-    expect(getSpy).toHaveBeenCalledTimes(2);
+    expect(getSpy).toHaveBeenCalledTimes(3);
 
     await delay(200);
     await waitEffects();
@@ -392,7 +392,7 @@ it('should debounce calls', async () => {
             rejected: false,
         },
     ]);
-    expect(getSpy).toHaveBeenCalledTimes(3);
+    expect(getSpy).toHaveBeenCalledTimes(4);
 
     await delay(300);
     await waitEffects();
@@ -406,5 +406,5 @@ it('should debounce calls', async () => {
             rejected: false,
         },
     ]);
-    expect(getSpy).toHaveBeenCalledTimes(3);
+    expect(getSpy).toHaveBeenCalledTimes(4);
 });

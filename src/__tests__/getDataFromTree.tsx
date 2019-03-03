@@ -20,7 +20,7 @@ it('should fetch and render to string with data', async () => {
         ssrKey: 'unique-key-1',
     });
 
-    const Comp: React.FunctionComponent = () => {
+    const Comp: React.FC = () => {
         const [data] = useResource(['foo']);
         return <div>{data}</div>;
     };
@@ -62,7 +62,7 @@ it('should fetch data from a nested component', async () => {
         }
     );
 
-    const Comp: React.FunctionComponent = () => {
+    const Comp: React.FC = () => {
         const [data1] = useResource1(['foo']);
         const [data2] = useResource2(!data1 ? null : [data1, 'bar']);
         return <div>{data2}</div>;

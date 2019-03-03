@@ -53,8 +53,12 @@ export default function createResource<DataType = unknown, Args extends Memoized
             }
         };
 
+        // Because subscribing happens after component was mount and cache was hit, cache can resolve before component
+        // subscribe, and an update will be missed. Rerendering after subscribing ensures the component is up-to-date
+        // and at the same time fetching is not blocked.
         React.useEffect(() => {
             resource.subscribe(refs.current);
+            rerender();
             return () => resource.unsubscribe(refs.current);
         }, []);
 
