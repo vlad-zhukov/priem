@@ -19,7 +19,7 @@ afterEach(() => {
 });
 
 it('should not run if `args` is `null`', async () => {
-    const useResource = createResource(value => delay(200, {value}));
+    const useResource = createResource<string, [string]>(value => delay(200, {value}));
 
     const useResourceSpy = jest.fn(args => {
         const ret = useResource(args);
@@ -65,7 +65,7 @@ it('should rerun promises when cache expires if `maxAge` is set', async () => {
      *  fulfilled        | 15       | 14                     | 16
      */
 
-    const useResource = createResource<string>(value => delay(200, {value}), {
+    const useResource = createResource<string, [string]>(value => delay(200, {value}), {
         maxAge: 1000,
     });
 
@@ -173,7 +173,7 @@ HTMLCollection [
 
 it('should have a `refresh` method', async () => {
     let shouldReject = false;
-    const useResource = createResource<string>(
+    const useResource = createResource<string, [string]>(
         value => {
             if (shouldReject) {
                 return delay.reject(10, {value: new Error('error!')});
@@ -300,7 +300,7 @@ HTMLCollection [
 });
 
 it('should render `usePriem` hooks that are subscribed to the same resource but need different data', async () => {
-    const useResource = createResource<string>(value => delay(100, {value}), {
+    const useResource = createResource<string, [string]>(value => delay(100, {value}), {
         maxSize: 2,
     });
 
@@ -335,17 +335,17 @@ HTMLCollection [
 });
 
 it('should debounce calls', async () => {
-    const useResource = createResource(value => delay(200, {value}), {
+    const useResource = createResource<string, [string]>(value => delay(200, {value}), {
         maxSize: 10,
     });
 
-    const useResourceSpy = jest.fn((args: unknown[]) => {
+    const useResourceSpy = jest.fn((args: [string]) => {
         const ret = useResource(args);
         delete ret[1].refresh;
         return ret;
     });
 
-    const Comp: React.FC<{arg: unknown}> = props => {
+    const Comp: React.FC<{arg: string}> = props => {
         useResourceSpy([props.arg]);
         return null;
     };

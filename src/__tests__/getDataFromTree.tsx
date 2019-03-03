@@ -16,7 +16,7 @@ afterEach(() => {
 });
 
 it('should fetch and render to string with data', async () => {
-    const useResource = createResource<string>(value => delay(100, {value}), {
+    const useResource = createResource<string, [string]>(value => delay(100, {value}), {
         ssrKey: 'unique-key-1',
     });
 

@@ -66,6 +66,9 @@ async function build() {
             publishFolderForPublic: './',
             mainDtsRollupPath: 'priem.d.ts',
         },
+        tsdocMetadata: {
+            enabled: false,
+        }
     };
 
     const extractor = new Extractor(extractorConfig);

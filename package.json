@@ -1,7 +1,7 @@
 {
   "name": "priem",
   "version": "2.0.0-alpha.6",
-  "description": "Rich async state management.",
+  "description": "A React Hook to declaratively subscribe to external data resources.",
   "author": "Vlad Zhukov (http://github.com/Vlad-Zhukov)",
   "license": "MIT",
   "repository": "Vlad-Zhukov/priem",

@@ -28,11 +28,11 @@ type Refs<DataType> = Subscriber & {
     prevResult: Result<DataType> | null;
 };
 
-export default function createResource<DataType = unknown, Args extends MemoizedKey = MemoizedKey>(
+export default function createResource<DataType, Args extends MemoizedKey = []>(
     fn: (...args: Args) => Promise<unknown>,
     options: ResourceOptions = {}
 ) {
-    const resource = new Resource(fn, options);
+    const resource = new Resource<Args>(fn, options);
 
     return function useResource(args: Args | null): Result<DataType> {
         assertType(args, ['array', 'null'], '`args`');
