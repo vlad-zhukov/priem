@@ -1,10 +1,10 @@
 import delay from 'delay';
-import memoize, {toSerializableArray} from '../memoize';
+import {MemoizedFunction, toSerializableArray} from '../MemoizedFunction';
 
 it('should memoize promises', async () => {
-    const memoized = memoize({fn: name => delay(200, {value: `Hello ${name}!`}), maxSize: 2});
+    const memoized = new MemoizedFunction({fn: name => delay(200, {value: `Hello ${name}!`}), maxSize: 2});
 
-    expect(memoized(['world'])).toMatchInlineSnapshot(`
+    expect(memoized.run(['world'])).toMatchInlineSnapshot(`
         Object {
           "data": null,
           "promise": Promise {},
@@ -14,7 +14,7 @@ it('should memoize promises', async () => {
     `);
 
     await delay(300);
-    expect(memoized(['world'])).toMatchInlineSnapshot(`
+    expect(memoized.run(['world'])).toMatchInlineSnapshot(`
         Object {
           "data": "Hello world!",
           "promise": Promise {},
@@ -22,7 +22,7 @@ it('should memoize promises', async () => {
           "status": 1,
         }
     `);
-    expect(memoized(['world'])).toMatchInlineSnapshot(`
+    expect(memoized.run(['world'])).toMatchInlineSnapshot(`
         Object {
           "data": "Hello world!",
           "promise": Promise {},
@@ -30,7 +30,7 @@ it('should memoize promises', async () => {
           "status": 1,
         }
     `);
-    expect(memoized(['SpongeBob'])).toMatchInlineSnapshot(`
+    expect(memoized.run(['SpongeBob'])).toMatchInlineSnapshot(`
         Object {
           "data": null,
           "promise": Promise {},
@@ -40,7 +40,7 @@ it('should memoize promises', async () => {
     `);
 
     await delay(300);
-    expect(memoized(['SpongeBob'])).toMatchInlineSnapshot(`
+    expect(memoized.run(['SpongeBob'])).toMatchInlineSnapshot(`
         Object {
           "data": "Hello SpongeBob!",
           "promise": Promise {},
@@ -48,7 +48,7 @@ it('should memoize promises', async () => {
           "status": 1,
         }
     `);
-    expect(memoized(['world'])).toMatchInlineSnapshot(`
+    expect(memoized.run(['world'])).toMatchInlineSnapshot(`
         Object {
           "data": "Hello world!",
           "promise": Promise {},
@@ -59,9 +59,12 @@ it('should memoize promises', async () => {
 });
 
 it('should not throw on rejected promises', async () => {
-    const memoized = memoize({fn: name => delay.reject(200, {value: new Error(`Hello ${name}!`)}), maxSize: 2});
+    const memoized = new MemoizedFunction({
+        fn: name => delay.reject(200, {value: new Error(`Hello ${name}!`)}),
+        maxSize: 2,
+    });
 
-    expect(memoized(['world'])).toMatchInlineSnapshot(`
+    expect(memoized.run(['world'])).toMatchInlineSnapshot(`
         Object {
           "data": null,
           "promise": Promise {},
@@ -71,7 +74,7 @@ it('should not throw on rejected promises', async () => {
     `);
 
     await delay(300);
-    expect(memoized(['world'])).toMatchInlineSnapshot(`
+    expect(memoized.run(['world'])).toMatchInlineSnapshot(`
         Object {
           "data": null,
           "promise": Promise {},
@@ -79,7 +82,7 @@ it('should not throw on rejected promises', async () => {
           "status": 2,
         }
     `);
-    expect(memoized(['world'])).toMatchInlineSnapshot(`
+    expect(memoized.run(['world'])).toMatchInlineSnapshot(`
         Object {
           "data": null,
           "promise": Promise {},
@@ -87,7 +90,7 @@ it('should not throw on rejected promises', async () => {
           "status": 2,
         }
     `);
-    expect(memoized(['SpongeBob'])).toMatchInlineSnapshot(`
+    expect(memoized.run(['SpongeBob'])).toMatchInlineSnapshot(`
         Object {
           "data": null,
           "promise": Promise {},
@@ -97,7 +100,7 @@ it('should not throw on rejected promises', async () => {
     `);
 
     await delay(300);
-    expect(memoized(['SpongeBob'])).toMatchInlineSnapshot(`
+    expect(memoized.run(['SpongeBob'])).toMatchInlineSnapshot(`
         Object {
           "data": null,
           "promise": Promise {},
@@ -108,14 +111,14 @@ it('should not throw on rejected promises', async () => {
 });
 
 it('should default `maxSize` to 1', async () => {
-    const memoized = memoize({
+    const memoized = new MemoizedFunction<[string, string?], string>({
         fn: (name1, name2) =>
             delay(200, {
                 value: `Hello ${name1}${name2 ? ` and ${name2}` : ''}!`,
             }),
     });
 
-    memoized(['SpongeBob']);
+    memoized.run(['SpongeBob']);
     await delay(300);
     expect(toSerializableArray(memoized.cache)).toMatchInlineSnapshot(`
         Array [
@@ -132,7 +135,7 @@ it('should default `maxSize` to 1', async () => {
         ]
     `);
 
-    memoized(['SpongeBob', 'Patrick']);
+    memoized.run(['SpongeBob', 'Patrick']);
     await delay(300);
     expect(toSerializableArray(memoized.cache)).toMatchInlineSnapshot(`
         Array [
@@ -152,10 +155,10 @@ it('should default `maxSize` to 1', async () => {
 });
 
 it('should properly match equal keys', async () => {
-    const memoized = memoize({fn: () => delay(200)});
+    const memoized = new MemoizedFunction<[any, any], void>({fn: () => delay(200)});
 
-    memoized([NaN, NaN]);
-    memoized([NaN, NaN]);
+    memoized.run([NaN, NaN]);
+    memoized.run([NaN, NaN]);
 
     expect(toSerializableArray(memoized.cache)).toMatchInlineSnapshot(`
         Array [
@@ -176,9 +179,9 @@ it('should properly match equal keys', async () => {
 
 it('should have a `maxAge` option', async () => {
     const onCacheChange = jest.fn();
-    const memoized = memoize({fn: () => delay(200), maxSize: 2, onCacheChange, maxAge: 500});
+    const memoized = new MemoizedFunction<[string], void>({fn: () => delay(200), maxSize: 2, onCacheChange, maxAge: 500});
 
-    memoized(['SpongeBob']);
+    memoized.run(['SpongeBob']);
     expect(toSerializableArray(memoized.cache)).toMatchInlineSnapshot(`
         Array [
           Object {
@@ -212,7 +215,7 @@ it('should have a `maxAge` option', async () => {
     `);
     expect(onCacheChange).toHaveBeenCalledTimes(1);
 
-    memoized(['Patrick']);
+    memoized.run(['Patrick']);
     expect(toSerializableArray(memoized.cache)).toMatchInlineSnapshot(`
         Array [
           Object {
@@ -299,9 +302,9 @@ it('should have a `maxAge` option', async () => {
 
 it('should not fail to expire if the key does not exist', async () => {
     const onCacheChange = jest.fn();
-    const memoized = memoize({fn: () => delay(200), onCacheChange, maxAge: 500});
+    const memoized = new MemoizedFunction<[string], void>({fn: () => delay(200), onCacheChange, maxAge: 500});
 
-    memoized(['SpongeBob']);
+    memoized.run(['SpongeBob']);
     expect(onCacheChange).toHaveBeenCalledTimes(0);
     await delay(300);
     expect(onCacheChange).toHaveBeenCalledTimes(1);
@@ -346,9 +349,9 @@ it('should not fail to expire if the key does not exist', async () => {
 
 it('should refresh when called with `forceRefresh`', async () => {
     const onCacheChange = jest.fn();
-    const memoized = memoize({fn: () => delay(200, {value: 'SquarePants'}), onCacheChange});
+    const memoized = new MemoizedFunction<[string], string>({fn: () => delay(200, {value: 'SquarePants'}), onCacheChange});
 
-    memoized(['SpongeBob']);
+    memoized.run(['SpongeBob']);
     expect(onCacheChange).toHaveBeenCalledTimes(0);
     await delay(300);
     expect(toSerializableArray(memoized.cache)).toMatchInlineSnapshot(`
@@ -366,7 +369,7 @@ it('should refresh when called with `forceRefresh`', async () => {
         ]
     `);
 
-    memoized(['SpongeBob'], true);
+    memoized.run(['SpongeBob'], true);
     expect(toSerializableArray(memoized.cache)).toMatchInlineSnapshot(`
         Array [
           Object {
@@ -400,11 +403,11 @@ it('should refresh when called with `forceRefresh`', async () => {
 });
 
 it('should throttle refreshing', async () => {
-    const memoized = memoize({
+    const memoized = new MemoizedFunction<[string], string>({
         fn: () => delay(200, {value: 'SquarePants'}),
     });
 
-    memoized(['SpongeBob']);
+    memoized.run(['SpongeBob']);
     await delay(300);
     expect(toSerializableArray(memoized.cache)).toMatchInlineSnapshot(`
         Array [
@@ -421,8 +424,8 @@ it('should throttle refreshing', async () => {
         ]
     `);
 
-    const item1 = memoized(['SpongeBob'], true);
-    const item2 = memoized(['SpongeBob'], true);
+    const item1 = memoized.run(['SpongeBob'], true);
+    const item2 = memoized.run(['SpongeBob'], true);
 
     expect(item1).toBe(item2);
     expect(item1.promise).toBe(item2.promise);

@@ -1,7 +1,8 @@
 import * as React from 'react';
 import {Resource, ResourceOptions, Subscriber} from './Resource';
-import {MemoizedKey, STATUS} from './memoize';
-import {assertType, noop, areKeysEqual} from './utils';
+import {MemoizedKey, STATUS} from './MemoizedFunction';
+import {areKeysEqual, assertType, noop} from './utils';
+import {TypeName} from '@sindresorhus/is';
 
 function useForceUpdate(): () => void {
     const [, setTick] = React.useState(0);
@@ -22,23 +23,23 @@ export interface ResultMeta {
 
 export type Result<DataType> = [DataType | undefined, ResultMeta];
 
-interface Refs<DataType> extends Subscriber {
+interface Refs<Args, DataType> extends Subscriber<Args> {
     shouldForceUpdate: boolean;
     lastTimeCalled: number;
     prevResult?: Result<DataType>;
 }
 
 export default function createResource<DataType, Args extends MemoizedKey = []>(
-    fn: (...args: Args) => Promise<unknown>,
+    fn: (...args: Args) => Promise<DataType>,
     options: ResourceOptions = {}
 ) {
-    const resource = new Resource<Args>(fn, options);
+    const resource = new Resource<Args, DataType>(fn, options);
 
     return function useResource(args: Args | null): Result<DataType> {
-        assertType(args, ['array', 'null'], '`args`');
+        assertType(args, [TypeName.Array, TypeName.null], '`args`');
 
         const rerender = useForceUpdate();
-        const refs = React.useRef<Refs<DataType>>({
+        const refs = React.useRef<Refs<Args, DataType>>({
             onChange: noop,
             shouldForceUpdate: false,
             lastTimeCalled: 0,
