@@ -16,7 +16,7 @@
     "test": "jest",
     "lint": "eslint --ignore-path .gitignore \"src/**/*.{ts,tsx,js}\" && tslint -p tsconfig.json -t codeFrame \"src/**/*.{ts,tsx}\"",
     "prettier": "prettier --ignore-path .gitignore \"**/*.{ts,tsx,js,md}\" --write",
-    "prepublishOnly": "yarn build && yarn lint && prettier --ignore-path .gitignore \"**/*.{ts,tsx,js,md}\" --check && yarn test"
+    "prepublishOnly": "yarn lint && prettier --ignore-path .gitignore \"**/*.{ts,tsx,js,md}\" --check && yarn build && yarn test"
   },
   "dependencies": {},
   "devDependencies": {

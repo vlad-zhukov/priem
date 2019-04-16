@@ -9,6 +9,7 @@ export enum STATUS {
     REJECTED = 2,
 }
 
+// TODO: replace with readonly once api-extractor supports it
 export type MemoizedKey = /** @readonly */ unknown[];
 
 export interface MemoizedValue {
