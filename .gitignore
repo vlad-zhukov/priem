@@ -6,4 +6,3 @@ package-lock.json
 *.log
 .yalc/
 yalc.lock
-priem.d.ts

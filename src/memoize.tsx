@@ -9,7 +9,7 @@ export enum STATUS {
     REJECTED = 2,
 }
 
-export type MemoizedKey = readonly unknown[];
+export type MemoizedKey = /** @readonly */ unknown[];
 
 export interface MemoizedValue {
     status: STATUS;
