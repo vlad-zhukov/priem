@@ -37,11 +37,10 @@ it('should not run if `args` is `null`', async () => {
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(0);
     expect(getSpy).toHaveBeenCalledTimes(2);
     expect(useResourceSpy).toHaveLastReturnedWith([
-        null,
+        undefined,
         {
             fulfilled: false,
             pending: false,
-            reason: null,
             rejected: false,
         },
     ]);
@@ -362,11 +361,10 @@ it('should debounce calls', async () => {
     rerender(<Comp arg="baz" />);
 
     expect(useResourceSpy).toHaveLastReturnedWith([
-        null,
+        undefined,
         {
             fulfilled: false,
             pending: true,
-            reason: null,
             rejected: false,
         },
     ]);
@@ -377,11 +375,10 @@ it('should debounce calls', async () => {
     });
 
     expect(useResourceSpy).toHaveLastReturnedWith([
-        null,
+        undefined,
         {
             fulfilled: false,
             pending: true,
-            reason: null,
             rejected: false,
         },
     ]);
@@ -396,7 +393,7 @@ it('should debounce calls', async () => {
         {
             fulfilled: true,
             pending: false,
-            reason: null,
+            reason: undefined,
             rejected: false,
         },
     ]);
@@ -411,7 +408,7 @@ it('should debounce calls', async () => {
         {
             fulfilled: true,
             pending: false,
-            reason: null,
+            reason: undefined,
             rejected: false,
         },
     ]);

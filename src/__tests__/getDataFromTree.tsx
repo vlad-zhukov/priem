@@ -27,24 +27,24 @@ it('should fetch and render to string with data', async () => {
     await getDataFromTree(<Comp />);
 
     expect(flushStore()).toMatchInlineSnapshot(`
-Array [
-  Array [
-    "unique-key-1",
-    Array [
-      Object {
-        "key": Array [
-          "foo",
-        ],
-        "value": Object {
-          "data": "foo",
-          "reason": null,
-          "status": 1,
-        },
-      },
-    ],
-  ],
-]
-`);
+        Array [
+          Array [
+            "unique-key-1",
+            Array [
+              Object {
+                "key": Array [
+                  "foo",
+                ],
+                "value": Object {
+                  "data": "foo",
+                  "reason": undefined,
+                  "status": 1,
+                },
+              },
+            ],
+          ],
+        ]
+    `);
 
     const content = ReactDOM.renderToStaticMarkup(<Comp />);
     expect(content).toBe('<div>foo</div>');
@@ -70,40 +70,40 @@ it('should fetch data from a nested component', async () => {
     await getDataFromTree(<Comp />);
 
     expect(flushStore()).toMatchInlineSnapshot(`
-Array [
-  Array [
-    "unique-key-1",
-    Array [
-      Object {
-        "key": Array [
-          "foo",
-        ],
-        "value": Object {
-          "data": "foo",
-          "reason": null,
-          "status": 1,
-        },
-      },
-    ],
-  ],
-  Array [
-    "unique-key-2",
-    Array [
-      Object {
-        "key": Array [
-          "foo",
-          "bar",
-        ],
-        "value": Object {
-          "data": "foobar",
-          "reason": null,
-          "status": 1,
-        },
-      },
-    ],
-  ],
-]
-`);
+        Array [
+          Array [
+            "unique-key-1",
+            Array [
+              Object {
+                "key": Array [
+                  "foo",
+                ],
+                "value": Object {
+                  "data": "foo",
+                  "reason": undefined,
+                  "status": 1,
+                },
+              },
+            ],
+          ],
+          Array [
+            "unique-key-2",
+            Array [
+              Object {
+                "key": Array [
+                  "foo",
+                  "bar",
+                ],
+                "value": Object {
+                  "data": "foobar",
+                  "reason": undefined,
+                  "status": 1,
+                },
+              },
+            ],
+          ],
+        ]
+    `);
 
     const content = ReactDOM.renderToStaticMarkup(<Comp />);
 
@@ -125,24 +125,24 @@ it('should not fetch data from resources without `ssrKey`', async () => {
     await getDataFromTree(<Comp />);
 
     expect(flushStore()).toMatchInlineSnapshot(`
-Array [
-  Array [
-    "unique-key-1",
-    Array [
-      Object {
-        "key": Array [
-          "foo",
-        ],
-        "value": Object {
-          "data": "foo",
-          "reason": null,
-          "status": 1,
-        },
-      },
-    ],
-  ],
-]
-`);
+        Array [
+          Array [
+            "unique-key-1",
+            Array [
+              Object {
+                "key": Array [
+                  "foo",
+                ],
+                "value": Object {
+                  "data": "foo",
+                  "reason": undefined,
+                  "status": 1,
+                },
+              },
+            ],
+          ],
+        ]
+    `);
 
     const content = ReactDOM.renderToStaticMarkup(<Comp />);
 
@@ -169,17 +169,17 @@ it('should not add non-fulfilled cache items to store', async () => {
     ReactDOM.renderToStaticMarkup(<Comp />);
 
     expect(flushStore()).toMatchInlineSnapshot(`
-Array [
-  Array [
-    "unique-key-1",
-    Array [],
-  ],
-  Array [
-    "unique-key-2",
-    Array [],
-  ],
-]
-`);
+        Array [
+          Array [
+            "unique-key-1",
+            Array [],
+          ],
+          Array [
+            "unique-key-2",
+            Array [],
+          ],
+        ]
+    `);
 });
 
 it('should rehydrate data from initial store', async () => {

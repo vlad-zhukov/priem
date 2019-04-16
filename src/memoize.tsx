@@ -15,7 +15,7 @@ export type MemoizedKey = /** @readonly */ unknown[];
 export interface MemoizedValue {
     status: STATUS;
     data: unknown;
-    reason: Error | null;
+    reason?: Error;
     promise?: Promise<void>;
 }
 
@@ -46,10 +46,10 @@ export type CacheChangeCallback = (key: MemoizedKey, forceUpdate: boolean) => vo
 function createTimeout(
     cache: MemoizedCache,
     item: MemoizedCacheItem,
-    maxAge: number | null,
-    onCacheChange: CacheChangeCallback
+    onCacheChange: CacheChangeCallback,
+    maxAge?: number
 ): void {
-    if (isBrowser && maxAge !== null) {
+    if (isBrowser && maxAge) {
         window.clearTimeout(item.expireId);
         item.expireId = window.setTimeout(() => {
             onCacheChange(item.key, true);
@@ -80,7 +80,7 @@ export default function memoize<Args extends MemoizedKey>({
     onCacheChange = noop,
 }: MemoizeOptions<Args>): MemoizedFunction {
     const cache: MemoizedCache = new Cache(initialCache);
-    const normalizeMaxAge = type(maxAge) === 'number' && isFinite(maxAge) ? maxAge : null;
+    const normalizeMaxAge = type(maxAge) === 'number' && isFinite(maxAge) ? maxAge : undefined;
 
     function memoized(args: Args, forceRefresh: boolean = false): MemoizedValue {
         let item: MemoizedCacheItem | null = cache.findBy(cacheItem => areKeysEqual(cacheItem.key, args));
@@ -95,7 +95,7 @@ export default function memoize<Args extends MemoizedKey>({
                 }
             }
 
-            item = new CacheItem(args, {status: STATUS.PENDING, data: null, reason: null});
+            item = new CacheItem<Args, MemoizedValue>(args, {status: STATUS.PENDING, data: null, reason: undefined});
             cache.prepend(item);
             shouldRefresh = true;
         } else {
@@ -114,11 +114,11 @@ export default function memoize<Args extends MemoizedKey>({
             const lastRefreshAt = item.lastRefreshAt || 0;
             if (now - lastRefreshAt > DEFAULT_THROTTLE_MS) {
                 item.lastRefreshAt = now;
-                createTimeout(cache, item, normalizeMaxAge, onCacheChange);
-                const itemValue = Object.assign(item.value, {status: STATUS.PENDING, reason: null});
+                createTimeout(cache, item, onCacheChange, normalizeMaxAge);
+                const itemValue = Object.assign(item.value, {status: STATUS.PENDING, reason: undefined});
                 itemValue.promise = fn(...args)
                     .then(data => {
-                        Object.assign(itemValue, {status: STATUS.FULFILLED, data, reason: null});
+                        Object.assign(itemValue, {status: STATUS.FULFILLED, data, reason: undefined});
                         onCacheChange(args, false);
                     })
                     .catch(error => {

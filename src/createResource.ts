@@ -16,16 +16,16 @@ export interface ResultMeta {
     pending: boolean;
     fulfilled: boolean;
     rejected: boolean;
-    reason: Error | null;
+    reason?: Error;
     refresh: () => void;
 }
 
-export type Result<DataType> = [DataType | null, ResultMeta];
+export type Result<DataType> = [DataType | undefined, ResultMeta];
 
 interface Refs<DataType> extends Subscriber {
     shouldForceUpdate: boolean;
     lastTimeCalled: number;
-    prevResult: Result<DataType> | null;
+    prevResult?: Result<DataType>;
 }
 
 export default function createResource<DataType, Args extends MemoizedKey = []>(
@@ -42,12 +42,11 @@ export default function createResource<DataType, Args extends MemoizedKey = []>(
             onChange: noop,
             shouldForceUpdate: false,
             lastTimeCalled: 0,
-            prevResult: null,
         });
 
         // A callback for Resource#onCacheChange
         refs.current.onChange = (prevArgs, forceUpdate) => {
-            if (prevArgs !== null && args !== null && areKeysEqual(args, prevArgs)) {
+            if (prevArgs && args && areKeysEqual(args, prevArgs)) {
                 refs.current.shouldForceUpdate = forceUpdate;
                 rerender();
             }
@@ -81,10 +80,7 @@ export default function createResource<DataType, Args extends MemoizedKey = []>(
          * 4. The item is not in the cache.
          */
         const shouldDebounce =
-            !shouldForceUpdate &&
-            prevResult !== null &&
-            now - lastTimeCalled < DEFAULT_DEBOUNCE_MS &&
-            !resource.has(args);
+            !shouldForceUpdate && prevResult && now - lastTimeCalled < DEFAULT_DEBOUNCE_MS && !resource.has(args);
 
         React.useEffect(() => {
             let handler: number | undefined;
@@ -100,24 +96,23 @@ export default function createResource<DataType, Args extends MemoizedKey = []>(
 
         const ret = resource.get(args, shouldForceUpdate);
 
-        if ((ret === null || ret.status === STATUS.PENDING) && prevResult !== null) {
+        if ((!ret || ret.status === STATUS.PENDING) && prevResult) {
             return prevResult;
         }
 
-        let data = prevResult ? prevResult[0] : null;
+        let data = prevResult ? prevResult[0] : undefined;
         const meta: ResultMeta = {
             pending: false,
             fulfilled: false,
             rejected: false,
-            reason: null,
             refresh() {
                 refs.current.shouldForceUpdate = true;
                 rerender();
             },
         };
 
-        if (ret !== null) {
-            if (ret.data !== null) {
+        if (ret) {
+            if (ret.data) {
                 data = ret.data as DataType;
             }
             meta.pending = ret.status === STATUS.PENDING;

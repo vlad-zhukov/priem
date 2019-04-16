@@ -90,13 +90,13 @@ export class Resource<Args extends MemoizedKey> {
     }
 
     /** @internal */
-    get(args: Args | null, forceRefresh: boolean = false): MemoizedValue | null {
+    get(args: Args | null, forceRefresh: boolean = false): MemoizedValue | undefined {
         if (!isBrowser && !this.ssrKey) {
-            return null;
+            return;
         }
 
         if (args === null) {
-            return null;
+            return;
         }
 
         const ret = this.memoized(args, forceRefresh);

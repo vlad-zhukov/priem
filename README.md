@@ -147,7 +147,7 @@ The function returns a tuple with data and a meta object:
 2.  `meta` _(Object)_: Meta properties of **most recent** promise.
     -   `pending` _(Boolean)_.
     -   `rejected` _(Boolean)_.
-    -   `reason` _(Error|null)_.
+    -   `reason` _(Error?)_.
     -   `refresh` _(Function)_: a method to update the resource.
 
 ---

@@ -17,13 +17,13 @@ it('should populate store', () => {
     expect(flushStore()).toEqual([]);
 });
 
-it('should return `null` if `args` have not been provided', () => {
+it('should return `undefined` if `args` have not been provided', () => {
     const res = new Resource(() => delay(100), {
         ssrKey: 'unique-key',
     });
 
     expect(res.has(null)).toBe(false);
-    expect(res.get(null)).toBe(null);
+    expect(res.get(null)).toBe(undefined);
 });
 
 it('should not automatically populate store in browser environments', () => {
@@ -32,21 +32,21 @@ it('should not automatically populate store in browser environments', () => {
     });
 
     expect(res.get(['foo'])).toMatchInlineSnapshot(`
-Object {
-  "data": null,
-  "promise": Promise {},
-  "reason": null,
-  "status": 0,
-}
-`);
+        Object {
+          "data": null,
+          "promise": Promise {},
+          "reason": undefined,
+          "status": 0,
+        }
+    `);
     expect(flushStore()).toMatchInlineSnapshot(`
-Array [
-  Array [
-    "unique-key",
-    Array [],
-  ],
-]
-`);
+        Array [
+          Array [
+            "unique-key",
+            Array [],
+          ],
+        ]
+    `);
 });
 
 it('should throw when there is a store entry with such `ssrKey` already exists', async () => {
