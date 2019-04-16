@@ -13,7 +13,11 @@ export function type(value: unknown): string {
     return 'object';
 }
 
-export function assertType(variable: unknown, types: string[], variableName: string = 'The value'): void | never {
+export function assertType(
+    variable: unknown,
+    types: readonly string[],
+    variableName: string = 'The value'
+): void | never {
     const typeOfVariable = type(variable);
 
     let typesAsString = '';
@@ -29,7 +33,7 @@ export function assertType(variable: unknown, types: string[], variableName: str
         }
     }
 
-    if (isValid === false) {
+    if (!isValid) {
         throw new TypeError(
             `Priem: ${variableName} must be one of the following: '${typesAsString}', but got: '${typeOfVariable}'.`
         );
@@ -40,12 +44,12 @@ function isSameValueZero(object1: unknown, object2: unknown): boolean {
     return object1 === object2 || (object1 !== object1 && object2 !== object2);
 }
 
-export function areKeysEqual(keys1: unknown[], keys2: unknown[]): boolean {
+export function areKeysEqual(keys1: readonly unknown[], keys2: readonly unknown[]): boolean {
     if (keys1.length !== keys2.length) {
         return false;
     }
     for (let i = 0; i < keys1.length; i++) {
-        if (isSameValueZero(keys1[i], keys2[i]) === false) {
+        if (!isSameValueZero(keys1[i], keys2[i])) {
             return false;
         }
     }

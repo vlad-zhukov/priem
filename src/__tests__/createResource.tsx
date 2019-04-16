@@ -27,7 +27,7 @@ it('should not run if `args` is `null`', async () => {
         return null;
     };
 
-    render(<Comp/>);
+    render(<Comp />);
 
     await act(async () => {
         await delay(300);

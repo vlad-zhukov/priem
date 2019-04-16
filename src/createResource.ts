@@ -78,10 +78,10 @@ export default function createResource<DataType, Args extends MemoizedKey = []>(
          * 4. The item is not in the cache.
          */
         const shouldDebounce =
-            shouldForceUpdate !== true &&
+            !shouldForceUpdate &&
             prevResult !== null &&
             now - lastTimeCalled < DEFAULT_DEBOUNCE_MS &&
-            resource.has(args) === false;
+            !resource.has(args);
 
         React.useEffect(() => {
             let handler: number | undefined;

@@ -9,7 +9,7 @@ export enum STATUS {
     REJECTED = 2,
 }
 
-export type MemoizedKey = unknown[];
+export type MemoizedKey = readonly unknown[];
 
 export type MemoizedValue = {
     status: STATUS;
@@ -30,7 +30,7 @@ export function toSerializableArray(
 ): MemoizedSerializableCacheItem[] {
     return reduce<MemoizedSerializableCacheItem[], MemoizedKey, MemoizedValue>(cache, [], (acc, item) => {
         const {status, data, reason} = item.value;
-        if (filterFulfilled !== true || status === STATUS.FULFILLED) {
+        if (!filterFulfilled || status === STATUS.FULFILLED) {
             acc.push({
                 key: item.key,
                 value: {status, data, reason},
@@ -48,7 +48,7 @@ function createTimeout(
     maxAge: number | null,
     onCacheChange: CacheChangeCallback
 ): void {
-    if (isBrowser === true && maxAge !== null) {
+    if (isBrowser && maxAge !== null) {
         window.clearTimeout(item.expireId);
         item.expireId = window.setTimeout(() => {
             onCacheChange(item.key, true);
@@ -99,7 +99,7 @@ export default function memoize<Args extends MemoizedKey>({
                 cache.prepend(item);
             }
 
-            if (forceRefresh === true) {
+            if (forceRefresh) {
                 shouldRefresh = true;
             }
         }

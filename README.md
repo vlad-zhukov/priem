@@ -1,6 +1,6 @@
 # priem · [![npm][1]][2] [![Build Status][3]][4] [![codecov][5]][6] [![bundlephobia][7]][8]
 
-A React Hook to declaratively subscribe to external data resources.
+React Hook to declaratively subscribe to external data resources.
 
 ## Table of Contents
 

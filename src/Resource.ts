@@ -91,7 +91,7 @@ export class Resource<Args extends MemoizedKey> {
 
     /** @internal */
     get(args: Args | null, forceRefresh: boolean = false): MemoizedValue | null {
-        if (isBrowser === false && !this.ssrKey) {
+        if (!isBrowser && !this.ssrKey) {
             return null;
         }
 
@@ -101,7 +101,7 @@ export class Resource<Args extends MemoizedKey> {
 
         const ret = this.memoized(args, forceRefresh);
 
-        if (isBrowser === false && this.ssrKey) {
+        if (!isBrowser && this.ssrKey) {
             const cache = storeMap.get(this.ssrKey);
             if (cache !== undefined && cache !== this.memoized.cache) {
                 throw new TypeError(
