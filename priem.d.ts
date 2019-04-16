@@ -3,7 +3,7 @@
 export declare function createResource<DataType, Args extends MemoizedKey = []>(
     fn: (...args: Args) => Promise<unknown>,
     options?: ResourceOptions
-): (args: Args | null) => [DataType | null, ResultMeta];
+): (args: Args | null) => [DataType | undefined, ResultMeta];
 
 export declare function flushStore(): [string, MemoizedSerializableCacheItem[]][];
 
@@ -14,7 +14,7 @@ export declare type MemoizedSerializableCacheItem = SerializableCacheItem<Memoiz
 export declare interface MemoizedValue {
     status: STATUS;
     data: unknown;
-    reason: Error | null;
+    reason?: Error;
     promise?: Promise<void>;
 }
 
@@ -26,13 +26,13 @@ export declare interface ResourceOptions {
     ssrKey?: string;
 }
 
-export declare type Result<DataType> = [DataType | null, ResultMeta];
+export declare type Result<DataType> = [DataType | undefined, ResultMeta];
 
 export declare interface ResultMeta {
     pending: boolean;
     fulfilled: boolean;
     rejected: boolean;
-    reason: Error | null;
+    reason?: Error;
     refresh: () => void;
 }
 
