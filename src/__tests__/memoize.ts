@@ -322,7 +322,9 @@ Array [
 
     const itemToRemove = memoized.cache.tail;
     memoized.cache.remove(itemToRemove);
-    itemToRemove!.destroy();
+    if (itemToRemove) {
+        itemToRemove.destroy();
+    }
     expect(memoized.cache).toMatchInlineSnapshot(`
 Cache {
   "head": null,

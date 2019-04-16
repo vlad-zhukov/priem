@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+
 import {Cache, CacheItem, reduce} from '../Cache';
 
 const toArray = (cache: Cache): CacheItem[] =>

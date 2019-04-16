@@ -12,21 +12,21 @@ function useForceUpdate(): () => void {
 
 const DEFAULT_DEBOUNCE_MS = 150;
 
-type ResultMeta = {
+interface ResultMeta {
     pending: boolean;
     fulfilled: boolean;
     rejected: boolean;
     reason: Error | null;
     refresh: () => void;
-};
+}
 
 type Result<DataType> = [DataType | null, ResultMeta];
 
-type Refs<DataType> = Subscriber & {
+interface Refs<DataType> extends Subscriber {
     shouldForceUpdate: boolean;
     lastTimeCalled: number;
     prevResult: Result<DataType> | null;
-};
+}
 
 export default function createResource<DataType, Args extends MemoizedKey = []>(
     fn: (...args: Args) => Promise<unknown>,
@@ -59,8 +59,11 @@ export default function createResource<DataType, Args extends MemoizedKey = []>(
         React.useEffect(() => {
             resource.subscribe(refs.current);
             rerender();
-            return () => resource.unsubscribe(refs.current);
-        }, []);
+            return () => {
+                // eslint-disable-next-line react-hooks/exhaustive-deps
+                resource.unsubscribe(refs.current);
+            };
+        }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
         const {lastTimeCalled, prevResult, shouldForceUpdate} = refs.current;
         const now = Date.now();

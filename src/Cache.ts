@@ -42,17 +42,17 @@ export class CacheItem<K = unknown, V = unknown> {
     }
 }
 
-export type SerializableCacheItem<K = unknown, V = unknown> = {
+export interface SerializableCacheItem<K = unknown, V = unknown> {
     key: K;
     value: V;
-};
+}
 
 const REDUCED = '@@reduced';
 
-type ReducedType<ValueType> = {
+interface ReducedType<ValueType> {
     [REDUCED]: true;
     value: ValueType;
-};
+}
 
 function reduced<ValueType>(value: ValueType): ReducedType<ValueType> {
     return {[REDUCED]: true, value};

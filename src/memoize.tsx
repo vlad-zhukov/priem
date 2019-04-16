@@ -11,12 +11,12 @@ export enum STATUS {
 
 export type MemoizedKey = readonly unknown[];
 
-export type MemoizedValue = {
+export interface MemoizedValue {
     status: STATUS;
     data: unknown;
     reason: Error | null;
     promise?: Promise<void>;
-};
+}
 
 export type MemoizedCache = Cache<MemoizedKey, MemoizedValue>;
 
@@ -56,19 +56,20 @@ function createTimeout(
     }
 }
 
-type MemoizeOptions<Args extends MemoizedKey> = {
+interface MemoizeOptions<Args extends MemoizedKey> {
     fn: (...args: Args) => Promise<unknown>;
     initialCache?: (MemoizedSerializableCacheItem | MemoizedCacheItem)[];
     maxSize?: number;
     maxAge?: number;
     onCacheChange?: CacheChangeCallback;
-};
+}
 
-export type MemoizedFunction = {
+export interface MemoizedFunction {
     (args: MemoizedKey, forceRefresh?: boolean): MemoizedValue;
+
     cache: MemoizedCache;
     has: (args: MemoizedKey) => boolean;
-};
+}
 
 export default function memoize<Args extends MemoizedKey>({
     fn,
@@ -88,7 +89,9 @@ export default function memoize<Args extends MemoizedKey>({
             if (cache.size >= maxSize) {
                 const itemToRemove = cache.tail;
                 cache.remove(itemToRemove);
-                itemToRemove!.destroy();
+                if (itemToRemove) {
+                    itemToRemove.destroy();
+                }
             }
 
             item = new CacheItem(args, {status: STATUS.PENDING, data: null, reason: null});

@@ -3,7 +3,6 @@
  */
 
 import * as React from 'react';
-// tslint:disable-next-line no-submodule-imports
 import * as ReactDOM from 'react-dom/server';
 import delay from 'delay';
 import {createResource, flushStore, populateStore, __INTERNALS__} from '../index';

@@ -36,15 +36,15 @@ export function flushStore(): [string, MemoizedSerializableCacheItem[]][] {
     return store;
 }
 
-export type Subscriber = {
+export interface Subscriber {
     onChange: (prevArgs: MemoizedKey, forceRefresh: boolean) => void;
-};
+}
 
-export type ResourceOptions = {
+export interface ResourceOptions {
     maxSize?: number;
     maxAge?: number;
     ssrKey?: string;
-};
+}
 
 // TODO: introduce a mechanism to dispose unneeded resource?
 export class Resource<Args extends MemoizedKey> {

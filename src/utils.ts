@@ -1,5 +1,4 @@
-// tslint:disable-next-line no-empty
-export const noop = () => {};
+export const noop = (): void => {};
 
 export const isBrowser: boolean = typeof window === 'object' && typeof document === 'object' && document.nodeType === 9;
 
