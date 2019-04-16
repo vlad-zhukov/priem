@@ -12,7 +12,7 @@ function useForceUpdate(): () => void {
 
 const DEFAULT_DEBOUNCE_MS = 150;
 
-interface ResultMeta {
+export interface ResultMeta {
     pending: boolean;
     fulfilled: boolean;
     rejected: boolean;
@@ -20,7 +20,7 @@ interface ResultMeta {
     refresh: () => void;
 }
 
-type Result<DataType> = [DataType | null, ResultMeta];
+export type Result<DataType> = [DataType | null, ResultMeta];
 
 interface Refs<DataType> extends Subscriber {
     shouldForceUpdate: boolean;
