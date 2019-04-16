@@ -1,13 +1,8 @@
 import * as React from 'react';
 import delay from 'delay';
-import {render, cleanup, flushEffects, fireEvent} from 'react-testing-library';
+import {render, cleanup, act, fireEvent} from 'react-testing-library';
 import {createResource} from '../index';
 import {Resource} from '../Resource';
-
-async function waitEffects() {
-    flushEffects();
-    await delay(50);
-}
 
 const getSpy = jest.spyOn(Resource.prototype, 'get');
 const onCacheChangeSpy = jest.spyOn(Resource.prototype, 'onCacheChange');
@@ -32,9 +27,11 @@ it('should not run if `args` is `null`', async () => {
         return null;
     };
 
-    render(<Comp />);
-    await delay(300);
-    await waitEffects();
+    render(<Comp/>);
+
+    await act(async () => {
+        await delay(300);
+    });
 
     expect(useResourceSpy).toHaveBeenCalledTimes(3);
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(0);
@@ -77,7 +74,6 @@ it('should rerun promises when cache expires if `maxAge` is set', async () => {
     };
 
     const {container, rerender} = render(<Comp count="1" />);
-    await waitEffects();
 
     // mount (pending)
 
@@ -90,8 +86,9 @@ HTMLCollection [
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(0);
     expect(getSpy).toHaveBeenCalledTimes(2);
 
-    await delay(300);
-    await waitEffects();
+    await act(async () => {
+        await delay(300);
+    });
 
     // fulfilled
 
@@ -107,7 +104,6 @@ HTMLCollection [
     expect(getSpy).toHaveBeenCalledTimes(3);
 
     rerender(<Comp count="2" />);
-    await waitEffects();
 
     // change props (pending)
 
@@ -120,10 +116,11 @@ HTMLCollection [
 `);
     expect(useResourceSpy).toHaveBeenCalledTimes(4);
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(1);
-    expect(getSpy).toHaveBeenCalledTimes(4);
+    expect(getSpy).toHaveBeenCalledTimes(3);
 
-    await delay(400);
-    await waitEffects();
+    await act(async () => {
+        await delay(400);
+    });
 
     // fulfilled
 
@@ -134,12 +131,13 @@ HTMLCollection [
   </div>,
 ]
 `);
-    expect(useResourceSpy).toHaveBeenCalledTimes(5);
+    expect(useResourceSpy).toHaveBeenCalledTimes(6);
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(2);
     expect(getSpy).toHaveBeenCalledTimes(5);
 
-    await delay(500);
-    await waitEffects();
+    await act(async () => {
+        await delay(400);
+    });
 
     // expire (pending)
 
@@ -151,11 +149,12 @@ HTMLCollection [
 ]
 `);
     expect(useResourceSpy).toHaveBeenCalledTimes(6);
-    expect(onCacheChangeSpy).toHaveBeenCalledTimes(3);
-    expect(getSpy).toHaveBeenCalledTimes(6);
+    expect(onCacheChangeSpy).toHaveBeenCalledTimes(2);
+    expect(getSpy).toHaveBeenCalledTimes(5);
 
-    await delay(200);
-    await waitEffects();
+    await act(async () => {
+        await delay(200);
+    });
 
     // fulfilled
 
@@ -166,9 +165,9 @@ HTMLCollection [
   </div>,
 ]
 `);
-    expect(useResourceSpy).toHaveBeenCalledTimes(7);
-    expect(onCacheChangeSpy).toHaveBeenCalledTimes(4);
-    expect(getSpy).toHaveBeenCalledTimes(7);
+    expect(useResourceSpy).toHaveBeenCalledTimes(6);
+    expect(onCacheChangeSpy).toHaveBeenCalledTimes(2);
+    expect(getSpy).toHaveBeenCalledTimes(5);
 });
 
 it('should have a `refresh` method', async () => {
@@ -202,7 +201,6 @@ it('should have a `refresh` method', async () => {
     }
 
     const {container} = render(<Comp />);
-    await waitEffects();
 
     expect(container.children).toMatchInlineSnapshot(`
 HTMLCollection [
@@ -214,7 +212,9 @@ HTMLCollection [
     expect(useResourceSpy).toHaveBeenCalledTimes(2);
     expect(getSpy).toHaveBeenCalledTimes(2);
 
-    await delay(200);
+    await act(async () => {
+        await delay(200);
+    });
 
     expect(container.children).toMatchInlineSnapshot(`
 HTMLCollection [
@@ -241,7 +241,9 @@ HTMLCollection [
     expect(useResourceSpy).toHaveBeenCalledTimes(4);
     expect(getSpy).toHaveBeenCalledTimes(4);
 
-    await delay(100);
+    await act(async () => {
+        await delay(100);
+    });
 
     expect(container.children).toMatchInlineSnapshot(`
 HTMLCollection [
@@ -258,7 +260,9 @@ HTMLCollection [
     expect(useResourceSpy).toHaveBeenCalledTimes(5);
     expect(getSpy).toHaveBeenCalledTimes(5);
 
-    await delay(500);
+    await act(async () => {
+        await delay(500);
+    });
 
     expect(container.children).toMatchInlineSnapshot(`
 HTMLCollection [
@@ -287,8 +291,10 @@ it('should render a nested component', async () => {
     }
 
     const {container} = render(<Comp />);
-    await waitEffects();
-    await delay(400);
+
+    await act(async () => {
+        await delay(400);
+    });
 
     expect(container.children).toMatchInlineSnapshot(`
 HTMLCollection [
@@ -316,9 +322,10 @@ it('should render `usePriem` hooks that are subscribed to the same resource but 
     }
 
     const {container} = render(<Comp />);
-    await waitEffects();
 
-    await delay(300);
+    await act(async () => {
+        await delay(300);
+    });
 
     expect(container.children).toMatchInlineSnapshot(`
 HTMLCollection [
@@ -354,8 +361,6 @@ it('should debounce calls', async () => {
     rerender(<Comp arg="bar" />);
     rerender(<Comp arg="baz" />);
 
-    await waitEffects();
-
     expect(useResourceSpy).toHaveLastReturnedWith([
         null,
         {
@@ -367,7 +372,9 @@ it('should debounce calls', async () => {
     ]);
     expect(getSpy).toHaveBeenCalledTimes(2);
 
-    await delay(200);
+    await act(async () => {
+        await delay(200);
+    });
 
     expect(useResourceSpy).toHaveLastReturnedWith([
         null,
@@ -380,8 +387,9 @@ it('should debounce calls', async () => {
     ]);
     expect(getSpy).toHaveBeenCalledTimes(3);
 
-    await delay(200);
-    await waitEffects();
+    await act(async () => {
+        await delay(200);
+    });
 
     expect(useResourceSpy).toHaveLastReturnedWith([
         'baz',
@@ -394,8 +402,9 @@ it('should debounce calls', async () => {
     ]);
     expect(getSpy).toHaveBeenCalledTimes(4);
 
-    await delay(300);
-    await waitEffects();
+    await act(async () => {
+        await delay(300);
+    });
 
     expect(useResourceSpy).toHaveLastReturnedWith([
         'baz',
