@@ -13,6 +13,10 @@ function useForceUpdate(): () => void {
 
 const DEFAULT_DEBOUNCE_MS = 150;
 
+export interface CreateResourceOptions extends ResourceOptions {
+    refreshOnMount?: boolean;
+}
+
 export interface ResultMeta {
     pending: boolean;
     fulfilled: boolean;
@@ -31,7 +35,7 @@ interface Refs<Args, DataType> extends Subscriber<Args> {
 
 export default function createResource<DataType, Args extends MemoizedKey = []>(
     fn: (...args: Args) => Promise<DataType>,
-    options: ResourceOptions = {}
+    options: CreateResourceOptions = {}
 ) {
     const resource = new Resource<Args, DataType>(fn, options);
 
@@ -41,7 +45,7 @@ export default function createResource<DataType, Args extends MemoizedKey = []>(
         const rerender = useForceUpdate();
         const refs = React.useRef<Refs<Args, DataType>>({
             onChange: noop,
-            shouldForceUpdate: false,
+            shouldForceUpdate: !!options.refreshOnMount,
             lastTimeCalled: 0,
         });
 

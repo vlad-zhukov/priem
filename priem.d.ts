@@ -2,8 +2,12 @@
 
 export declare function createResource<DataType, Args extends MemoizedKey = []>(
     fn: (...args: Args) => Promise<DataType>,
-    options?: ResourceOptions
+    options?: CreateResourceOptions
 ): (args: Args | null) => [DataType | undefined, ResultMeta];
+
+export declare interface CreateResourceOptions extends ResourceOptions {
+    refreshOnMount?: boolean;
+}
 
 export declare function flushStore(): [string, MemoizedSerializableCacheItem[]][];
 

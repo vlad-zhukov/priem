@@ -120,8 +120,9 @@ Creates a React Hook that fetches and caches data.
     promise rejects, the cache item corresponding to these arguments will have a rejected status.
 2.  `options` _(Object)_: An options object, that can have the following properties:
     -   `[maxAge]` _(Number)_: A time in milliseconds after which cache items will expire and trigger a refresh.
-    -   `[maxSize]` _(Number)_: A number of maximum cache entries to store. After exceeding this amount the most former
+    -   `[maxSize]` _(Number)_: A number of maximum cache entries in store. After exceeding this amount the most former
         used item will be removed and a refresh triggered. Defaults to 1.
+    -   `[refreshOnMount]` _(Boolean)_: Refreshes data on mounting. Default to false.
     -   `[ssrKey]` _(String)_: A unique key that will be used to place this resource to the store. Required for
         server-side rendering.
 
@@ -147,7 +148,7 @@ The function returns a tuple with data and a meta object:
 2.  `meta` _(Object)_: Meta properties of **most recent** promise.
     -   `pending` _(Boolean)_.
     -   `rejected` _(Boolean)_.
-    -   `reason` _(Error?)_.
+    -   `[reason]` _(Error)_.
     -   `refresh` _(Function)_: a method to update the resource.
 
 ---

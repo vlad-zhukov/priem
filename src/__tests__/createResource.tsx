@@ -414,3 +414,56 @@ it('should debounce calls', async () => {
     ]);
     expect(getSpy).toHaveBeenCalledTimes(4);
 });
+
+it('should rerender on mount', async () => {
+    let counter = 0;
+    const useResource = createResource<number>(() => delay(200, {value: counter += 1}), {refreshOnMount: true});
+
+    const useResourceSpy = jest.fn(args => {
+        const ret = useResource(args);
+        delete ret[1].refresh;
+        return ret;
+    });
+
+    const Comp: React.FC = () => {
+        useResourceSpy([]);
+        return null;
+    };
+
+    const {unmount, rerender} = render(<Comp />);
+
+    await act(async () => {
+        await delay(300);
+    });
+
+    expect(useResourceSpy).toHaveBeenCalledTimes(3);
+    expect(onCacheChangeSpy).toHaveBeenCalledTimes(1);
+    expect(getSpy).toHaveBeenCalledTimes(3);
+    expect(useResourceSpy).toHaveLastReturnedWith([
+        1,
+        {
+            fulfilled: true,
+            pending: false,
+            rejected: false,
+        },
+    ]);
+
+    unmount();
+    rerender(<Comp />);
+
+    await act(async () => {
+        await delay(300);
+    });
+
+    expect(useResourceSpy).toHaveBeenCalledTimes(6);
+    expect(onCacheChangeSpy).toHaveBeenCalledTimes(2);
+    expect(getSpy).toHaveBeenCalledTimes(6);
+    expect(useResourceSpy).toHaveLastReturnedWith([
+        2,
+        {
+            fulfilled: true,
+            pending: false,
+            rejected: false,
+        },
+    ]);
+});
