@@ -7,7 +7,7 @@ export declare function createResource<DataType, Args extends MemoizedKey = []>(
 
 export declare function flushStore(): [string, MemoizedSerializableCacheItem[]][];
 
-export declare type MemoizedKey = unknown[];
+export declare type MemoizedKey = readonly unknown[];
 
 export declare type MemoizedSerializableCacheItem<
     Args extends MemoizedKey = MemoizedKey,

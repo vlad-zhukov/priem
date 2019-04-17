@@ -2,7 +2,7 @@ const path = require('path');
 const fs = require('fs-extra');
 const {rollup} = require('rollup');
 const typescript = require('rollup-plugin-typescript2');
-const {Extractor} = require('@microsoft/api-extractor');
+const {Extractor, ExtractorConfig} = require('@microsoft/api-extractor');
 const pkg = require('./package');
 
 const cwd = process.cwd();
@@ -43,42 +43,9 @@ async function build() {
     });
 
     console.info('Bundling client-side types');
-    const extractorConfig = {
-        compiler: {
-            configType: 'tsconfig',
-            rootFolder: cwd,
-        },
-        project: {
-            entryPointSourceFile: path.resolve(dist, 'types/index.d.ts'),
-        },
-        validationRules: {
-            missingReleaseTags: 'allow',
-        },
-        apiReviewFile: {
-            enabled: false,
-        },
-        apiJsonFile: {
-            enabled: false,
-        },
-        dtsRollup: {
-            enabled: true,
-            trimming: true,
-            publishFolderForPublic: './',
-            mainDtsRollupPath: 'priem.d.ts',
-        },
-        tsdocMetadata: {
-            enabled: false,
-        },
-    };
 
-    const extractor = new Extractor(extractorConfig);
-    extractor.processProject();
-
-    await Promise.all([
-        fs.remove(path.resolve(dist, 'beta')),
-        fs.remove(path.resolve(dist, 'internal')),
-        fs.remove(path.resolve(dist, 'tsdoc-metadata.json')),
-    ]);
+    const extractorConfig = ExtractorConfig.loadFileAndPrepare(path.resolve(__dirname, 'api-extractor.json'));
+    Extractor.invoke(extractorConfig);
 
     console.info('Compiling a server-side bundle');
     const serverBundle = await rollup({

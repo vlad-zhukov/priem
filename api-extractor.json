@@ -1,0 +1,26 @@
+{
+  "projectFolder": ".",
+  "mainEntryPointFilePath": "<projectFolder>/dist/types/index.d.ts",
+  "apiReport": {
+    "enabled": false
+  },
+  "docModel": {
+    "enabled": false
+  },
+  "dtsRollup": {
+    "enabled": true,
+    "untrimmedFilePath": "<projectFolder>/dist/types/priem.d.ts",
+    "betaTrimmedFilePath": "<projectFolder>/dist/types/priem.d.ts",
+    "publicTrimmedFilePath": "<projectFolder>/priem.d.ts"
+  },
+  "tsdocMetadata": {
+    "enabled": false
+  },
+  "messages": {
+    "extractorMessageReporting": {
+      "ae-missing-release-tag": {
+        "logLevel": "none"
+      }
+    }
+  }
+}

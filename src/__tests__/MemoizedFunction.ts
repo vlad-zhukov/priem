@@ -179,7 +179,12 @@ it('should properly match equal keys', async () => {
 
 it('should have a `maxAge` option', async () => {
     const onCacheChange = jest.fn();
-    const memoized = new MemoizedFunction<[string], void>({fn: () => delay(200), maxSize: 2, onCacheChange, maxAge: 500});
+    const memoized = new MemoizedFunction<[string], void>({
+        fn: () => delay(200),
+        maxSize: 2,
+        onCacheChange,
+        maxAge: 500,
+    });
 
     memoized.run(['SpongeBob']);
     expect(toSerializableArray(memoized.cache)).toMatchInlineSnapshot(`
@@ -349,7 +354,10 @@ it('should not fail to expire if the key does not exist', async () => {
 
 it('should refresh when called with `forceRefresh`', async () => {
     const onCacheChange = jest.fn();
-    const memoized = new MemoizedFunction<[string], string>({fn: () => delay(200, {value: 'SquarePants'}), onCacheChange});
+    const memoized = new MemoizedFunction<[string], string>({
+        fn: () => delay(200, {value: 'SquarePants'}),
+        onCacheChange,
+    });
 
     memoized.run(['SpongeBob']);
     expect(onCacheChange).toHaveBeenCalledTimes(0);
