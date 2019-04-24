@@ -161,7 +161,7 @@ Array [
 `);
 });
 
-it('should not remove an item if it is `null` or `item.lastRefreshAt` is `undefined`', () => {
+it('should not remove an item if `item.lastRefreshAt` is `undefined`', () => {
     const cache = createCache(3);
 
     const item = cache.head;
