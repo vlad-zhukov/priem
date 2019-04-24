@@ -18,7 +18,7 @@ export declare type MemoizedSerializableCacheItem<
     DataType = unknown
 > = SerializableCacheItem<Args, MemoizedValue<DataType>>;
 
-export declare interface MemoizedValue<DataType = unknown> {
+export declare interface MemoizedValue<DataType> {
     status: STATUS;
     data: DataType | null;
     reason?: Error;

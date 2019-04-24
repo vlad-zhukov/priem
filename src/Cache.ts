@@ -109,8 +109,8 @@ export class Cache<K = unknown, V = unknown> {
         this.size += 1;
     }
 
-    remove(item: CacheItem<K, V> | null): null | void {
-        if (item === null || !item.lastRefreshAt) {
+    remove(item: CacheItem<K, V>): null | void {
+        if (!item.lastRefreshAt) {
             return null;
         }
 

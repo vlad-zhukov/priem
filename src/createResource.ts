@@ -1,8 +1,7 @@
 import * as React from 'react';
-import {Resource, ResourceOptions, Subscriber} from './Resource';
-import {MemoizedKey, STATUS} from './MemoizedFunction';
-import {areKeysEqual, assertType, noop} from './utils';
 import {TypeName} from '@sindresorhus/is';
+import {Resource, ResourceOptions, Subscriber, MemoizedKey, STATUS} from './Resource';
+import {areKeysEqual, assertType} from './utils';
 
 function useForceUpdate(): () => void {
     const [, setTick] = React.useState(0);
@@ -33,7 +32,7 @@ interface Refs<Args, DataType> extends Subscriber<Args> {
     prevResult?: Result<DataType>;
 }
 
-export default function createResource<DataType, Args extends MemoizedKey = []>(
+export function createResource<DataType, Args extends MemoizedKey = []>(
     fn: (...args: Args) => Promise<DataType>,
     options: CreateResourceOptions = {}
 ) {
@@ -44,7 +43,8 @@ export default function createResource<DataType, Args extends MemoizedKey = []>(
 
         const rerender = useForceUpdate();
         const refs = React.useRef<Refs<Args, DataType>>({
-            onChange: noop,
+            /* istanbul ignore next */
+            onChange() {},
             shouldForceUpdate: !!options.refreshOnMount,
             lastTimeCalled: 0,
         });

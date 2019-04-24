@@ -148,8 +148,8 @@ CacheItem {
 }
 `);
 
-    cache.remove(res1);
-    cache.remove(res2);
+    cache.remove(res1!);
+    cache.remove(res2!);
 
     expect(toArray(cache)).toMatchInlineSnapshot(`
 Array [
@@ -167,8 +167,7 @@ it('should not remove an item if it is `null` or `item.lastRefreshAt` is `undefi
     const item = cache.head;
     item!.lastRefreshAt = undefined;
 
-    cache.remove(null);
-    cache.remove(item);
+    cache.remove(item!);
 
     expect(toArray(cache)).toMatchInlineSnapshot(`
 Array [

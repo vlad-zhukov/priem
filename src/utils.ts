@@ -1,7 +1,5 @@
 import is, {TypeName} from '@sindresorhus/is';
 
-export const noop = (): void => {};
-
 export const isBrowser: boolean = typeof window === 'object' && typeof document === 'object' && document.nodeType === 9;
 
 export function assertType(
