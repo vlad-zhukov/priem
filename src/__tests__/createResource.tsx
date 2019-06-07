@@ -33,9 +33,9 @@ it('should not run if `args` is `null`', async () => {
         await delay(300);
     });
 
-    expect(useResourceSpy).toHaveBeenCalledTimes(3);
+    expect(useResourceSpy).toHaveBeenCalledTimes(1);
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(0);
-    expect(getSpy).toHaveBeenCalledTimes(2);
+    expect(getSpy).toHaveBeenCalledTimes(1);
     expect(useResourceSpy).toHaveLastReturnedWith([
         undefined,
         {
@@ -81,9 +81,9 @@ HTMLCollection [
   <div />,
 ]
 `);
-    expect(useResourceSpy).toHaveBeenCalledTimes(2);
+    expect(useResourceSpy).toHaveBeenCalledTimes(1);
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(0);
-    expect(getSpy).toHaveBeenCalledTimes(2);
+    expect(getSpy).toHaveBeenCalledTimes(1);
 
     await act(async () => {
         await delay(300);
@@ -98,9 +98,9 @@ HTMLCollection [
   </div>,
 ]
 `);
-    expect(useResourceSpy).toHaveBeenCalledTimes(3);
+    expect(useResourceSpy).toHaveBeenCalledTimes(2);
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(1);
-    expect(getSpy).toHaveBeenCalledTimes(3);
+    expect(getSpy).toHaveBeenCalledTimes(2);
 
     rerender(<Comp count="2" />);
 
@@ -113,9 +113,9 @@ HTMLCollection [
   </div>,
 ]
 `);
-    expect(useResourceSpy).toHaveBeenCalledTimes(4);
+    expect(useResourceSpy).toHaveBeenCalledTimes(3);
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(1);
-    expect(getSpy).toHaveBeenCalledTimes(3);
+    expect(getSpy).toHaveBeenCalledTimes(2);
 
     await act(async () => {
         await delay(400);
@@ -130,9 +130,9 @@ HTMLCollection [
   </div>,
 ]
 `);
-    expect(useResourceSpy).toHaveBeenCalledTimes(6);
+    expect(useResourceSpy).toHaveBeenCalledTimes(5);
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(2);
-    expect(getSpy).toHaveBeenCalledTimes(5);
+    expect(getSpy).toHaveBeenCalledTimes(4);
 
     await act(async () => {
         await delay(400);
@@ -147,9 +147,9 @@ HTMLCollection [
   </div>,
 ]
 `);
-    expect(useResourceSpy).toHaveBeenCalledTimes(6);
+    expect(useResourceSpy).toHaveBeenCalledTimes(5);
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(2);
-    expect(getSpy).toHaveBeenCalledTimes(5);
+    expect(getSpy).toHaveBeenCalledTimes(4);
 
     await act(async () => {
         await delay(200);
@@ -164,9 +164,9 @@ HTMLCollection [
   </div>,
 ]
 `);
-    expect(useResourceSpy).toHaveBeenCalledTimes(6);
+    expect(useResourceSpy).toHaveBeenCalledTimes(5);
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(2);
-    expect(getSpy).toHaveBeenCalledTimes(5);
+    expect(getSpy).toHaveBeenCalledTimes(4);
 });
 
 it('should have a `refresh` method', async () => {
@@ -208,8 +208,8 @@ HTMLCollection [
   />,
 ]
 `);
-    expect(useResourceSpy).toHaveBeenCalledTimes(2);
-    expect(getSpy).toHaveBeenCalledTimes(2);
+    expect(useResourceSpy).toHaveBeenCalledTimes(1);
+    expect(getSpy).toHaveBeenCalledTimes(1);
 
     await act(async () => {
         await delay(200);
@@ -224,8 +224,8 @@ HTMLCollection [
   </button>,
 ]
 `);
-    expect(useResourceSpy).toHaveBeenCalledTimes(3);
-    expect(getSpy).toHaveBeenCalledTimes(3);
+    expect(useResourceSpy).toHaveBeenCalledTimes(2);
+    expect(getSpy).toHaveBeenCalledTimes(2);
 
     fireEvent.click(container.querySelector('button') as HTMLButtonElement);
     expect(container.children).toMatchInlineSnapshot(`
@@ -237,8 +237,8 @@ HTMLCollection [
   </button>,
 ]
 `);
-    expect(useResourceSpy).toHaveBeenCalledTimes(4);
-    expect(getSpy).toHaveBeenCalledTimes(4);
+    expect(useResourceSpy).toHaveBeenCalledTimes(3);
+    expect(getSpy).toHaveBeenCalledTimes(3);
 
     await act(async () => {
         await delay(100);
@@ -256,8 +256,8 @@ HTMLCollection [
   </p>,
 ]
 `);
-    expect(useResourceSpy).toHaveBeenCalledTimes(5);
-    expect(getSpy).toHaveBeenCalledTimes(5);
+    expect(useResourceSpy).toHaveBeenCalledTimes(4);
+    expect(getSpy).toHaveBeenCalledTimes(4);
 
     await act(async () => {
         await delay(500);
@@ -275,8 +275,8 @@ HTMLCollection [
   </p>,
 ]
 `);
-    expect(useResourceSpy).toHaveBeenCalledTimes(5);
-    expect(getSpy).toHaveBeenCalledTimes(5);
+    expect(useResourceSpy).toHaveBeenCalledTimes(4);
+    expect(getSpy).toHaveBeenCalledTimes(4);
 });
 
 it('should render a nested component', async () => {
@@ -368,7 +368,7 @@ it('should debounce calls', async () => {
             rejected: false,
         },
     ]);
-    expect(getSpy).toHaveBeenCalledTimes(2);
+    expect(getSpy).toHaveBeenCalledTimes(1);
 
     await act(async () => {
         await delay(200);
@@ -382,7 +382,7 @@ it('should debounce calls', async () => {
             rejected: false,
         },
     ]);
-    expect(getSpy).toHaveBeenCalledTimes(3);
+    expect(getSpy).toHaveBeenCalledTimes(2);
 
     await act(async () => {
         await delay(200);
@@ -397,7 +397,7 @@ it('should debounce calls', async () => {
             rejected: false,
         },
     ]);
-    expect(getSpy).toHaveBeenCalledTimes(4);
+    expect(getSpy).toHaveBeenCalledTimes(3);
 
     await act(async () => {
         await delay(300);
@@ -412,7 +412,7 @@ it('should debounce calls', async () => {
             rejected: false,
         },
     ]);
-    expect(getSpy).toHaveBeenCalledTimes(4);
+    expect(getSpy).toHaveBeenCalledTimes(3);
 });
 
 it('should rerender on mount', async () => {
@@ -436,9 +436,9 @@ it('should rerender on mount', async () => {
         await delay(300);
     });
 
-    expect(useResourceSpy).toHaveBeenCalledTimes(3);
+    expect(useResourceSpy).toHaveBeenCalledTimes(2);
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(1);
-    expect(getSpy).toHaveBeenCalledTimes(3);
+    expect(getSpy).toHaveBeenCalledTimes(2);
     expect(useResourceSpy).toHaveLastReturnedWith([
         1,
         {
@@ -455,9 +455,9 @@ it('should rerender on mount', async () => {
         await delay(300);
     });
 
-    expect(useResourceSpy).toHaveBeenCalledTimes(6);
+    expect(useResourceSpy).toHaveBeenCalledTimes(4);
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(2);
-    expect(getSpy).toHaveBeenCalledTimes(6);
+    expect(getSpy).toHaveBeenCalledTimes(4);
     expect(useResourceSpy).toHaveLastReturnedWith([
         2,
         {

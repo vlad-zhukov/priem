@@ -1,4 +1,5 @@
 import is, {TypeName} from '@sindresorhus/is';
+import * as React from 'react';
 
 export const isBrowser: boolean = typeof window === 'object' && typeof document === 'object' && document.nodeType === 9;
 
@@ -43,4 +44,22 @@ export function areKeysEqual(keys1: readonly any[], keys2: readonly any[]): bool
         }
     }
     return true;
+}
+
+const forceUpdateReducer = () => ({});
+export function useForceUpdate(): () => void {
+    const [, dispatch] = React.useReducer(forceUpdateReducer, {});
+    return React.useCallback(() => {
+        dispatch({});
+    }, []);
+}
+
+export function useLazyRef<T extends unknown>(initializer: () => T): {current: T} {
+    const didMount = React.useRef(false);
+    const ref = React.useRef<T>();
+    if (!didMount.current) {
+        ref.current = initializer();
+        didMount.current = true;
+    }
+    return ref as {current: T};
 }

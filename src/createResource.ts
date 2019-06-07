@@ -1,14 +1,7 @@
 import * as React from 'react';
 import {TypeName} from '@sindresorhus/is';
 import {Resource, ResourceOptions, Subscriber, MemoizedKey, STATUS} from './Resource';
-import {areKeysEqual, assertType} from './utils';
-
-function useForceUpdate(): () => void {
-    const [, setTick] = React.useState(0);
-    return React.useCallback(() => {
-        setTick(tick => tick + 1);
-    }, []);
-}
+import {areKeysEqual, assertType, useForceUpdate, useLazyRef} from './utils';
 
 const DEFAULT_DEBOUNCE_MS = 150;
 
@@ -41,7 +34,8 @@ export function createResource<DataType, Args extends MemoizedKey = []>(
     return function useResource(args: Args | null): Result<DataType> {
         assertType(args, [TypeName.Array, TypeName.null], '`args`');
 
-        const rerender = useForceUpdate();
+        const forceUpdate = useForceUpdate();
+
         const refs = React.useRef<Refs<Args, DataType>>({
             /* istanbul ignore next */
             onChange() {},
@@ -50,19 +44,18 @@ export function createResource<DataType, Args extends MemoizedKey = []>(
         });
 
         // A callback for Resource#onCacheChange
-        refs.current.onChange = (prevArgs, forceUpdate) => {
+        refs.current.onChange = (prevArgs, shouldForceUpd) => {
             if (prevArgs && args && areKeysEqual(args, prevArgs)) {
-                refs.current.shouldForceUpdate = forceUpdate;
-                rerender();
+                refs.current.shouldForceUpdate = shouldForceUpd;
+                forceUpdate();
             }
         };
 
-        // Because subscribing happens after component was mount and cache was hit, cache can resolve before component
-        // subscribe, and an update will be missed. Rerendering after subscribing ensures the component is up-to-date
-        // and at the same time fetching is not blocked.
-        React.useEffect(() => {
+        useLazyRef(() => {
             resource.subscribe(refs.current);
-            rerender();
+        });
+
+        React.useEffect(() => {
             return () => {
                 // eslint-disable-next-line react-hooks/exhaustive-deps
                 resource.unsubscribe(refs.current);
@@ -90,7 +83,7 @@ export function createResource<DataType, Args extends MemoizedKey = []>(
         React.useEffect(() => {
             let handler: number | undefined;
             if (shouldDebounce) {
-                handler = window.setTimeout(rerender, DEFAULT_DEBOUNCE_MS);
+                handler = window.setTimeout(forceUpdate, DEFAULT_DEBOUNCE_MS);
             }
             return () => window.clearTimeout(handler);
         });
@@ -112,7 +105,7 @@ export function createResource<DataType, Args extends MemoizedKey = []>(
             rejected: false,
             refresh() {
                 refs.current.shouldForceUpdate = true;
-                rerender();
+                forceUpdate();
             },
         };
 
