@@ -1,6 +1,6 @@
 import * as React from 'react';
 import delay from 'delay';
-import {render, cleanup, act, fireEvent} from 'react-testing-library';
+import {render, cleanup, act, fireEvent} from '@testing-library/react';
 import {createResource} from '../index';
 import {Resource} from '../Resource';
 
