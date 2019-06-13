@@ -49,9 +49,7 @@ export function areKeysEqual(keys1: readonly any[], keys2: readonly any[]): bool
 const forceUpdateReducer = () => ({});
 export function useForceUpdate(): () => void {
     const [, dispatch] = React.useReducer(forceUpdateReducer, {});
-    return React.useCallback(() => {
-        dispatch({});
-    }, []);
+    return React.useRef(() => dispatch({})).current;
 }
 
 export function useLazyRef<T extends unknown>(initializer: () => T): {current: T} {
