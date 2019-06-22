@@ -3,13 +3,12 @@ sudo: false
 language: node_js
 
 node_js:
-  - 10
-  - 8
+  - "12"
+  - "10"
 
 cache:
   yarn: true
   directories:
-    - ".eslintcache"
     - "node_modules"
 
 before_install:
