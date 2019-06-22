@@ -1,7 +1,7 @@
 const NEXT = '@@next';
 const PREV = '@@prev';
 
-export class CacheItem<K = unknown, V = unknown> {
+export class CacheItem<K, V> {
     key: K;
     value: V;
     [NEXT]: CacheItem<K, V> | undefined;
@@ -44,7 +44,7 @@ export class CacheItem<K = unknown, V = unknown> {
     }
 }
 
-export interface SerializableCacheItem<K = unknown, V = unknown> {
+export interface SerializableCacheItem<K, V> {
     key: K;
     value: V;
 }
@@ -64,7 +64,7 @@ function isReduced<ValueType>(value: any): value is ReducedType<ValueType> {
     return value && REDUCED in value;
 }
 
-export function reduce<ReturnType, K = unknown, V = unknown>(
+export function reduce<ReturnType, K, V>(
     cache: Cache<K, V>,
     accumulator: ReturnType,
     iteratee: (result: ReturnType, item: CacheItem<K, V>) => ReturnType | ReducedType<ReturnType>
@@ -81,7 +81,7 @@ export function reduce<ReturnType, K = unknown, V = unknown>(
     return result;
 }
 
-export class Cache<K = unknown, V = unknown> {
+export class Cache<K, V> {
     head: CacheItem<K, V> | undefined = undefined;
     tail: CacheItem<K, V> | undefined = undefined;
     size: number = 0;
@@ -133,6 +133,8 @@ export class Cache<K = unknown, V = unknown> {
     }
 
     findBy(predicate: (item: CacheItem<K, V>) => boolean): CacheItem<K, V> | undefined {
-        return reduce<CacheItem<K, V> | undefined, K, V>(this, undefined, (acc, item) => (predicate(item) ? reduced(item) : acc));
+        return reduce<CacheItem<K, V> | undefined, K, V>(this, undefined, (acc, item) =>
+            predicate(item) ? reduced(item) : acc
+        );
     }
 }

@@ -20,7 +20,7 @@ export declare type MemoizedSerializableCacheItem<
 
 export declare interface MemoizedValue<DataType> {
     status: STATUS;
-    data: DataType | null;
+    data: DataType | undefined;
     reason?: Error;
     promise?: Promise<void>;
 }
@@ -43,7 +43,7 @@ export declare interface ResultMeta {
     refresh: () => void;
 }
 
-export declare interface SerializableCacheItem<K = unknown, V = unknown> {
+export declare interface SerializableCacheItem<K, V> {
     key: K;
     value: V;
 }
