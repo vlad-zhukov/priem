@@ -7,106 +7,106 @@ it('should memoize promises', async () => {
     const resource = new Resource(name => delay(200, {value: `Hello ${name}!`}), {maxSize: 2});
 
     expect(resource.run(['world'])).toMatchInlineSnapshot(`
-                Object {
-                  "data": null,
-                  "promise": Promise {},
-                  "reason": undefined,
-                  "status": 0,
-                }
-        `);
+        Object {
+          "data": undefined,
+          "promise": Promise {},
+          "reason": undefined,
+          "status": 0,
+        }
+    `);
 
     await delay(300);
     expect(resource.run(['world'])).toMatchInlineSnapshot(`
-                Object {
-                  "data": "Hello world!",
-                  "promise": Promise {},
-                  "reason": undefined,
-                  "status": 1,
-                }
-        `);
+        Object {
+          "data": "Hello world!",
+          "promise": Promise {},
+          "reason": undefined,
+          "status": 1,
+        }
+    `);
     expect(resource.run(['world'])).toMatchInlineSnapshot(`
-                Object {
-                  "data": "Hello world!",
-                  "promise": Promise {},
-                  "reason": undefined,
-                  "status": 1,
-                }
-        `);
+        Object {
+          "data": "Hello world!",
+          "promise": Promise {},
+          "reason": undefined,
+          "status": 1,
+        }
+    `);
     expect(resource.run(['SpongeBob'])).toMatchInlineSnapshot(`
-                Object {
-                  "data": null,
-                  "promise": Promise {},
-                  "reason": undefined,
-                  "status": 0,
-                }
-        `);
+        Object {
+          "data": undefined,
+          "promise": Promise {},
+          "reason": undefined,
+          "status": 0,
+        }
+    `);
 
     await delay(300);
     expect(resource.run(['SpongeBob'])).toMatchInlineSnapshot(`
-                Object {
-                  "data": "Hello SpongeBob!",
-                  "promise": Promise {},
-                  "reason": undefined,
-                  "status": 1,
-                }
-        `);
+        Object {
+          "data": "Hello SpongeBob!",
+          "promise": Promise {},
+          "reason": undefined,
+          "status": 1,
+        }
+    `);
     expect(resource.run(['world'])).toMatchInlineSnapshot(`
-                Object {
-                  "data": "Hello world!",
-                  "promise": Promise {},
-                  "reason": undefined,
-                  "status": 1,
-                }
-        `);
+        Object {
+          "data": "Hello world!",
+          "promise": Promise {},
+          "reason": undefined,
+          "status": 1,
+        }
+    `);
 });
 
 it('should not throw on rejected promises', async () => {
     const resource = new Resource(name => delay.reject(200, {value: new Error(`Hello ${name}!`)}), {maxSize: 2});
 
     expect(resource.run(['world'])).toMatchInlineSnapshot(`
-                Object {
-                  "data": null,
-                  "promise": Promise {},
-                  "reason": undefined,
-                  "status": 0,
-                }
-        `);
+        Object {
+          "data": undefined,
+          "promise": Promise {},
+          "reason": undefined,
+          "status": 0,
+        }
+    `);
 
     await delay(300);
     expect(resource.run(['world'])).toMatchInlineSnapshot(`
-                Object {
-                  "data": null,
-                  "promise": Promise {},
-                  "reason": [Error: Hello world!],
-                  "status": 2,
-                }
-        `);
+        Object {
+          "data": undefined,
+          "promise": Promise {},
+          "reason": [Error: Hello world!],
+          "status": 2,
+        }
+    `);
     expect(resource.run(['world'])).toMatchInlineSnapshot(`
-                Object {
-                  "data": null,
-                  "promise": Promise {},
-                  "reason": [Error: Hello world!],
-                  "status": 2,
-                }
-        `);
+        Object {
+          "data": undefined,
+          "promise": Promise {},
+          "reason": [Error: Hello world!],
+          "status": 2,
+        }
+    `);
     expect(resource.run(['SpongeBob'])).toMatchInlineSnapshot(`
-                Object {
-                  "data": null,
-                  "promise": Promise {},
-                  "reason": undefined,
-                  "status": 0,
-                }
-        `);
+        Object {
+          "data": undefined,
+          "promise": Promise {},
+          "reason": undefined,
+          "status": 0,
+        }
+    `);
 
     await delay(300);
     expect(resource.run(['SpongeBob'])).toMatchInlineSnapshot(`
-                Object {
-                  "data": null,
-                  "promise": Promise {},
-                  "reason": [Error: Hello SpongeBob!],
-                  "status": 2,
-                }
-        `);
+        Object {
+          "data": undefined,
+          "promise": Promise {},
+          "reason": [Error: Hello SpongeBob!],
+          "status": 2,
+        }
+    `);
 });
 
 it('should default `maxSize` to 1', async () => {
@@ -121,37 +121,84 @@ it('should default `maxSize` to 1', async () => {
     resource.run(['SpongeBob']);
     await delay(300);
     expect(toSerializableArray(resource['cache'])).toMatchInlineSnapshot(`
-                Array [
-                  Object {
-                    "key": Array [
-                      "SpongeBob",
-                    ],
-                    "value": Object {
-                      "data": "Hello SpongeBob!",
-                      "reason": undefined,
-                      "status": 1,
-                    },
-                  },
-                ]
-        `);
+        Array [
+          Object {
+            "key": Array [
+              "SpongeBob",
+            ],
+            "value": Object {
+              "data": "Hello SpongeBob!",
+              "reason": undefined,
+              "status": 1,
+            },
+          },
+        ]
+    `);
 
     resource.run(['SpongeBob', 'Patrick']);
     await delay(300);
     expect(toSerializableArray(resource['cache'])).toMatchInlineSnapshot(`
-                Array [
-                  Object {
-                    "key": Array [
-                      "SpongeBob",
-                      "Patrick",
-                    ],
-                    "value": Object {
-                      "data": "Hello SpongeBob and Patrick!",
-                      "reason": undefined,
-                      "status": 1,
-                    },
-                  },
-                ]
-        `);
+        Array [
+          Object {
+            "key": Array [
+              "SpongeBob",
+              "Patrick",
+            ],
+            "value": Object {
+              "data": "Hello SpongeBob and Patrick!",
+              "reason": undefined,
+              "status": 1,
+            },
+          },
+        ]
+    `);
+});
+
+it('should default `maxSize` to 1 if `maxSize is not positive`', async () => {
+    const resource = new Resource<[string, string?], string>(
+        (name1, name2) =>
+            delay(200, {
+                value: `Hello ${name1}${name2 ? ` and ${name2}` : ''}!`,
+            }),
+        {
+            maxSize: -1
+        }
+    );
+
+    resource.run(['SpongeBob']);
+    await delay(300);
+    expect(toSerializableArray(resource['cache'])).toMatchInlineSnapshot(`
+        Array [
+          Object {
+            "key": Array [
+              "SpongeBob",
+            ],
+            "value": Object {
+              "data": "Hello SpongeBob!",
+              "reason": undefined,
+              "status": 1,
+            },
+          },
+        ]
+    `);
+
+    resource.run(['SpongeBob', 'Patrick']);
+    await delay(300);
+    expect(toSerializableArray(resource['cache'])).toMatchInlineSnapshot(`
+        Array [
+          Object {
+            "key": Array [
+              "SpongeBob",
+              "Patrick",
+            ],
+            "value": Object {
+              "data": "Hello SpongeBob and Patrick!",
+              "reason": undefined,
+              "status": 1,
+            },
+          },
+        ]
+    `);
 });
 
 it('should properly match equal keys', async () => {
@@ -161,20 +208,20 @@ it('should properly match equal keys', async () => {
     resource.run([NaN, NaN]);
 
     expect(toSerializableArray(resource['cache'])).toMatchInlineSnapshot(`
-                Array [
-                  Object {
-                    "key": Array [
-                      NaN,
-                      NaN,
-                    ],
-                    "value": Object {
-                      "data": null,
-                      "reason": undefined,
-                      "status": 0,
-                    },
-                  },
-                ]
-        `);
+        Array [
+          Object {
+            "key": Array [
+              NaN,
+              NaN,
+            ],
+            "value": Object {
+              "data": undefined,
+              "reason": undefined,
+              "status": 0,
+            },
+          },
+        ]
+    `);
 });
 
 it('should have a `maxAge` option', async () => {
@@ -186,90 +233,90 @@ it('should have a `maxAge` option', async () => {
 
     resource.run(['SpongeBob']);
     expect(toSerializableArray(resource['cache'])).toMatchInlineSnapshot(`
-                Array [
-                  Object {
-                    "key": Array [
-                      "SpongeBob",
-                    ],
-                    "value": Object {
-                      "data": null,
-                      "reason": undefined,
-                      "status": 0,
-                    },
-                  },
-                ]
-        `);
+        Array [
+          Object {
+            "key": Array [
+              "SpongeBob",
+            ],
+            "value": Object {
+              "data": undefined,
+              "reason": undefined,
+              "status": 0,
+            },
+          },
+        ]
+    `);
     expect(onCacheChange).toHaveBeenCalledTimes(0);
 
     await delay(300);
     expect(toSerializableArray(resource['cache'])).toMatchInlineSnapshot(`
-                Array [
-                  Object {
-                    "key": Array [
-                      "SpongeBob",
-                    ],
-                    "value": Object {
-                      "data": undefined,
-                      "reason": undefined,
-                      "status": 1,
-                    },
-                  },
-                ]
-        `);
+        Array [
+          Object {
+            "key": Array [
+              "SpongeBob",
+            ],
+            "value": Object {
+              "data": undefined,
+              "reason": undefined,
+              "status": 1,
+            },
+          },
+        ]
+    `);
     expect(onCacheChange).toHaveBeenCalledTimes(1);
 
     resource.run(['Patrick']);
     expect(toSerializableArray(resource['cache'])).toMatchInlineSnapshot(`
-                Array [
-                  Object {
-                    "key": Array [
-                      "Patrick",
-                    ],
-                    "value": Object {
-                      "data": null,
-                      "reason": undefined,
-                      "status": 0,
-                    },
-                  },
-                  Object {
-                    "key": Array [
-                      "SpongeBob",
-                    ],
-                    "value": Object {
-                      "data": undefined,
-                      "reason": undefined,
-                      "status": 1,
-                    },
-                  },
-                ]
-        `);
+        Array [
+          Object {
+            "key": Array [
+              "Patrick",
+            ],
+            "value": Object {
+              "data": undefined,
+              "reason": undefined,
+              "status": 0,
+            },
+          },
+          Object {
+            "key": Array [
+              "SpongeBob",
+            ],
+            "value": Object {
+              "data": undefined,
+              "reason": undefined,
+              "status": 1,
+            },
+          },
+        ]
+    `);
     expect(onCacheChange).toHaveBeenCalledTimes(1);
 
     await delay(300);
     expect(toSerializableArray(resource['cache'])).toMatchInlineSnapshot(`
-                Array [
-                  Object {
-                    "key": Array [
-                      "Patrick",
-                    ],
-                    "value": Object {
-                      "data": undefined,
-                      "reason": undefined,
-                      "status": 1,
-                    },
-                  },
-                  Object {
-                    "key": Array [
-                      "SpongeBob",
-                    ],
-                    "value": Object {
-                      "data": undefined,
-                      "reason": undefined,
-                      "status": 1,
-                    },
-                  },
-                ]
-        `);
+        Array [
+          Object {
+            "key": Array [
+              "Patrick",
+            ],
+            "value": Object {
+              "data": undefined,
+              "reason": undefined,
+              "status": 1,
+            },
+          },
+          Object {
+            "key": Array [
+              "SpongeBob",
+            ],
+            "value": Object {
+              "data": undefined,
+              "reason": undefined,
+              "status": 1,
+            },
+          },
+        ]
+    `);
     expect(onCacheChange).toHaveBeenCalledTimes(3);
 
     await delay(300);
@@ -309,19 +356,19 @@ it('should not fail to expire if the key does not exist', async () => {
     await delay(300);
     expect(onCacheChange).toHaveBeenCalledTimes(1);
     expect(toSerializableArray(resource['cache'])).toMatchInlineSnapshot(`
-                Array [
-                  Object {
-                    "key": Array [
-                      "SpongeBob",
-                    ],
-                    "value": Object {
-                      "data": undefined,
-                      "reason": undefined,
-                      "status": 1,
-                    },
-                  },
-                ]
-        `);
+        Array [
+          Object {
+            "key": Array [
+              "SpongeBob",
+            ],
+            "value": Object {
+              "data": undefined,
+              "reason": undefined,
+              "status": 1,
+            },
+          },
+        ]
+    `);
 
     const itemToRemove = resource['cache'].tail;
     if (itemToRemove) {
@@ -329,22 +376,22 @@ it('should not fail to expire if the key does not exist', async () => {
         itemToRemove.destroy();
     }
     expect(resource['cache']).toMatchInlineSnapshot(`
-                Cache {
-                  "head": null,
-                  "size": 0,
-                  "tail": null,
-                }
-        `);
+        Cache {
+          "head": null,
+          "size": 0,
+          "tail": null,
+        }
+    `);
 
     await delay(300);
     expect(onCacheChange).toHaveBeenCalledTimes(1);
     expect(resource['cache']).toMatchInlineSnapshot(`
-                Cache {
-                  "head": null,
-                  "size": 0,
-                  "tail": null,
-                }
-        `);
+        Cache {
+          "head": null,
+          "size": 0,
+          "tail": null,
+        }
+    `);
 });
 
 it('should refresh when called with `forceRefresh`', async () => {
@@ -355,51 +402,51 @@ it('should refresh when called with `forceRefresh`', async () => {
     expect(onCacheChange).toHaveBeenCalledTimes(0);
     await delay(300);
     expect(toSerializableArray(resource['cache'])).toMatchInlineSnapshot(`
-                Array [
-                  Object {
-                    "key": Array [
-                      "SpongeBob",
-                    ],
-                    "value": Object {
-                      "data": "SquarePants",
-                      "reason": undefined,
-                      "status": 1,
-                    },
-                  },
-                ]
-        `);
+        Array [
+          Object {
+            "key": Array [
+              "SpongeBob",
+            ],
+            "value": Object {
+              "data": "SquarePants",
+              "reason": undefined,
+              "status": 1,
+            },
+          },
+        ]
+    `);
 
     resource.run(['SpongeBob'], true);
     expect(toSerializableArray(resource['cache'])).toMatchInlineSnapshot(`
-                Array [
-                  Object {
-                    "key": Array [
-                      "SpongeBob",
-                    ],
-                    "value": Object {
-                      "data": "SquarePants",
-                      "reason": undefined,
-                      "status": 0,
-                    },
-                  },
-                ]
-        `);
+        Array [
+          Object {
+            "key": Array [
+              "SpongeBob",
+            ],
+            "value": Object {
+              "data": "SquarePants",
+              "reason": undefined,
+              "status": 0,
+            },
+          },
+        ]
+    `);
 
     await delay(300);
     expect(toSerializableArray(resource['cache'])).toMatchInlineSnapshot(`
-                Array [
-                  Object {
-                    "key": Array [
-                      "SpongeBob",
-                    ],
-                    "value": Object {
-                      "data": "SquarePants",
-                      "reason": undefined,
-                      "status": 1,
-                    },
-                  },
-                ]
-        `);
+        Array [
+          Object {
+            "key": Array [
+              "SpongeBob",
+            ],
+            "value": Object {
+              "data": "SquarePants",
+              "reason": undefined,
+              "status": 1,
+            },
+          },
+        ]
+    `);
 });
 
 it('should throttle refreshing', async () => {
@@ -408,19 +455,19 @@ it('should throttle refreshing', async () => {
     resource.run(['SpongeBob']);
     await delay(300);
     expect(toSerializableArray(resource['cache'])).toMatchInlineSnapshot(`
-                Array [
-                  Object {
-                    "key": Array [
-                      "SpongeBob",
-                    ],
-                    "value": Object {
-                      "data": "SquarePants",
-                      "reason": undefined,
-                      "status": 1,
-                    },
-                  },
-                ]
-        `);
+        Array [
+          Object {
+            "key": Array [
+              "SpongeBob",
+            ],
+            "value": Object {
+              "data": "SquarePants",
+              "reason": undefined,
+              "status": 1,
+            },
+          },
+        ]
+    `);
 
     const item1 = resource.run(['SpongeBob'], true);
     const item2 = resource.run(['SpongeBob'], true);
@@ -429,17 +476,17 @@ it('should throttle refreshing', async () => {
     expect(item1.promise).toBe(item2.promise);
 
     expect(toSerializableArray(resource['cache'])).toMatchInlineSnapshot(`
-                Array [
-                  Object {
-                    "key": Array [
-                      "SpongeBob",
-                    ],
-                    "value": Object {
-                      "data": "SquarePants",
-                      "reason": undefined,
-                      "status": 0,
-                    },
-                  },
-                ]
-        `);
+        Array [
+          Object {
+            "key": Array [
+              "SpongeBob",
+            ],
+            "value": Object {
+              "data": "SquarePants",
+              "reason": undefined,
+              "status": 0,
+            },
+          },
+        ]
+    `);
 });

@@ -14,7 +14,7 @@ export type MemoizedKey = readonly unknown[];
 
 export interface MemoizedValue<DataType> {
     status: STATUS;
-    data: DataType | null;
+    data: DataType | undefined;
     reason?: Error;
     promise?: Promise<void>;
 }
@@ -94,7 +94,7 @@ export class Resource<Args extends MemoizedKey, DataType> {
         assertType(fn, [TypeName.Function], "'fn'");
         assertType(options, [TypeName.Object], "Resource argument 'options'");
 
-        const {maxSize = 1, maxAge, ssrKey} = options;
+        const {maxSize, maxAge, ssrKey} = options;
 
         assertType(ssrKey, [TypeName.string, TypeName.undefined], "'ssrKey'");
 
@@ -108,7 +108,7 @@ export class Resource<Args extends MemoizedKey, DataType> {
         this.listeners = [];
         this.cache = new Cache<Args, MemoizedValue<DataType>>(initialCache);
         this.fn = fn;
-        this.maxSize = maxSize;
+        this.maxSize = is.number(maxSize) && maxSize > 0 && is.safeInteger(maxSize) ? maxSize : 1;
         this.maxAge = is.number(maxAge) && isFinite(maxAge) ? maxAge : undefined;
         this.ssrKey = ssrKey;
 
@@ -123,15 +123,13 @@ export class Resource<Args extends MemoizedKey, DataType> {
         if (item === null) {
             if (this.cache.size >= this.maxSize) {
                 const itemToRemove = this.cache.tail;
-                if (itemToRemove) {
-                    this.cache.remove(itemToRemove);
-                    itemToRemove.destroy();
-                }
+                this.cache.remove(itemToRemove!); // eslint-disable-line @typescript-eslint/no-non-null-assertion
+                itemToRemove!.destroy(); // eslint-disable-line @typescript-eslint/no-non-null-assertion
             }
 
             item = new CacheItem<Args, MemoizedValue<DataType>>(args, {
                 status: STATUS.PENDING,
-                data: null,
+                data: undefined,
                 reason: undefined,
             });
             this.cache.prepend(item);
@@ -168,7 +166,7 @@ export class Resource<Args extends MemoizedKey, DataType> {
                         this.onCacheChange(args, false);
                     })
                     .catch(error => {
-                        Object.assign(itemValue, {status: STATUS.REJECTED, data: null, reason: error});
+                        Object.assign(itemValue, {status: STATUS.REJECTED, data: undefined, reason: error});
                         this.onCacheChange(args, false);
                     });
             }
