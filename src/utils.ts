@@ -52,10 +52,12 @@ export function useForceUpdate(): () => void {
     return React.useRef(() => dispatch({})).current;
 }
 
-export function useOnMount(initializer: () => () => void): void {
-    const ref = React.useRef<() => void>();
-    if (!ref.current) {
+export function useLazyRef<T extends unknown>(initializer: () => T): {current: T} {
+    const didMount = React.useRef(false);
+    const ref = React.useRef<T>();
+    if (!didMount.current) {
         ref.current = initializer();
+        didMount.current = true;
     }
-    React.useEffect(() => ref.current, []);
+    return ref as {current: T};
 }

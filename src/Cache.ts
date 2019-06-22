@@ -4,10 +4,10 @@ const PREV = '@@prev';
 export class CacheItem<K = unknown, V = unknown> {
     key: K;
     value: V;
-    [NEXT]: CacheItem<K, V> | null;
-    [PREV]: CacheItem<K, V> | null;
-    expireId?: number;
-    lastRefreshAt?: number;
+    [NEXT]: CacheItem<K, V> | undefined;
+    [PREV]: CacheItem<K, V> | undefined;
+    expireId: number | undefined;
+    lastRefreshAt: number | undefined;
 
     constructor(key: K, value: V) {
         this.key = key;
@@ -15,11 +15,11 @@ export class CacheItem<K = unknown, V = unknown> {
 
         Object.defineProperties(this, {
             [NEXT]: {
-                value: null,
+                value: undefined,
                 writable: true,
             },
             [PREV]: {
-                value: null,
+                value: undefined,
                 writable: true,
             },
             expireId: {
@@ -34,8 +34,10 @@ export class CacheItem<K = unknown, V = unknown> {
     }
 
     destroy(): void {
-        this[NEXT] = null;
-        this[PREV] = null;
+        delete this.key;
+        delete this.value;
+        this[NEXT] = undefined;
+        this[PREV] = undefined;
         clearTimeout(this.expireId);
         this.expireId = undefined;
         this.lastRefreshAt = undefined;
@@ -69,7 +71,7 @@ export function reduce<ReturnType, K = unknown, V = unknown>(
 ) {
     let item = cache.head;
     let result: ReturnType | ReducedType<ReturnType> = accumulator;
-    while (item !== null) {
+    while (item) {
         result = iteratee(result, item);
         if (isReduced(result)) {
             return result.value;
@@ -80,15 +82,11 @@ export function reduce<ReturnType, K = unknown, V = unknown>(
 }
 
 export class Cache<K = unknown, V = unknown> {
-    head: CacheItem<K, V> | null;
-    tail: CacheItem<K, V> | null;
-    size: number;
+    head: CacheItem<K, V> | undefined = undefined;
+    tail: CacheItem<K, V> | undefined = undefined;
+    size: number = 0;
 
     constructor(items: (CacheItem<K, V> | SerializableCacheItem<K, V>)[]) {
-        this.head = null;
-        this.tail = null;
-        this.size = 0;
-
         for (let i = items.length; i > 0; i--) {
             const item = items[i - 1];
             const cacheItem: CacheItem<K, V> =
@@ -99,38 +97,42 @@ export class Cache<K = unknown, V = unknown> {
 
     prepend(item: CacheItem<K, V>): void {
         item[NEXT] = this.head;
-        if (this.head !== null) {
+        if (this.head) {
             this.head[PREV] = item;
         }
         this.head = item;
-        if (this.tail === null) {
+        if (!this.tail) {
             this.tail = item;
         }
         this.size += 1;
     }
 
-    remove(item: CacheItem<K, V>): null | void {
+    remove(item: CacheItem<K, V>): boolean {
         if (!item.lastRefreshAt) {
-            return null;
+            return false;
         }
 
         const next = item[NEXT];
         const prev = item[PREV];
 
-        if (prev === null) {
-            this.head = next;
-        } else {
+        if (prev) {
             prev[NEXT] = next;
-        }
-        if (next === null) {
-            this.tail = prev;
         } else {
-            next[PREV] = prev;
+            this.head = next;
         }
+
+        if (next) {
+            next[PREV] = prev;
+        } else {
+            this.tail = prev;
+        }
+
         this.size -= 1;
+
+        return true;
     }
 
-    findBy(predicate: (item: CacheItem<K, V>) => boolean): CacheItem<K, V> | null {
-        return reduce<CacheItem<K, V> | null, K, V>(this, null, (acc, item) => (predicate(item) ? reduced(item) : acc));
+    findBy(predicate: (item: CacheItem<K, V>) => boolean): CacheItem<K, V> | undefined {
+        return reduce<CacheItem<K, V> | undefined, K, V>(this, undefined, (acc, item) => (predicate(item) ? reduced(item) : acc));
     }
 }

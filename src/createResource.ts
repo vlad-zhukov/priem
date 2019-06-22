@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {TypeName} from '@sindresorhus/is';
 import {Resource, ResourceOptions, Subscriber, MemoizedKey, STATUS} from './Resource';
-import {areKeysEqual, assertType, useForceUpdate, useOnMount} from './utils';
+import {areKeysEqual, assertType, useForceUpdate, useLazyRef} from './utils';
 
 const DEFAULT_DEBOUNCE_MS = 150;
 
@@ -51,12 +51,16 @@ export function createResource<DataType, Args extends MemoizedKey = []>(
             }
         };
 
-        useOnMount(() => {
+        useLazyRef(() => {
             resource.subscribe(refs.current);
+        });
+
+        React.useEffect(() => {
             return () => {
+                // eslint-disable-next-line react-hooks/exhaustive-deps
                 resource.unsubscribe(refs.current);
             };
-        });
+        }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
         const {lastTimeCalled, prevResult, shouldForceUpdate} = refs.current;
         const now = Date.now();

@@ -120,7 +120,7 @@ export class Resource<Args extends MemoizedKey, DataType> {
         let item = this.cache.findBy(cacheItem => areKeysEqual(cacheItem.key, args));
         let shouldRefresh = false;
 
-        if (item === null) {
+        if (!item) {
             if (this.cache.size >= this.maxSize) {
                 const itemToRemove = this.cache.tail;
                 this.cache.remove(itemToRemove!); // eslint-disable-line @typescript-eslint/no-non-null-assertion
@@ -135,7 +135,7 @@ export class Resource<Args extends MemoizedKey, DataType> {
             this.cache.prepend(item);
             shouldRefresh = true;
         } else {
-            if (item !== this.cache.head && this.cache.remove(item) !== null) {
+            if (item !== this.cache.head && this.cache.remove(item)) {
                 this.cache.prepend(item);
             }
 
