@@ -116,14 +116,14 @@ Creates a React Hook that fetches and caches data.
 
 **Arguments**
 
-1.  `fn`: _(AsyncFunction)_: An async function that takes arguments from `usePriem` and must return a Promise. If
+1.  `fn`: _(AsyncFunction)_: An async function that takes arguments from `useResource` and must return a Promise. If
     promise rejects, the cache item corresponding to these arguments will have a rejected status.
 2.  `options` _(Object)_: An options object, that can have the following properties:
-    -   `[maxAge]` _(Number)_: A time in milliseconds after which cache items will expire and trigger a refresh.
-    -   `[maxSize]` _(Number)_: A number of maximum cache entries in store. After exceeding this amount the most former
+    -   `[maxAge]` _(number)_: A time in milliseconds after which cache items will expire and trigger a refresh.
+    -   `[maxSize]` _(number)_: A number of maximum cache entries in store. After exceeding this amount the most former
         used item will be removed and a refresh triggered. Defaults to 1.
     -   `[refreshOnMount]` _(Boolean)_: Refreshes data on mounting. Default to false.
-    -   `[ssrKey]` _(String)_: A unique key that will be used to place this resource to the store. Required for
+    -   `[ssrKey]` _(string)_: A unique key that will be used to place this resource to the store. Required for
         server-side rendering.
 
 **Returns**
@@ -136,7 +136,7 @@ A React Hook for subscribing to resources.
 
 **Arguments**
 
-1.  `[args]` _(Array|null)_: An array of arguments that will be passed to a function in `createResource`. Can also be
+1.  `[args]` _(Record<string, unknown> | null)_: An array of arguments that will be passed to a function in `createResource`. Can also be
     `null` which will prevent the update which can be utilized for waiting for other async tasks or user interactions to
     finish. Defaults to `[]`.
 
@@ -146,8 +146,8 @@ The function returns a tuple with data and a meta object:
 
 1.  `data` _(any)_: The last successful data. Defaults to `null`.
 2.  `meta` _(Object)_: Meta properties of **most recent** promise.
-    -   `pending` _(Boolean)_.
-    -   `rejected` _(Boolean)_.
+    -   `pending` _(boolean)_.
+    -   `rejected` _(boolean)_.
     -   `[reason]` _(Error)_.
     -   `refresh` _(Function)_: a method to update the resource.
 

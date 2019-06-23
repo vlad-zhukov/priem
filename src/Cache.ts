@@ -82,8 +82,8 @@ export function reduce<ReturnType, K, V>(
 }
 
 export class Cache<K, V> {
-    head: CacheItem<K, V> | undefined = undefined;
-    tail: CacheItem<K, V> | undefined = undefined;
+    head: CacheItem<K, V> | undefined;
+    tail: CacheItem<K, V> | undefined;
     size: number = 0;
 
     constructor(items: (CacheItem<K, V> | SerializableCacheItem<K, V>)[]) {

@@ -1,7 +1,7 @@
 /* Excluded from this release type: __INTERNALS__ */
 
-export declare function createResource<DataType, Args extends MemoizedKey = []>(
-    fn: (...args: Args) => Promise<DataType>,
+export declare function createResource<DataType, Args extends MemoizedKey>(
+    fn: (args: Args) => Promise<DataType>,
     options?: CreateResourceOptions
 ): (args: Args | null) => [DataType | undefined, ResultMeta];
 
@@ -11,7 +11,7 @@ export declare interface CreateResourceOptions extends ResourceOptions {
 
 export declare function flushStore(): [string, MemoizedSerializableCacheItem[]][];
 
-export declare type MemoizedKey = readonly unknown[];
+export declare type MemoizedKey = Readonly<Record<string, unknown>>;
 
 export declare type MemoizedSerializableCacheItem<
     Args extends MemoizedKey = MemoizedKey,
@@ -39,7 +39,7 @@ export declare interface ResultMeta {
     pending: boolean;
     fulfilled: boolean;
     rejected: boolean;
-    reason?: Error;
+    reason: Error | undefined;
     refresh: () => void;
 }
 

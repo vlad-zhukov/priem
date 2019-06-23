@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {TypeName} from '@sindresorhus/is';
-import {Resource, ResourceOptions, Subscriber, MemoizedKey, STATUS} from './Resource';
-import {areKeysEqual, assertType, useForceUpdate, useLazyRef} from './utils';
+import {Resource, ResourceOptions, Subscriber, STATUS, MemoizedKey} from './Resource';
+import {assertType, shallowEqual, useForceUpdate, useLazyRef} from './utils';
 
 const DEFAULT_DEBOUNCE_MS = 150;
 
@@ -13,7 +13,7 @@ export interface ResultMeta {
     pending: boolean;
     fulfilled: boolean;
     rejected: boolean;
-    reason?: Error;
+    reason: Error | undefined;
     refresh: () => void;
 }
 
@@ -25,14 +25,14 @@ interface Refs<Args, DataType> extends Subscriber<Args> {
     prevResult?: Result<DataType>;
 }
 
-export function createResource<DataType, Args extends MemoizedKey = []>(
-    fn: (...args: Args) => Promise<DataType>,
+export function createResource<DataType, Args extends MemoizedKey>(
+    fn: (args: Args) => Promise<DataType>,
     options: CreateResourceOptions = {}
 ) {
-    const resource = new Resource<Args, DataType>(fn, options);
+    const resource = new Resource<DataType, Args>(fn, options);
 
     return function useResource(args: Args | null): Result<DataType> {
-        assertType(args, [TypeName.Array, TypeName.null], '`args`');
+        assertType(args, [TypeName.Object, TypeName.null], '`args`');
 
         const forceUpdate = useForceUpdate();
 
@@ -45,7 +45,7 @@ export function createResource<DataType, Args extends MemoizedKey = []>(
 
         // A callback for Resource#onCacheChange
         refs.current.onChange = (prevArgs, shouldForceUpd) => {
-            if (prevArgs && args && areKeysEqual(args, prevArgs)) {
+            if (args && prevArgs && shallowEqual(args, prevArgs)) {
                 refs.current.shouldForceUpdate = shouldForceUpd;
                 forceUpdate();
             }
@@ -103,6 +103,7 @@ export function createResource<DataType, Args extends MemoizedKey = []>(
             pending: false,
             fulfilled: false,
             rejected: false,
+            reason: undefined,
             refresh() {
                 refs.current.shouldForceUpdate = true;
                 forceUpdate();

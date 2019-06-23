@@ -1,5 +1,5 @@
 import is, {TypeName} from '@sindresorhus/is';
-import {areKeysEqual, assertType, isBrowser} from './utils';
+import {assertType, isBrowser, shallowEqual} from './utils';
 import {Cache, CacheItem, reduce, SerializableCacheItem} from './Cache';
 
 const DEFAULT_THROTTLE_MS = 150;
@@ -10,7 +10,7 @@ export enum STATUS {
     REJECTED = 2,
 }
 
-export type MemoizedKey = readonly unknown[];
+export type MemoizedKey = Readonly<Record<string, unknown>>;
 
 export interface MemoizedValue<DataType> {
     status: STATUS;
@@ -82,15 +82,15 @@ export interface ResourceOptions {
 }
 
 // TODO: introduce a mechanism to dispose unneeded resource?
-export class Resource<Args extends MemoizedKey, DataType> {
+export class Resource<DataType, Args extends Record<string, unknown>> {
     private readonly listeners: Subscriber<Args>[] = [];
     private readonly cache: Cache<Args, MemoizedValue<DataType>>;
-    private readonly fn: (...args: Args) => Promise<DataType>;
+    private readonly fn: (args: Readonly<Args>) => Promise<DataType>;
     private readonly maxSize: number;
     private readonly maxAge?: number;
     private readonly ssrKey?: string;
 
-    constructor(fn: (...args: Args) => Promise<DataType>, options: ResourceOptions) {
+    constructor(fn: (args: Readonly<Args>) => Promise<DataType>, options: ResourceOptions) {
         assertType(fn, [TypeName.Function], "'fn'");
         assertType(options, [TypeName.Object], "Resource argument 'options'");
 
@@ -117,7 +117,7 @@ export class Resource<Args extends MemoizedKey, DataType> {
 
     /** @private */
     run(args: Args, forceRefresh: boolean = false): MemoizedValue<DataType> {
-        let item = this.cache.findBy(cacheItem => areKeysEqual(cacheItem.key, args));
+        let item = this.cache.findBy(cacheItem => shallowEqual(cacheItem.key, args));
         let shouldRefresh = false;
 
         if (!item) {
@@ -160,7 +160,7 @@ export class Resource<Args extends MemoizedKey, DataType> {
                 }
 
                 const itemValue = Object.assign(item.value, {status: STATUS.PENDING, reason: undefined});
-                itemValue.promise = this.fn(...args)
+                itemValue.promise = this.fn(args)
                     .then(data => {
                         Object.assign(itemValue, {status: STATUS.FULFILLED, data, reason: undefined});
                         this.onCacheChange(args, false);
@@ -179,7 +179,7 @@ export class Resource<Args extends MemoizedKey, DataType> {
         if (args === null) {
             return false;
         }
-        return !!this.cache.findBy(cacheItem => areKeysEqual(cacheItem.key, args));
+        return !!this.cache.findBy(cacheItem => shallowEqual(cacheItem.key, args));
     }
 
     get(args: Args | null, forceRefresh: boolean = false): MemoizedValue<DataType> | undefined {

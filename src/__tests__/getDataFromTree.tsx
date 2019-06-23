@@ -32,29 +32,29 @@ it('should return `undefined` if `args` have not been provided', () => {
 });
 
 it('should throw when there is a store entry with such `ssrKey` already exists', async () => {
-    const res1 = new Resource(value => delay(100, {value}), {
+    const res1 = new Resource<string, {value: string}>(({value}) => delay(100, {value}), {
         ssrKey: 'unique-key',
     });
     const res2 = new Resource(value => delay(100, {value}), {
         ssrKey: 'unique-key',
     });
 
-    res1.get(['foo']);
-    expect(res1.has(['foo'])).toBe(true);
+    res1.get({value: 'foo'});
+    expect(res1.has({value: 'foo'})).toBe(true);
     await delay(150);
 
-    expect(() => res2.get(['bar'])).toThrowErrorMatchingInlineSnapshot(
+    expect(() => res2.get({value: 'bar'})).toThrowErrorMatchingInlineSnapshot(
         `"usePriem: A resource with 'unique-key' \`ssrKey\` already exists. Please make sure \`ssrKey\`s are unique."`
     );
 });
 
 it('should fetch and render to string with data', async () => {
-    const useResource = createResource<string, [string]>(value => delay(100, {value}), {
+    const useResource = createResource<string, {value: string}>(({value}) => delay(100, {value}), {
         ssrKey: 'unique-key-1',
     });
 
     const Comp: React.FC = () => {
-        const [data] = useResource(['foo']);
+        const [data] = useResource({value: 'foo'});
         return <div>{data}</div>;
     };
 
@@ -66,9 +66,9 @@ it('should fetch and render to string with data', async () => {
             "unique-key-1",
             Array [
               Object {
-                "key": Array [
-                  "foo",
-                ],
+                "key": Object {
+                  "value": "foo",
+                },
                 "value": Object {
                   "data": "foo",
                   "reason": undefined,
@@ -85,19 +85,19 @@ it('should fetch and render to string with data', async () => {
 });
 
 it('should fetch data from a nested component', async () => {
-    const useResource1 = createResource<string, [string]>(value => delay(100, {value}), {
+    const useResource1 = createResource<string, {value: string}>(({value}) => delay(100, {value}), {
         ssrKey: 'unique-key-1',
     });
-    const useResource2 = createResource<string, [string, string]>(
-        (res1Value, value) => delay(100, {value: res1Value + value}),
+    const useResource2 = createResource<string, {res1Value: string; value: string}>(
+        ({res1Value, value}) => delay(100, {value: res1Value + value}),
         {
             ssrKey: 'unique-key-2',
         }
     );
 
     const Comp: React.FC = () => {
-        const [data1] = useResource1(['foo']);
-        const [data2] = useResource2(!data1 ? null : [data1, 'bar']);
+        const [data1] = useResource1({value: 'foo'});
+        const [data2] = useResource2(!data1 ? null : {res1Value: data1, value: 'bar'});
         return <div>{data2}</div>;
     };
 
@@ -109,9 +109,9 @@ it('should fetch data from a nested component', async () => {
             "unique-key-1",
             Array [
               Object {
-                "key": Array [
-                  "foo",
-                ],
+                "key": Object {
+                  "value": "foo",
+                },
                 "value": Object {
                   "data": "foo",
                   "reason": undefined,
@@ -124,10 +124,10 @@ it('should fetch data from a nested component', async () => {
             "unique-key-2",
             Array [
               Object {
-                "key": Array [
-                  "foo",
-                  "bar",
-                ],
+                "key": Object {
+                  "res1Value": "foo",
+                  "value": "bar",
+                },
                 "value": Object {
                   "data": "foobar",
                   "reason": undefined,
@@ -145,14 +145,16 @@ it('should fetch data from a nested component', async () => {
 });
 
 it('should not fetch data from resources without `ssrKey`', async () => {
-    const useResource1 = createResource<string, [string]>(value => delay(100, {value}), {
+    const useResource1 = createResource<string, {value: string}>(({value}) => delay(100, {value}), {
         ssrKey: 'unique-key-1',
     });
-    const useResource2 = createResource<string, string[]>((res1Value, value) => delay(100, {value: res1Value + value}));
+    const useResource2 = createResource<string, {res1Value: string; value: string}>(({res1Value, value}) =>
+        delay(100, {value: res1Value + value})
+    );
 
     function Comp() {
-        const [data1] = useResource1(['foo']);
-        const [data2] = useResource2(!data1 ? null : [data1, 'bar']);
+        const [data1] = useResource1({value: 'foo'});
+        const [data2] = useResource2(!data1 ? null : {res1Value: data1, value: 'bar'});
         return <div>{data2}</div>;
     }
 
@@ -164,9 +166,9 @@ it('should not fetch data from resources without `ssrKey`', async () => {
             "unique-key-1",
             Array [
               Object {
-                "key": Array [
-                  "foo",
-                ],
+                "key": Object {
+                  "value": "foo",
+                },
                 "value": Object {
                   "data": "foo",
                   "reason": undefined,
@@ -188,32 +190,32 @@ it('should not add non-fulfilled cache items to store', async () => {
         ssrKey: 'unique-key-1',
     });
 
-    const useResource2 = createResource<string>(() => delay(10000, {value: 'A very long delay...'}), {
+    const useResource2 = createResource(() => delay(10000, {value: 'A very long delay...'}), {
         ssrKey: 'unique-key-2',
     });
 
     await delay(300);
 
     const Comp = () => {
-        useResource1([]);
-        useResource2([]);
+        useResource1({});
+        useResource2({});
         return null;
     };
 
     ReactDOM.renderToStaticMarkup(<Comp />);
 
     expect(flushStore()).toMatchInlineSnapshot(`
-        Array [
-          Array [
-            "unique-key-1",
-            Array [],
-          ],
-          Array [
-            "unique-key-2",
-            Array [],
-          ],
-        ]
-    `);
+                Array [
+                  Array [
+                    "unique-key-1",
+                    Array [],
+                  ],
+                  Array [
+                    "unique-key-2",
+                    Array [],
+                  ],
+                ]
+        `);
 });
 
 it('should rehydrate data from initial store', async () => {
@@ -222,19 +224,19 @@ it('should rehydrate data from initial store', async () => {
             populateStore(initialStore);
         }
 
-        const useResource1 = createResource<string, [string]>(value => delay(100, {value}), {
+        const useResource1 = createResource<string, {value: string}>(({value}) => delay(100, {value}), {
             ssrKey: 'unique-key-1',
         });
-        const useResource2 = createResource<string, string[]>(
-            (res1Value, value) => delay(100, {value: res1Value + value}),
+        const useResource2 = createResource<string, {res1Value: string; value: string}>(
+            ({res1Value, value}) => delay(100, {value: res1Value + value}),
             {
                 ssrKey: 'unique-key-2',
             }
         );
 
         return function Comp() {
-            const [data1] = useResource1(['foo']);
-            const [data2] = useResource2(!data1 ? null : [data1, 'bar']);
+            const [data1] = useResource1({value: 'foo'});
+            const [data2] = useResource2(!data1 ? null : {res1Value: data1, value: 'bar'});
             return <div>{data2}</div>;
         };
     }
