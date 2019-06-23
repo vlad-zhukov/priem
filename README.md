@@ -136,9 +136,9 @@ A React Hook for subscribing to resources.
 
 **Arguments**
 
-1.  `[args]` _(Record<string, unknown> | null)_: An array of arguments that will be passed to a function in `createResource`. Can also be
-    `null` which will prevent the update which can be utilized for waiting for other async tasks or user interactions to
-    finish. Defaults to `[]`.
+1.  `[args]` _(Record<string, unknown> | null)_: An array of arguments that will be passed to a function in
+    `createResource`. Can also be `null` which will prevent the update which can be utilized for waiting for other async
+    tasks or user interactions to finish. Defaults to `[]`.
 
 **Returns**
 
