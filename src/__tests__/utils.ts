@@ -1,5 +1,5 @@
 import {TypeName} from '@sindresorhus/is';
-import {assertType} from '../utils';
+import {assertType, shallowEqual} from '../utils';
 
 describe('assertType', () => {
     it('should throw if type is wrong', () => {
@@ -19,5 +19,20 @@ describe('assertType', () => {
         expect(() => assertType('foo', [TypeName.string])).not.toThrow();
         expect(() => assertType(NaN, [TypeName.number])).not.toThrow();
         expect(() => assertType({}, [TypeName.Object], "'myProps'")).not.toThrow();
+    });
+});
+
+describe('shallowEqual', () => {
+    it('should work', () => {
+        expect(shallowEqual(null, undefined)).toBeFalsy();
+        expect(shallowEqual(NaN, NaN)).toBeTruthy();
+        expect(shallowEqual({}, {})).toBeTruthy();
+        expect(shallowEqual(123, '123')).toBeFalsy();
+
+        expect(shallowEqual({foo: 'foo', bar: 'bar'}, {foo: 'foo', bar: 'bar'})).toBeTruthy();
+        expect(shallowEqual({foo: 'foo', bar: 'bar'}, {foo: 'foo', bar: 'baz'})).toBeFalsy();
+        expect(shallowEqual({foo: 'foo', bar: 'bar'}, {foo: 'foo'})).toBeFalsy();
+        expect(shallowEqual({foo: 'foo', bar: 'bar'}, {foo: 'foo', baz: 'bar'})).toBeFalsy();
+        expect(shallowEqual({foo: 'foo'}, {foo: 'foo', bar: 'bar'})).toBeFalsy();
     });
 });

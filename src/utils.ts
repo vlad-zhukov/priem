@@ -30,20 +30,41 @@ export function assertType(
     }
 }
 
-function isSameValueZero(object1: unknown, object2: unknown): object1 is typeof object2 {
-    return object1 === object2 || (object1 !== object1 && object2 !== object2);
+function sameValueZeroEqual(obj1: unknown, obj2: unknown): obj1 is typeof obj2 {
+    return obj1 === obj2 || (obj1 !== obj1 && obj2 !== obj2);
 }
 
-export function areKeysEqual(keys1: readonly any[], keys2: readonly any[]): boolean {
-    if (keys1.length !== keys2.length) {
-        return false;
+export function shallowEqual(a: unknown, b: unknown): boolean {
+    if (sameValueZeroEqual(a, b)) {
+        return true;
     }
-    for (let i = 0; i < keys1.length; i++) {
-        if (!isSameValueZero(keys1[i], keys2[i])) {
+
+    if (is.plainObject(a) && is.plainObject(b)) {
+        const keysA = Object.keys(a);
+        const {length} = keysA;
+
+        if (Object.keys(b).length !== length) {
             return false;
         }
+
+        let key: string;
+
+        for (let index = 0; index < length; index++) {
+            key = keysA[index];
+
+            if (!b.hasOwnProperty(key)) {
+                return false;
+            }
+
+            if (!sameValueZeroEqual(a[key], b[key])) {
+                return false;
+            }
+        }
+
+        return true;
     }
-    return true;
+
+    return false;
 }
 
 const forceUpdateReducer = () => ({});

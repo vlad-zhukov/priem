@@ -14,7 +14,7 @@ afterEach(() => {
 });
 
 it('should not run if `args` is `null`', async () => {
-    const useResource = createResource<string>(() => delay(200, {value: 'foo'}));
+    const useResource = createResource(() => delay(200, {value: 'foo'}));
 
     const useResourceSpy = jest.fn(args => {
         const ret = useResource(args);
@@ -22,10 +22,10 @@ it('should not run if `args` is `null`', async () => {
         return ret;
     });
 
-    const Comp: React.FC = () => {
+    function Comp() {
         useResourceSpy(null);
         return null;
-    };
+    }
 
     render(<Comp />);
 
@@ -61,14 +61,14 @@ it('should rerun promises when cache expires if `maxAge` is set', async () => {
      *  fulfilled        | 15       | 14                     | 16
      */
 
-    const useResource = createResource<string, [string]>(value => delay(200, {value}), {
+    const useResource = createResource<string, {value: string}>(({value}) => delay(200, {value}), {
         maxAge: 1000,
     });
 
     const useResourceSpy = jest.fn(useResource);
 
     const Comp: React.FC<{count: string}> = ({count}) => {
-        const [data] = useResourceSpy([`foo${count}`]);
+        const [data] = useResourceSpy({value: `foo${count}`});
         return <div>{data}</div>;
     };
 
@@ -171,8 +171,8 @@ HTMLCollection [
 
 it('should have a `refresh` method', async () => {
     let shouldReject = false;
-    const useResource = createResource<string, [string]>(
-        value => {
+    const useResource = createResource<string, {value: string}>(
+        ({value}) => {
             if (shouldReject) {
                 return delay.reject(10, {value: new Error('error!')});
             }
@@ -187,7 +187,7 @@ it('should have a `refresh` method', async () => {
     const useResourceSpy = jest.fn(useResource);
 
     function Comp() {
-        const [data, {reason, refresh}] = useResourceSpy(['foo']);
+        const [data, {reason, refresh}] = useResourceSpy({value: 'foo'});
         expect(typeof refresh).toBe('function');
         return (
             <>
@@ -280,12 +280,14 @@ HTMLCollection [
 });
 
 it('should render a nested component', async () => {
-    const useResource1 = createResource<string, [string]>(value => delay(100, {value}));
-    const useResource2 = createResource<string, string[]>((res1Value, value) => delay(100, {value: res1Value + value}));
+    const useResource1 = createResource<string, {value: string}>(({value}) => delay(100, {value}));
+    const useResource2 = createResource<string, {res1Value: string; value: string}>(({res1Value, value}) =>
+        delay(100, {value: res1Value + value})
+    );
 
     function Comp() {
-        const [data1] = useResource1(['foo']);
-        const [data2] = useResource2(!data1 ? null : [data1, 'bar']);
+        const [data1] = useResource1({value: 'foo'});
+        const [data2] = useResource2(!data1 ? null : {res1Value: data1, value: 'bar'});
         return <div>{data2}</div>;
     }
 
@@ -305,13 +307,13 @@ HTMLCollection [
 });
 
 it('should render `usePriem` hooks that are subscribed to the same resource but need different data', async () => {
-    const useResource = createResource<string, [string]>(value => delay(100, {value}), {
+    const useResource = createResource<string, {value: string}>(({value}) => delay(100, {value}), {
         maxSize: 2,
     });
 
     function Comp() {
-        const [data1] = useResource(['foo']);
-        const [data2] = useResource(['bar']);
+        const [data1] = useResource({value: 'foo'});
+        const [data2] = useResource({value: 'bar'});
         return (
             <div>
                 <div>{data1}</div>
@@ -341,18 +343,18 @@ HTMLCollection [
 });
 
 it('should debounce calls', async () => {
-    const useResource = createResource<string, [string]>(value => delay(200, {value}), {
+    const useResource = createResource<string, {value: string}>(({value}) => delay(200, {value}), {
         maxSize: 10,
     });
 
-    const useResourceSpy = jest.fn((args: [string]) => {
+    const useResourceSpy = jest.fn((args: {value: string}) => {
         const ret = useResource(args);
         delete ret[1].refresh;
         return ret;
     });
 
     const Comp: React.FC<{arg: string}> = props => {
-        useResourceSpy([props.arg]);
+        useResourceSpy({value: props.arg});
         return null;
     };
 
@@ -417,18 +419,18 @@ it('should debounce calls', async () => {
 
 it('should rerender on mount', async () => {
     let counter = 0;
-    const useResource = createResource<number>(() => delay(200, {value: counter += 1}), {refreshOnMount: true});
+    const useResource = createResource<number, {}>(() => delay(200, {value: counter += 1}), {refreshOnMount: true});
 
-    const useResourceSpy = jest.fn(args => {
+    const useResourceSpy = jest.fn((args: Record<string, unknown>) => {
         const ret = useResource(args);
         delete ret[1].refresh;
         return ret;
     });
 
-    const Comp: React.FC = () => {
-        useResourceSpy([]);
+    function Comp() {
+        useResourceSpy({});
         return null;
-    };
+    }
 
     const {unmount, rerender} = render(<Comp />);
 
