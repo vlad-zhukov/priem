@@ -5,9 +5,9 @@ import {Cache, CacheItem, reduce, SerializableCacheItem} from './Cache';
 const DEFAULT_THROTTLE_MS = 150;
 
 export enum STATUS {
-    PENDING = 0,
-    FULFILLED = 1,
-    REJECTED = 2,
+    PENDING,
+    FULFILLED,
+    REJECTED,
 }
 
 export type MemoizedKey = Readonly<Record<string, unknown>>;
