@@ -9,7 +9,7 @@ function toArray<K, V>(cache: Cache<K, V>): CacheItem<K, V>[] {
     });
 }
 
-function createCache(size: number = 5): Cache<string, number> {
+function createCache(size = 5): Cache<string, number> {
     const items = [
         new CacheItem('foo', 123),
         new CacheItem('bar', 234),

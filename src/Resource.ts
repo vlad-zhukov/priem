@@ -29,10 +29,7 @@ export type MemoizedSerializableCacheItem<
     DataType = unknown
 > = SerializableCacheItem<Args, MemoizedValue<DataType>>;
 
-export function toSerializableArray(
-    cache: MemoizedCache,
-    filterFulfilled: boolean = false
-): MemoizedSerializableCacheItem[] {
+export function toSerializableArray(cache: MemoizedCache, filterFulfilled = false): MemoizedSerializableCacheItem[] {
     return reduce<MemoizedSerializableCacheItem[], MemoizedKey, MemoizedValue<unknown>>(cache, [], (acc, item) => {
         const {status, data, reason} = item.value;
         if (!filterFulfilled || status === STATUS.FULFILLED) {
@@ -100,6 +97,7 @@ export class Resource<DataType, Args extends Record<string, unknown>> {
 
         let initialCache: (MemoizedSerializableCacheItem<Args, DataType> | MemoizedCacheItem<Args, DataType>)[] = [];
         if (ssrKey) {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
             // @ts-ignore
             initialCache = storeMap.get(ssrKey) || [];
             storeMap.delete(ssrKey);
@@ -116,7 +114,7 @@ export class Resource<DataType, Args extends Record<string, unknown>> {
     }
 
     /** @private */
-    run(args: Args, forceRefresh: boolean = false): MemoizedValue<DataType> {
+    run(args: Args, forceRefresh = false): MemoizedValue<DataType> {
         let item = this.cache.findBy(cacheItem => shallowEqual(cacheItem.key, args));
         let shouldRefresh = false;
 
@@ -182,7 +180,7 @@ export class Resource<DataType, Args extends Record<string, unknown>> {
         return !!this.cache.findBy(cacheItem => shallowEqual(cacheItem.key, args));
     }
 
-    get(args: Args | null, forceRefresh: boolean = false): MemoizedValue<DataType> | undefined {
+    get(args: Args | null, forceRefresh = false): MemoizedValue<DataType> | undefined {
         if (args === null) {
             return;
         }

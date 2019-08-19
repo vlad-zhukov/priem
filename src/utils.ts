@@ -3,11 +3,7 @@ import * as React from 'react';
 
 export const isBrowser: boolean = typeof window === 'object' && typeof document === 'object' && document.nodeType === 9;
 
-export function assertType(
-    variable: unknown,
-    types: readonly TypeName[],
-    variableName: string = 'The value'
-): void | never {
+export function assertType(variable: unknown, types: readonly TypeName[], variableName = 'The value'): void | never {
     const typeOfVariable = is(variable);
 
     let typesAsString = '';
@@ -34,6 +30,8 @@ function sameValueZeroEqual(obj1: unknown, obj2: unknown): obj1 is typeof obj2 {
     return obj1 === obj2 || (obj1 !== obj1 && obj2 !== obj2);
 }
 
+const hasOwnProperty = Object.prototype.hasOwnProperty;
+
 export function shallowEqual(a: unknown, b: unknown): boolean {
     if (sameValueZeroEqual(a, b)) {
         return true;
@@ -52,7 +50,7 @@ export function shallowEqual(a: unknown, b: unknown): boolean {
         for (let index = 0; index < length; index++) {
             key = keysA[index];
 
-            if (!b.hasOwnProperty(key)) {
+            if (!hasOwnProperty.call(b, key)) {
                 return false;
             }
 

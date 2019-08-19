@@ -38,7 +38,9 @@ export function createResource<DataType, Args extends MemoizedKey>(
 
         const refs = React.useRef<Refs<Args, DataType>>({
             /* istanbul ignore next */
-            onChange() {},
+            onChange() {
+                return;
+            },
             shouldForceUpdate: !!options.refreshOnMount,
             lastTimeCalled: 0,
         });

@@ -84,7 +84,7 @@ export function reduce<ReturnType, K, V>(
 export class Cache<K, V> {
     head: CacheItem<K, V> | undefined;
     tail: CacheItem<K, V> | undefined;
-    size: number = 0;
+    size = 0;
 
     constructor(items: (CacheItem<K, V> | SerializableCacheItem<K, V>)[]) {
         for (let i = items.length; i > 0; i--) {
