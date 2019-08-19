@@ -1,6 +1,6 @@
 import React from 'react';
 import {hydrate} from 'react-dom';
-import BrowserRouter from 'react-router-dom/BrowserRouter';
+import {BrowserRouter} from 'react-router-dom';
 import {populateStore} from 'priem';
 
 populateStore(JSON.parse(window.__PRIEM_STORE__));
