@@ -1,5 +1,3 @@
-/* Excluded from this release type: __INTERNALS__ */
-
 export declare function createResource<DataType, Args extends MemoizedKey>(
     fn: (args: Args) => Promise<DataType>,
     options?: CreateResourceOptions
@@ -10,6 +8,10 @@ export declare interface CreateResourceOptions extends ResourceOptions {
 }
 
 export declare function flushStore(): [string, MemoizedSerializableCacheItem[]][];
+
+/* Excluded from this release type: getRunningPromises */
+
+export declare function hydrateStore(initialStore: [string, MemoizedSerializableCacheItem[]][]): void;
 
 export declare type MemoizedKey = Readonly<Record<string, unknown>>;
 
@@ -24,8 +26,6 @@ export declare interface MemoizedValue<DataType> {
     reason?: Error;
     promise?: Promise<void>;
 }
-
-export declare function populateStore(initialStore: [string, MemoizedSerializableCacheItem[]][]): void;
 
 export declare interface ResourceOptions {
     maxSize?: number;

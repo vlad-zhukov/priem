@@ -1,6 +1,17 @@
-const {__INTERNALS__} = require('.');
-const createGetDataFromTree = require('./dist/priem.server');
+const {getRunningPromises} = require('./');
 
-module.exports = {
-    getDataFromTree: createGetDataFromTree(__INTERNALS__.renderPromises),
-};
+const ReactDOM = require('react-dom/server');
+
+async function getDataFromTree(tree) {
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+        ReactDOM.renderToStaticMarkup(tree);
+        const promises = getRunningPromises();
+        if (promises.length === 0) {
+            return;
+        }
+        await Promise.all(promises);
+    }
+}
+
+module.exports = {getDataFromTree};

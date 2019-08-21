@@ -1,6 +1,6 @@
 import is, {TypeName} from '@sindresorhus/is';
 import {assertType, isBrowser, shallowEqual} from './utils';
-import {Cache, CacheItem, reduce, SerializableCacheItem} from './Cache';
+import {Cache, CacheItem, SerializableCacheItem, reduce} from './Cache';
 
 const DEFAULT_THROTTLE_MS = 150;
 
@@ -19,17 +19,18 @@ export interface MemoizedValue<DataType> {
     promise?: Promise<void>;
 }
 
-type MemoizedCache<Args extends MemoizedKey = MemoizedKey, DataType = unknown> = Cache<Args, MemoizedValue<DataType>>;
-type MemoizedCacheItem<Args extends MemoizedKey = MemoizedKey, DataType = unknown> = CacheItem<
-    Args,
-    MemoizedValue<DataType>
->;
 export type MemoizedSerializableCacheItem<
     Args extends MemoizedKey = MemoizedKey,
     DataType = unknown
 > = SerializableCacheItem<Args, MemoizedValue<DataType>>;
 
-export function toSerializableArray(cache: MemoizedCache, filterFulfilled = false): MemoizedSerializableCacheItem[] {
+// Only used during SSR for resources with `ssrKey`
+export const resourceList: Resource<unknown, any>[] = [];
+
+function toSerializableArray(
+    cache: Cache<MemoizedKey, MemoizedValue<unknown>>,
+    filterFulfilled = false
+): MemoizedSerializableCacheItem[] {
     return reduce<MemoizedSerializableCacheItem[], MemoizedKey, MemoizedValue<unknown>>(cache, [], (acc, item) => {
         const {status, data, reason} = item.value;
         if (!filterFulfilled || status === STATUS.FULFILLED) {
@@ -42,30 +43,39 @@ export function toSerializableArray(cache: MemoizedCache, filterFulfilled = fals
     });
 }
 
-let storeMap = new Map<string, MemoizedSerializableCacheItem[] | MemoizedCacheItem[] | MemoizedCache>();
-export const renderPromises: (Promise<void>)[] = [];
-
-export function populateStore(initialStore: [string, MemoizedSerializableCacheItem[]][]): void {
-    assertType(initialStore, [TypeName.Array], "'initialStore'");
-    storeMap = new Map(initialStore);
-}
-
-function isSerializableCache(
-    maybeCache: MemoizedSerializableCacheItem[] | MemoizedCache
-): maybeCache is MemoizedSerializableCacheItem[] {
-    return is.array(maybeCache);
-}
-
 export function flushStore(): [string, MemoizedSerializableCacheItem[]][] {
     const store: [string, MemoizedSerializableCacheItem[]][] = [];
-    for (const [ssrKey, maybeCache] of storeMap.entries()) {
-        const value = isSerializableCache(maybeCache) ? maybeCache : toSerializableArray(maybeCache, true);
-        store.push([ssrKey, value]);
+
+    for (const resource of resourceList) {
+        if (resource.ssrKey) {
+            store.push([resource.ssrKey, toSerializableArray(resource.cache, true)]);
+        }
     }
 
-    storeMap.clear(); // TODO: should flushing clear resources?
-    renderPromises.splice(0);
+    // TODO: should flushing clear resources?
+
     return store;
+}
+
+/** @internal */
+export function getRunningPromises() {
+    return resourceList.reduce<Promise<unknown>[]>((acc, resource) => {
+        if (resource.ssrKey) {
+            reduce<void, MemoizedKey, MemoizedValue<unknown>>(resource.cache, undefined, (_, cacheItem) => {
+                const {status, promise} = cacheItem.value;
+                if (status === STATUS.PENDING && promise) {
+                    acc.push(promise);
+                }
+            });
+        }
+        return acc;
+    }, []);
+}
+
+let hydratedCacheMap = new Map<string, MemoizedSerializableCacheItem[]>();
+export function hydrateStore(initialStore: [string, MemoizedSerializableCacheItem[]][]): void {
+    assertType(initialStore, [TypeName.Array], "'initialStore'");
+    hydratedCacheMap = new Map(initialStore);
 }
 
 export interface Subscriber<Args> {
@@ -81,11 +91,11 @@ export interface ResourceOptions {
 // TODO: introduce a mechanism to dispose unneeded resource?
 export class Resource<DataType, Args extends Record<string, unknown>> {
     private readonly listeners: Subscriber<Args>[] = [];
-    private readonly cache: Cache<Args, MemoizedValue<DataType>>;
+    /** @private */ readonly cache: Cache<Args, MemoizedValue<DataType>>;
     private readonly fn: (args: Readonly<Args>) => Promise<DataType>;
     private readonly maxSize: number;
     private readonly maxAge?: number;
-    private readonly ssrKey?: string;
+    /** @private */ readonly ssrKey?: string;
 
     constructor(fn: (args: Readonly<Args>) => Promise<DataType>, options: ResourceOptions) {
         assertType(fn, [TypeName.Function], "'fn'");
@@ -95,12 +105,16 @@ export class Resource<DataType, Args extends Record<string, unknown>> {
 
         assertType(ssrKey, [TypeName.string, TypeName.undefined], "'ssrKey'");
 
-        let initialCache: (MemoizedSerializableCacheItem<Args, DataType> | MemoizedCacheItem<Args, DataType>)[] = [];
+        if (!isBrowser && ssrKey) {
+            resourceList.push(this);
+        }
+
+        let initialCache: (MemoizedSerializableCacheItem<Args, DataType>)[] = [];
         if (ssrKey) {
             // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
             // @ts-ignore
-            initialCache = storeMap.get(ssrKey) || [];
-            storeMap.delete(ssrKey);
+            initialCache = hydratedCacheMap.get(ssrKey) || [];
+            hydratedCacheMap.delete(ssrKey);
         }
 
         this.listeners = [];
@@ -189,24 +203,7 @@ export class Resource<DataType, Args extends Record<string, unknown>> {
             return;
         }
 
-        const ret = this.run(args, forceRefresh);
-
-        if (!isBrowser && this.ssrKey) {
-            const cache = storeMap.get(this.ssrKey);
-            if (cache !== undefined && cache !== this.cache) {
-                throw new TypeError(
-                    `usePriem: A resource with '${this.ssrKey}' \`ssrKey\` already exists. ` +
-                        'Please make sure `ssrKey`s are unique.'
-                );
-            } else {
-                storeMap.set(this.ssrKey, this.cache);
-            }
-            if (ret.status === STATUS.PENDING && ret.promise) {
-                renderPromises.push(ret.promise);
-            }
-        }
-
-        return ret;
+        return this.run(args, forceRefresh);
     }
 
     // remove(args: Args): void {
