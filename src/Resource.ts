@@ -49,7 +49,8 @@ export function flushStore(): [string, MemoizedSerializableCacheItem[]][] {
 
     for (const resource of resourceList) {
         const {ssrKey} = resource;
-        /* istanbul ignore next */ // all resources in resourceList have ssrKeys
+        // all resources in resourceList have ssrKeys
+        /* istanbul ignore next */
         if (ssrKey) {
             if (seenSsrKeys.has(ssrKey)) {
                 resourceList.clear();
@@ -74,7 +75,8 @@ export function getRunningPromises() {
     const promises: Promise<unknown>[] = [];
 
     for (const resource of resourceList) {
-        /* istanbul ignore next */ // all resources in resourceList have ssrKeys
+        // all resources in resourceList have ssrKeys
+        /* istanbul ignore next */
         if (resource.ssrKey) {
             reduce<void, MemoizedKey, MemoizedValue<unknown>>(resource.cache, undefined, (_, cacheItem) => {
                 const {status, promise} = cacheItem.value;
