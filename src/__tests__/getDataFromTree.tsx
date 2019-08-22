@@ -6,17 +6,17 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom/server';
 import delay from 'delay';
 import {Resource} from '../Resource';
-import {createResource, flushStore, populateStore, __INTERNALS__} from '../index';
-import createGetDataFromTree from '../index.server';
+import {createResource, flushStore, hydrateStore, getRunningPromises} from '../index';
+import createGetDataFromTree from '../server';
 
-const getDataFromTree = createGetDataFromTree(__INTERNALS__.renderPromises);
+const getDataFromTree = createGetDataFromTree(getRunningPromises);
 
 afterEach(() => {
     flushStore();
 });
 
 it('should populate store', () => {
-    populateStore([['unique-key', []]]);
+    hydrateStore([['unique-key', []]]);
 
     expect(flushStore()).toEqual([['unique-key', []]]);
     expect(flushStore()).toEqual([]);
@@ -205,23 +205,23 @@ it('should not add non-fulfilled cache items to store', async () => {
     ReactDOM.renderToStaticMarkup(<Comp />);
 
     expect(flushStore()).toMatchInlineSnapshot(`
-                Array [
-                  Array [
-                    "unique-key-1",
-                    Array [],
-                  ],
-                  Array [
-                    "unique-key-2",
-                    Array [],
-                  ],
-                ]
-        `);
+        Array [
+          Array [
+            "unique-key-1",
+            Array [],
+          ],
+          Array [
+            "unique-key-2",
+            Array [],
+          ],
+        ]
+    `);
 });
 
 it('should rehydrate data from initial store', async () => {
     function createComponent(initialStore?: any) {
         if (initialStore) {
-            populateStore(initialStore);
+            hydrateStore(initialStore);
         }
 
         const useResource1 = createResource<string, {value: string}>(({value}) => delay(100, {value}), {

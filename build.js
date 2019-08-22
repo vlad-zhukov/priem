@@ -47,6 +47,18 @@ async function build() {
     const extractorConfig = ExtractorConfig.loadFileAndPrepare(path.resolve(__dirname, 'api-extractor.json'));
     Extractor.invoke(extractorConfig);
 
+    console.info('Compiling a server-side bundle');
+    const serverBundle = await rollup({
+        input: './src/server.ts',
+        plugins: getPlugins({compilerOptions: {target: 'es2017'}}),
+        external,
+    });
+    await serverBundle.write({
+        file: './dist/priem.server.js',
+        format: 'cjs',
+        sourcemap: true,
+    });
+
     await fs.remove(path.resolve(dist, 'types'));
 }
 

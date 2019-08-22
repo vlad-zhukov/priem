@@ -27,7 +27,7 @@ export type MemoizedSerializableCacheItem<
 // Only used during SSR for resources with `ssrKey`
 export const resourceList: Resource<unknown, any>[] = [];
 
-function toSerializableArray(
+export function toSerializableArray(
     cache: Cache<MemoizedKey, MemoizedValue<unknown>>,
     filterFulfilled = false
 ): MemoizedSerializableCacheItem[] {
@@ -52,24 +52,29 @@ export function flushStore(): [string, MemoizedSerializableCacheItem[]][] {
         }
     }
 
-    // TODO: should flushing clear resources?
+    // TODO: clear resource caches
+
+    resourceList.splice(0, resourceList.length);
 
     return store;
 }
 
 /** @internal */
 export function getRunningPromises() {
-    return resourceList.reduce<Promise<unknown>[]>((acc, resource) => {
+    const promises: Promise<unknown>[] = [];
+
+    for (const resource of resourceList) {
         if (resource.ssrKey) {
             reduce<void, MemoizedKey, MemoizedValue<unknown>>(resource.cache, undefined, (_, cacheItem) => {
                 const {status, promise} = cacheItem.value;
                 if (status === STATUS.PENDING && promise) {
-                    acc.push(promise);
+                    promises.push(promise);
                 }
             });
         }
-        return acc;
-    }, []);
+    }
+
+    return promises;
 }
 
 let hydratedCacheMap = new Map<string, MemoizedSerializableCacheItem[]>();
@@ -104,10 +109,6 @@ export class Resource<DataType, Args extends Record<string, unknown>> {
         const {maxSize, maxAge, ssrKey} = options;
 
         assertType(ssrKey, [TypeName.string, TypeName.undefined], "'ssrKey'");
-
-        if (!isBrowser && ssrKey) {
-            resourceList.push(this);
-        }
 
         let initialCache: (MemoizedSerializableCacheItem<Args, DataType>)[] = [];
         if (ssrKey) {
@@ -199,8 +200,13 @@ export class Resource<DataType, Args extends Record<string, unknown>> {
             return;
         }
 
-        if (!isBrowser && !this.ssrKey) {
-            return;
+        if (!isBrowser) {
+            // Do not run on server when no ssrKey
+            if (!this.ssrKey) {
+                return;
+            } else if (resourceList.indexOf(this) === -1) {
+                resourceList.push(this);
+            }
         }
 
         return this.run(args, forceRefresh);
