@@ -15,20 +15,56 @@ afterEach(() => {
     flushStore();
 });
 
-it('should populate store', () => {
-    hydrateStore([['unique-key', []]]);
+it('should hydrate store', () => {
+    hydrateStore([
+        [
+            'unique-key',
+            [
+                {
+                    key: {
+                        value: 'foo',
+                    },
+                    value: {
+                        data: 'bar',
+                        reason: undefined,
+                        status: 1,
+                    },
+                },
+            ],
+        ],
+    ]);
 
-    expect(flushStore()).toEqual([['unique-key', []]]);
-    expect(flushStore()).toEqual([]);
-});
-
-it('should return `undefined` if `args` have not been provided', () => {
-    const res = new Resource(() => delay(100), {
+    const res = new Resource<string, {value: string}>(({value}) => delay(100, {value}), {
         ssrKey: 'unique-key',
     });
 
-    expect(res.has(null)).toBe(false);
-    expect(res.get(null)).toBe(undefined);
+    expect(res.get({value: 'foo'})).toMatchInlineSnapshot(`
+        Object {
+          "data": "bar",
+          "reason": undefined,
+          "status": 1,
+        }
+    `);
+    expect(flushStore()).toMatchInlineSnapshot(`
+        Array [
+          Array [
+            "unique-key",
+            Array [
+              Object {
+                "key": Object {
+                  "value": "foo",
+                },
+                "value": Object {
+                  "data": "bar",
+                  "reason": undefined,
+                  "status": 1,
+                },
+              },
+            ],
+          ],
+        ]
+    `);
+    expect(flushStore()).toEqual([]);
 });
 
 it('should throw when there is a store entry with such `ssrKey` already exists', async () => {
@@ -43,7 +79,10 @@ it('should throw when there is a store entry with such `ssrKey` already exists',
     expect(res1.has({value: 'foo'})).toBe(true);
     await delay(150);
 
-    expect(() => res2.get({value: 'bar'})).toThrowErrorMatchingInlineSnapshot(
+    res2.get({value: 'bar'});
+    expect(res2.has({value: 'bar'})).toBe(true);
+
+    expect(flushStore).toThrowErrorMatchingInlineSnapshot(
         `"usePriem: A resource with 'unique-key' \`ssrKey\` already exists. Please make sure \`ssrKey\`s are unique."`
     );
 });
@@ -53,10 +92,10 @@ it('should fetch and render to string with data', async () => {
         ssrKey: 'unique-key-1',
     });
 
-    const Comp: React.FC = () => {
+    function Comp() {
         const [data] = useResource({value: 'foo'});
         return <div>{data}</div>;
-    };
+    }
 
     await getDataFromTree(<Comp />);
 
@@ -95,11 +134,11 @@ it('should fetch data from a nested component', async () => {
         }
     );
 
-    const Comp: React.FC = () => {
+    function Comp() {
         const [data1] = useResource1({value: 'foo'});
         const [data2] = useResource2(!data1 ? null : {res1Value: data1, value: 'bar'});
         return <div>{data2}</div>;
-    };
+    }
 
     await getDataFromTree(<Comp />);
 
@@ -190,17 +229,17 @@ it('should not add non-fulfilled cache items to store', async () => {
         ssrKey: 'unique-key-1',
     });
 
-    const useResource2 = createResource(() => delay(10000, {value: 'A very long delay...'}), {
+    const useResource2 = createResource(() => delay(1000, {value: 'A very long delay...'}), {
         ssrKey: 'unique-key-2',
     });
 
     await delay(300);
 
-    const Comp = () => {
+    function Comp() {
         useResource1({});
         useResource2({});
         return null;
-    };
+    }
 
     ReactDOM.renderToStaticMarkup(<Comp />);
 
@@ -216,6 +255,9 @@ it('should not add non-fulfilled cache items to store', async () => {
           ],
         ]
     `);
+
+    // Flush running promises
+    await Promise.all(getRunningPromises());
 });
 
 it('should rehydrate data from initial store', async () => {

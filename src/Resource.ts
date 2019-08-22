@@ -24,9 +24,6 @@ export type MemoizedSerializableCacheItem<
     DataType = unknown
 > = SerializableCacheItem<Args, MemoizedValue<DataType>>;
 
-// Only used during SSR for resources with `ssrKey`
-export const resourceList: Resource<unknown, any>[] = [];
-
 export function toSerializableArray(
     cache: Cache<MemoizedKey, MemoizedValue<unknown>>,
     filterFulfilled = false
@@ -43,18 +40,31 @@ export function toSerializableArray(
     });
 }
 
+// Only used during SSR for resources with `ssrKey`
+const resourceList = new Set<Resource<unknown, any>>();
+
 export function flushStore(): [string, MemoizedSerializableCacheItem[]][] {
     const store: [string, MemoizedSerializableCacheItem[]][] = [];
+    const seenSsrKeys = new Set<string>();
 
     for (const resource of resourceList) {
-        if (resource.ssrKey) {
-            store.push([resource.ssrKey, toSerializableArray(resource.cache, true)]);
+        const {ssrKey} = resource;
+        /* istanbul ignore next */ // all resources in resourceList have ssrKeys
+        if (ssrKey) {
+            if (seenSsrKeys.has(ssrKey)) {
+                resourceList.clear();
+                throw new Error(
+                    `usePriem: A resource with '${ssrKey}' \`ssrKey\` already exists. Please make sure \`ssrKey\`s are unique.`
+                );
+            }
+            seenSsrKeys.add(ssrKey);
+            store.push([ssrKey, toSerializableArray(resource.cache, true)]);
         }
     }
 
     // TODO: clear resource caches
 
-    resourceList.splice(0, resourceList.length);
+    resourceList.clear();
 
     return store;
 }
@@ -64,6 +74,7 @@ export function getRunningPromises() {
     const promises: Promise<unknown>[] = [];
 
     for (const resource of resourceList) {
+        /* istanbul ignore next */ // all resources in resourceList have ssrKeys
         if (resource.ssrKey) {
             reduce<void, MemoizedKey, MemoizedValue<unknown>>(resource.cache, undefined, (_, cacheItem) => {
                 const {status, promise} = cacheItem.value;
@@ -93,7 +104,6 @@ export interface ResourceOptions {
     ssrKey?: string;
 }
 
-// TODO: introduce a mechanism to dispose unneeded resource?
 export class Resource<DataType, Args extends Record<string, unknown>> {
     private readonly listeners: Subscriber<Args>[] = [];
     /** @private */ readonly cache: Cache<Args, MemoizedValue<DataType>>;
@@ -128,8 +138,26 @@ export class Resource<DataType, Args extends Record<string, unknown>> {
         this.onCacheChange = this.onCacheChange.bind(this);
     }
 
-    /** @private */
-    run(args: Args, forceRefresh = false): MemoizedValue<DataType> {
+    has(args: Args | null): boolean {
+        if (args === null) {
+            return false;
+        }
+        return !!this.cache.findBy(cacheItem => shallowEqual(cacheItem.key, args));
+    }
+
+    get(args: Args | null, forceRefresh = false): MemoizedValue<DataType> | undefined {
+        if (args === null) {
+            return;
+        }
+
+        if (!isBrowser) {
+            // Do not run on server when no ssrKey
+            if (!this.ssrKey) {
+                return;
+            }
+            resourceList.add(this);
+        }
+
         let item = this.cache.findBy(cacheItem => shallowEqual(cacheItem.key, args));
         let shouldRefresh = false;
 
@@ -187,34 +215,6 @@ export class Resource<DataType, Args extends Record<string, unknown>> {
 
         return item.value;
     }
-
-    has(args: Args | null): boolean {
-        if (args === null) {
-            return false;
-        }
-        return !!this.cache.findBy(cacheItem => shallowEqual(cacheItem.key, args));
-    }
-
-    get(args: Args | null, forceRefresh = false): MemoizedValue<DataType> | undefined {
-        if (args === null) {
-            return;
-        }
-
-        if (!isBrowser) {
-            // Do not run on server when no ssrKey
-            if (!this.ssrKey) {
-                return;
-            } else if (resourceList.indexOf(this) === -1) {
-                resourceList.push(this);
-            }
-        }
-
-        return this.run(args, forceRefresh);
-    }
-
-    // remove(args: Args): void {
-    //     this.memoized.has(args);
-    // }
 
     /** @private */
     onCacheChange(args: Args, forceRefresh: boolean): void {
