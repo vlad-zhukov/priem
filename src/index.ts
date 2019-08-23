@@ -1,7 +1,8 @@
 export {createResource, CreateResourceOptions, Result, ResultMeta} from './createResource';
 export {
-    populateStore,
+    hydrateStore,
     flushStore,
+    getRunningPromises,
     ResourceOptions,
     MemoizedKey,
     MemoizedValue,
@@ -9,10 +10,3 @@ export {
     STATUS,
 } from './Resource';
 export {SerializableCacheItem} from './Cache';
-
-import {renderPromises} from './Resource';
-
-/** @internal */
-export const __INTERNALS__ = {
-    renderPromises,
-};

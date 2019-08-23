@@ -3,7 +3,7 @@ import Autosuggest from 'react-autosuggest';
 import {createResource} from 'priem';
 
 const useSuggestions = createResource(
-    value =>
+    ({value}) =>
         fetch('https://jsonplaceholder.typicode.com/photos')
             .then(res => res.json())
             .then(res => res.filter(item => item.title && item.title.includes(value)).slice(0, 5))
@@ -21,7 +21,7 @@ const noop = () => {};
 
 export default function App() {
     const [value, setValue] = React.useState('');
-    const [suggestions] = useSuggestions(value === '' ? null : [value]);
+    const [suggestions] = useSuggestions(value === '' ? null : {value});
 
     return (
         <>

@@ -6,7 +6,9 @@ import {Resource, toSerializableArray} from '../Resource';
 it('should memoize promises', async () => {
     const resource = new Resource(({name}) => delay(200, {value: `Hello ${name}!`}), {maxSize: 2});
 
-    expect(resource.run({name: 'world'})).toMatchInlineSnapshot(`
+    expect(resource.has(null)).toBe(false);
+
+    expect(resource.get({name: 'world'})).toMatchInlineSnapshot(`
                 Object {
                   "data": undefined,
                   "promise": Promise {},
@@ -16,7 +18,7 @@ it('should memoize promises', async () => {
         `);
 
     await delay(300);
-    expect(resource.run({name: 'world'})).toMatchInlineSnapshot(`
+    expect(resource.get({name: 'world'})).toMatchInlineSnapshot(`
                                         Object {
                                           "data": "Hello world!",
                                           "promise": Promise {},
@@ -24,7 +26,7 @@ it('should memoize promises', async () => {
                                           "status": 1,
                                         }
                     `);
-    expect(resource.run({name: 'world'})).toMatchInlineSnapshot(`
+    expect(resource.get({name: 'world'})).toMatchInlineSnapshot(`
                                         Object {
                                           "data": "Hello world!",
                                           "promise": Promise {},
@@ -32,7 +34,7 @@ it('should memoize promises', async () => {
                                           "status": 1,
                                         }
                     `);
-    expect(resource.run({name: 'SpongeBob'})).toMatchInlineSnapshot(`
+    expect(resource.get({name: 'SpongeBob'})).toMatchInlineSnapshot(`
                 Object {
                   "data": undefined,
                   "promise": Promise {},
@@ -42,7 +44,7 @@ it('should memoize promises', async () => {
         `);
 
     await delay(300);
-    expect(resource.run({name: 'SpongeBob'})).toMatchInlineSnapshot(`
+    expect(resource.get({name: 'SpongeBob'})).toMatchInlineSnapshot(`
                                         Object {
                                           "data": "Hello SpongeBob!",
                                           "promise": Promise {},
@@ -50,7 +52,7 @@ it('should memoize promises', async () => {
                                           "status": 1,
                                         }
                     `);
-    expect(resource.run({name: 'world'})).toMatchInlineSnapshot(`
+    expect(resource.get({name: 'world'})).toMatchInlineSnapshot(`
                                         Object {
                                           "data": "Hello world!",
                                           "promise": Promise {},
@@ -63,7 +65,7 @@ it('should memoize promises', async () => {
 it('should not throw on rejected promises', async () => {
     const resource = new Resource(({name}) => delay.reject(200, {value: new Error(`Hello ${name}!`)}), {maxSize: 2});
 
-    expect(resource.run({name: 'world'})).toMatchInlineSnapshot(`
+    expect(resource.get({name: 'world'})).toMatchInlineSnapshot(`
                 Object {
                   "data": undefined,
                   "promise": Promise {},
@@ -73,7 +75,7 @@ it('should not throw on rejected promises', async () => {
         `);
 
     await delay(300);
-    expect(resource.run({name: 'world'})).toMatchInlineSnapshot(`
+    expect(resource.get({name: 'world'})).toMatchInlineSnapshot(`
                 Object {
                   "data": undefined,
                   "promise": Promise {},
@@ -81,7 +83,7 @@ it('should not throw on rejected promises', async () => {
                   "status": 2,
                 }
         `);
-    expect(resource.run({name: 'world'})).toMatchInlineSnapshot(`
+    expect(resource.get({name: 'world'})).toMatchInlineSnapshot(`
                 Object {
                   "data": undefined,
                   "promise": Promise {},
@@ -89,7 +91,7 @@ it('should not throw on rejected promises', async () => {
                   "status": 2,
                 }
         `);
-    expect(resource.run({name: 'SpongeBob'})).toMatchInlineSnapshot(`
+    expect(resource.get({name: 'SpongeBob'})).toMatchInlineSnapshot(`
                 Object {
                   "data": undefined,
                   "promise": Promise {},
@@ -99,7 +101,7 @@ it('should not throw on rejected promises', async () => {
         `);
 
     await delay(300);
-    expect(resource.run({name: 'SpongeBob'})).toMatchInlineSnapshot(`
+    expect(resource.get({name: 'SpongeBob'})).toMatchInlineSnapshot(`
                 Object {
                   "data": undefined,
                   "promise": Promise {},
@@ -118,7 +120,7 @@ it('should default `maxSize` to 1', async () => {
         {}
     );
 
-    resource.run({name1: 'SpongeBob'});
+    resource.get({name1: 'SpongeBob'});
     await delay(300);
     expect(toSerializableArray(resource['cache'])).toMatchInlineSnapshot(`
         Array [
@@ -135,7 +137,7 @@ it('should default `maxSize` to 1', async () => {
         ]
     `);
 
-    resource.run({name1: 'SpongeBob', name2: 'Patrick'});
+    resource.get({name1: 'SpongeBob', name2: 'Patrick'});
     await delay(300);
     expect(toSerializableArray(resource['cache'])).toMatchInlineSnapshot(`
         Array [
@@ -157,8 +159,8 @@ it('should default `maxSize` to 1', async () => {
 it('should properly match equal keys', async () => {
     const resource = new Resource(() => delay(200), {});
 
-    resource.run({a: NaN, b: NaN});
-    resource.run({a: NaN, b: NaN});
+    resource.get({a: NaN, b: NaN});
+    resource.get({a: NaN, b: NaN});
 
     expect(toSerializableArray(resource['cache'])).toMatchInlineSnapshot(`
         Array [
@@ -184,7 +186,7 @@ it('should have a `maxAge` option', async () => {
     });
     const onCacheChange = jest.spyOn(resource, 'onCacheChange');
 
-    resource.run({name: 'SpongeBob'});
+    resource.get({name: 'SpongeBob'});
     expect(toSerializableArray(resource['cache'])).toMatchInlineSnapshot(`
         Array [
           Object {
@@ -218,7 +220,7 @@ it('should have a `maxAge` option', async () => {
     `);
     expect(onCacheChange).toHaveBeenCalledTimes(1);
 
-    resource.run({name: 'Patrick'});
+    resource.get({name: 'Patrick'});
     expect(toSerializableArray(resource['cache'])).toMatchInlineSnapshot(`
         Array [
           Object {
@@ -304,7 +306,7 @@ it('should not fail to expire if the key does not exist', async () => {
     const resource = new Resource(() => delay(200), {maxAge: 500});
     const onCacheChange = jest.spyOn(resource, 'onCacheChange');
 
-    resource.run({name: 'SpongeBob'});
+    resource.get({name: 'SpongeBob'});
     expect(onCacheChange).toHaveBeenCalledTimes(0);
     await delay(300);
     expect(onCacheChange).toHaveBeenCalledTimes(1);
@@ -351,7 +353,7 @@ it('should refresh when called with `forceRefresh`', async () => {
     const resource = new Resource<string, {name: string}>(() => delay(200, {value: 'SquarePants'}), {});
     const onCacheChange = jest.spyOn(resource, 'onCacheChange');
 
-    resource.run({name: 'SpongeBob'});
+    resource.get({name: 'SpongeBob'});
     expect(onCacheChange).toHaveBeenCalledTimes(0);
     await delay(300);
     expect(toSerializableArray(resource['cache'])).toMatchInlineSnapshot(`
@@ -369,7 +371,7 @@ it('should refresh when called with `forceRefresh`', async () => {
         ]
     `);
 
-    resource.run({name: 'SpongeBob'}, true);
+    resource.get({name: 'SpongeBob'}, true);
     expect(toSerializableArray(resource['cache'])).toMatchInlineSnapshot(`
         Array [
           Object {
@@ -405,7 +407,7 @@ it('should refresh when called with `forceRefresh`', async () => {
 it('should throttle refreshing', async () => {
     const resource = new Resource<string, {name: string}>(() => delay(200, {value: 'SquarePants'}), {});
 
-    resource.run({name: 'SpongeBob'});
+    resource.get({name: 'SpongeBob'});
     await delay(300);
     expect(toSerializableArray(resource['cache'])).toMatchInlineSnapshot(`
         Array [
@@ -422,11 +424,11 @@ it('should throttle refreshing', async () => {
         ]
     `);
 
-    const item1 = resource.run({name: 'SpongeBob'}, true);
-    const item2 = resource.run({name: 'SpongeBob'}, true);
+    const item1 = resource.get({name: 'SpongeBob'}, true);
+    const item2 = resource.get({name: 'SpongeBob'}, true);
 
     expect(item1).toBe(item2);
-    expect(item1.promise).toBe(item2.promise);
+    expect(item1!.promise).toBe(item2!.promise);
 
     expect(toSerializableArray(resource['cache'])).toMatchInlineSnapshot(`
         Array [

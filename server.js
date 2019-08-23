@@ -1,6 +1,4 @@
-const {__INTERNALS__} = require('.');
 const createGetDataFromTree = require('./dist/priem.server');
+const {getRunningPromises} = require('./');
 
-module.exports = {
-    getDataFromTree: createGetDataFromTree(__INTERNALS__.renderPromises),
-};
+module.exports = {getDataFromTree: createGetDataFromTree(getRunningPromises)};

@@ -11,7 +11,7 @@ React Hook to declaratively subscribe to external data resources.
     -   [`createResource`](#createresource)
     -   [`useResource`](#useresource)
     -   [`getDataFromTree`](#getdatafromtreecomponent)
-    -   [`populateStore`](#populatestoreinitialstore)
+    -   [`hydrateStore`](#hydratestoreinitialstore)
     -   [`flushStore`](#flishstore)
 
 ## Installation
@@ -89,9 +89,9 @@ app.get(async (req, res) => {
 ```jsx
 import React from 'react';
 import ReactDOM from 'react-dom';
-import {populateStore} from 'priem';
+import {hydrateStore} from 'priem';
 
-populateStore(JSON.parse(window.__PRIEM_STORE__));
+hydrateStore(JSON.parse(window.__PRIEM_STORE__));
 delete window.__PRIEM_STORE__;
 
 // Note that the import order is important here
@@ -160,9 +160,9 @@ promise that either resolves with `undefined` or rejects on errors.
 
 ---
 
-### `populateStore(initialStore)`
+### `hydrateStore(initialStore)`
 
-A function to populate internal store with initial data from server.
+A function to hydrate internal store with initial data from server.
 
 ---
 

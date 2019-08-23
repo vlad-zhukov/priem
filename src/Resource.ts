@@ -1,6 +1,6 @@
 import is, {TypeName} from '@sindresorhus/is';
 import {assertType, isBrowser, shallowEqual} from './utils';
-import {Cache, CacheItem, reduce, SerializableCacheItem} from './Cache';
+import {Cache, CacheItem, SerializableCacheItem, reduce} from './Cache';
 
 const DEFAULT_THROTTLE_MS = 150;
 
@@ -19,17 +19,15 @@ export interface MemoizedValue<DataType> {
     promise?: Promise<void>;
 }
 
-type MemoizedCache<Args extends MemoizedKey = MemoizedKey, DataType = unknown> = Cache<Args, MemoizedValue<DataType>>;
-type MemoizedCacheItem<Args extends MemoizedKey = MemoizedKey, DataType = unknown> = CacheItem<
-    Args,
-    MemoizedValue<DataType>
->;
 export type MemoizedSerializableCacheItem<
     Args extends MemoizedKey = MemoizedKey,
     DataType = unknown
 > = SerializableCacheItem<Args, MemoizedValue<DataType>>;
 
-export function toSerializableArray(cache: MemoizedCache, filterFulfilled = false): MemoizedSerializableCacheItem[] {
+export function toSerializableArray(
+    cache: Cache<MemoizedKey, MemoizedValue<unknown>>,
+    filterFulfilled = false
+): MemoizedSerializableCacheItem[] {
     return reduce<MemoizedSerializableCacheItem[], MemoizedKey, MemoizedValue<unknown>>(cache, [], (acc, item) => {
         const {status, data, reason} = item.value;
         if (!filterFulfilled || status === STATUS.FULFILLED) {
@@ -42,30 +40,73 @@ export function toSerializableArray(cache: MemoizedCache, filterFulfilled = fals
     });
 }
 
-let storeMap = new Map<string, MemoizedSerializableCacheItem[] | MemoizedCacheItem[] | MemoizedCache>();
-export const renderPromises: (Promise<void>)[] = [];
-
-export function populateStore(initialStore: [string, MemoizedSerializableCacheItem[]][]): void {
-    assertType(initialStore, [TypeName.Array], "'initialStore'");
-    storeMap = new Map(initialStore);
-}
-
-function isSerializableCache(
-    maybeCache: MemoizedSerializableCacheItem[] | MemoizedCache
-): maybeCache is MemoizedSerializableCacheItem[] {
-    return is.array(maybeCache);
-}
+// Only used during SSR for resources with `ssrKey`
+const resourceList = new Set<Resource<unknown, any>>();
 
 export function flushStore(): [string, MemoizedSerializableCacheItem[]][] {
     const store: [string, MemoizedSerializableCacheItem[]][] = [];
-    for (const [ssrKey, maybeCache] of storeMap.entries()) {
-        const value = isSerializableCache(maybeCache) ? maybeCache : toSerializableArray(maybeCache, true);
-        store.push([ssrKey, value]);
+    const seenSsrKeys = new Set<string>();
+    let duplicateSsrKey: string | undefined;
+
+    for (const resource of resourceList) {
+        const {ssrKey, cache} = resource;
+        // all resources in resourceList have ssrKeys
+        /* istanbul ignore next */
+        if (ssrKey) {
+            if (seenSsrKeys.has(ssrKey)) {
+                duplicateSsrKey = ssrKey;
+            }
+
+            // Stop serializing other caches because we will throw anyway
+            if (!duplicateSsrKey) {
+                seenSsrKeys.add(ssrKey);
+                store.push([ssrKey, toSerializableArray(cache, true)]);
+            }
+
+            // Always clear all caches
+            reduce(cache, undefined, (acc, cacheItem) => {
+                cache.remove(cacheItem);
+                cacheItem.destroy();
+                return undefined;
+            });
+        }
     }
 
-    storeMap.clear(); // TODO: should flushing clear resources?
-    renderPromises.splice(0);
+    resourceList.clear();
+
+    if (duplicateSsrKey) {
+        throw new Error(
+            `usePriem: A resource with '${duplicateSsrKey}' \`ssrKey\` already exists. Please make sure \`ssrKey\`s are unique.`
+        );
+    }
+
     return store;
+}
+
+/** @internal */
+export function getRunningPromises() {
+    const promises: Promise<unknown>[] = [];
+
+    for (const resource of resourceList) {
+        // all resources in resourceList have ssrKeys
+        /* istanbul ignore next */
+        if (resource.ssrKey) {
+            reduce<void, MemoizedKey, MemoizedValue<unknown>>(resource.cache, undefined, (_, cacheItem) => {
+                const {status, promise} = cacheItem.value;
+                if (status === STATUS.PENDING && promise) {
+                    promises.push(promise);
+                }
+            });
+        }
+    }
+
+    return promises;
+}
+
+let hydratedCacheMap = new Map<string, MemoizedSerializableCacheItem[]>();
+export function hydrateStore(initialStore: [string, MemoizedSerializableCacheItem[]][]): void {
+    assertType(initialStore, [TypeName.Array], "'initialStore'");
+    hydratedCacheMap = new Map(initialStore);
 }
 
 export interface Subscriber<Args> {
@@ -78,14 +119,13 @@ export interface ResourceOptions {
     ssrKey?: string;
 }
 
-// TODO: introduce a mechanism to dispose unneeded resource?
 export class Resource<DataType, Args extends Record<string, unknown>> {
     private readonly listeners: Subscriber<Args>[] = [];
-    private readonly cache: Cache<Args, MemoizedValue<DataType>>;
+    /** @private */ readonly cache: Cache<Args, MemoizedValue<DataType>>;
     private readonly fn: (args: Readonly<Args>) => Promise<DataType>;
     private readonly maxSize: number;
     private readonly maxAge?: number;
-    private readonly ssrKey?: string;
+    /** @private */ readonly ssrKey?: string;
 
     constructor(fn: (args: Readonly<Args>) => Promise<DataType>, options: ResourceOptions) {
         assertType(fn, [TypeName.Function], "'fn'");
@@ -95,12 +135,12 @@ export class Resource<DataType, Args extends Record<string, unknown>> {
 
         assertType(ssrKey, [TypeName.string, TypeName.undefined], "'ssrKey'");
 
-        let initialCache: (MemoizedSerializableCacheItem<Args, DataType> | MemoizedCacheItem<Args, DataType>)[] = [];
+        let initialCache: (MemoizedSerializableCacheItem<Args, DataType>)[] = [];
         if (ssrKey) {
             // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
             // @ts-ignore
-            initialCache = storeMap.get(ssrKey) || [];
-            storeMap.delete(ssrKey);
+            initialCache = hydratedCacheMap.get(ssrKey) || [];
+            hydratedCacheMap.delete(ssrKey);
         }
 
         this.listeners = [];
@@ -113,8 +153,26 @@ export class Resource<DataType, Args extends Record<string, unknown>> {
         this.onCacheChange = this.onCacheChange.bind(this);
     }
 
-    /** @private */
-    run(args: Args, forceRefresh = false): MemoizedValue<DataType> {
+    has(args: Args | null): boolean {
+        if (args === null) {
+            return false;
+        }
+        return !!this.cache.findBy(cacheItem => shallowEqual(cacheItem.key, args));
+    }
+
+    get(args: Args | null, forceRefresh = false): MemoizedValue<DataType> | undefined {
+        if (args === null) {
+            return;
+        }
+
+        if (!isBrowser) {
+            // Do not run on server when no ssrKey
+            if (!this.ssrKey) {
+                return;
+            }
+            resourceList.add(this);
+        }
+
         let item = this.cache.findBy(cacheItem => shallowEqual(cacheItem.key, args));
         let shouldRefresh = false;
 
@@ -172,46 +230,6 @@ export class Resource<DataType, Args extends Record<string, unknown>> {
 
         return item.value;
     }
-
-    has(args: Args | null): boolean {
-        if (args === null) {
-            return false;
-        }
-        return !!this.cache.findBy(cacheItem => shallowEqual(cacheItem.key, args));
-    }
-
-    get(args: Args | null, forceRefresh = false): MemoizedValue<DataType> | undefined {
-        if (args === null) {
-            return;
-        }
-
-        if (!isBrowser && !this.ssrKey) {
-            return;
-        }
-
-        const ret = this.run(args, forceRefresh);
-
-        if (!isBrowser && this.ssrKey) {
-            const cache = storeMap.get(this.ssrKey);
-            if (cache !== undefined && cache !== this.cache) {
-                throw new TypeError(
-                    `usePriem: A resource with '${this.ssrKey}' \`ssrKey\` already exists. ` +
-                        'Please make sure `ssrKey`s are unique.'
-                );
-            } else {
-                storeMap.set(this.ssrKey, this.cache);
-            }
-            if (ret.status === STATUS.PENDING && ret.promise) {
-                renderPromises.push(ret.promise);
-            }
-        }
-
-        return ret;
-    }
-
-    // remove(args: Args): void {
-    //     this.memoized.has(args);
-    // }
 
     /** @private */
     onCacheChange(args: Args, forceRefresh: boolean): void {

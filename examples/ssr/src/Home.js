@@ -7,6 +7,6 @@ const useLongPromise = createResource(() => delay(1000, {value: 'SpongeBob'}), {
 });
 
 export default () => {
-    const [data, {pending}] = useLongPromise([]);
+    const [data, {pending}] = useLongPromise({});
     return <h1>{pending ? 'Loading...' : data}</h1>;
 };
