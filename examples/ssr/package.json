@@ -12,7 +12,7 @@
   "dependencies": {
     "delay": "^4.3.0",
     "express": "^4.17.1",
-    "priem": "^2.0.0-alpha.9",
+    "priem": "^2.0.0-alpha.10",
     "razzle": "3.0.0",
     "react": "16.9.0",
     "react-dom": "16.9.0",
