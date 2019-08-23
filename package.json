@@ -1,6 +1,6 @@
 {
   "name": "priem",
-  "version": "2.0.0-alpha.9",
+  "version": "2.0.0-alpha.10",
   "description": "React Hook to declaratively subscribe to external data resources.",
   "author": "Vlad Zhukov (http://github.com/Vlad-Zhukov)",
   "license": "MIT",
