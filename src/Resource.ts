@@ -46,26 +46,39 @@ const resourceList = new Set<Resource<unknown, any>>();
 export function flushStore(): [string, MemoizedSerializableCacheItem[]][] {
     const store: [string, MemoizedSerializableCacheItem[]][] = [];
     const seenSsrKeys = new Set<string>();
+    let duplicateSsrKey: string | undefined = undefined;
 
     for (const resource of resourceList) {
-        const {ssrKey} = resource;
+        const {ssrKey, cache} = resource;
         // all resources in resourceList have ssrKeys
         /* istanbul ignore next */
         if (ssrKey) {
             if (seenSsrKeys.has(ssrKey)) {
-                resourceList.clear();
-                throw new Error(
-                    `usePriem: A resource with '${ssrKey}' \`ssrKey\` already exists. Please make sure \`ssrKey\`s are unique.`
-                );
+                duplicateSsrKey = ssrKey;
             }
-            seenSsrKeys.add(ssrKey);
-            store.push([ssrKey, toSerializableArray(resource.cache, true)]);
+
+            // Stop serializing other caches because we will throw anyway
+            if (!duplicateSsrKey) {
+                seenSsrKeys.add(ssrKey);
+                store.push([ssrKey, toSerializableArray(cache, true)]);
+            }
+
+            // Always clear all caches
+            reduce(cache, undefined, (acc, cacheItem) => {
+                cache.remove(cacheItem);
+                cacheItem.destroy();
+                return undefined;
+            });
         }
     }
 
-    // TODO: clear resource caches
-
     resourceList.clear();
+
+    if (duplicateSsrKey) {
+        throw new Error(
+            `usePriem: A resource with '${duplicateSsrKey}' \`ssrKey\` already exists. Please make sure \`ssrKey\`s are unique.`
+        );
+    }
 
     return store;
 }

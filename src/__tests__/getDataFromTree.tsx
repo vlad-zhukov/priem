@@ -67,6 +67,20 @@ it('should hydrate store', () => {
     expect(flushStore()).toEqual([]);
 });
 
+it('should always clear caches when flushing', async () => {
+    const res = new Resource<string, {value: string}>(({value}) => delay(100, {value}), {
+        ssrKey: 'unique-key',
+    });
+
+    res.get({value: 'foo'});
+
+    expect(res.has({value: 'foo'})).toBe(true);
+
+    flushStore();
+
+    expect(res.has({value: 'foo'})).toBe(false);
+});
+
 it('should throw when there is a store entry with such `ssrKey` already exists', async () => {
     const res1 = new Resource<string, {value: string}>(({value}) => delay(100, {value}), {
         ssrKey: 'unique-key',
@@ -85,6 +99,9 @@ it('should throw when there is a store entry with such `ssrKey` already exists',
     expect(flushStore).toThrowErrorMatchingInlineSnapshot(
         `"usePriem: A resource with 'unique-key' \`ssrKey\` already exists. Please make sure \`ssrKey\`s are unique."`
     );
+
+    expect(res1.has({value: 'foo'})).toBe(false);
+    expect(res2.has({value: 'bar'})).toBe(false);
 });
 
 it('should fetch and render to string with data', async () => {
@@ -98,26 +115,6 @@ it('should fetch and render to string with data', async () => {
     }
 
     await getDataFromTree(<Comp />);
-
-    expect(flushStore()).toMatchInlineSnapshot(`
-        Array [
-          Array [
-            "unique-key-1",
-            Array [
-              Object {
-                "key": Object {
-                  "value": "foo",
-                },
-                "value": Object {
-                  "data": "foo",
-                  "reason": undefined,
-                  "status": 1,
-                },
-              },
-            ],
-          ],
-        ]
-    `);
 
     const content = ReactDOM.renderToStaticMarkup(<Comp />);
     expect(content).toBe('<div>foo</div>');
@@ -177,10 +174,6 @@ it('should fetch data from a nested component', async () => {
           ],
         ]
     `);
-
-    const content = ReactDOM.renderToStaticMarkup(<Comp />);
-
-    expect(content).toBe('<div>foobar</div>');
 });
 
 it('should not fetch data from resources without `ssrKey`', async () => {
@@ -218,10 +211,6 @@ it('should not fetch data from resources without `ssrKey`', async () => {
           ],
         ]
     `);
-
-    const content = ReactDOM.renderToStaticMarkup(<Comp />);
-
-    expect(content).toBe('<div></div>');
 });
 
 it('should not add non-fulfilled cache items to store', async () => {
@@ -255,9 +244,6 @@ it('should not add non-fulfilled cache items to store', async () => {
           ],
         ]
     `);
-
-    // Flush running promises
-    await Promise.all(getRunningPromises());
 });
 
 it('should rehydrate data from initial store', async () => {
