@@ -46,7 +46,7 @@ const resourceList = new Set<Resource<unknown, any>>();
 export function flushStore(): [string, MemoizedSerializableCacheItem[]][] {
     const store: [string, MemoizedSerializableCacheItem[]][] = [];
     const seenSsrKeys = new Set<string>();
-    let duplicateSsrKey: string | undefined = undefined;
+    let duplicateSsrKey: string | undefined;
 
     for (const resource of resourceList) {
         const {ssrKey, cache} = resource;
