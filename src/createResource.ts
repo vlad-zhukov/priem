@@ -36,7 +36,7 @@ export function createResource<DataType, Args extends MemoizedKey>(
 
         const forceUpdate = useForceUpdate();
 
-        const refs = React.useRef<Refs<Args, DataType>>({
+        const {current: refs} = React.useRef<Refs<Args, DataType>>({
             /* istanbul ignore next */
             onChange() {
                 return;
@@ -46,41 +46,46 @@ export function createResource<DataType, Args extends MemoizedKey>(
         });
 
         // A callback for Resource#onCacheChange
-        refs.current.onChange = (prevArgs, shouldForceUpd) => {
+        refs.onChange = (prevArgs, shouldForceUpd) => {
             if (args && prevArgs && shallowEqual(args, prevArgs)) {
-                refs.current.shouldForceUpdate = shouldForceUpd;
+                refs.shouldForceUpdate = shouldForceUpd;
                 forceUpdate();
             }
         };
 
         useLazyRef(() => {
-            resource.subscribe(refs.current);
+            resource.subscribe(refs);
         });
 
         React.useEffect(() => {
             return () => {
                 // eslint-disable-next-line react-hooks/exhaustive-deps
-                resource.unsubscribe(refs.current);
+                resource.unsubscribe(refs);
             };
         }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-        const {lastTimeCalled, prevResult, shouldForceUpdate} = refs.current;
+        const {lastTimeCalled, prevResult, shouldForceUpdate} = refs;
         const now = Date.now();
-        refs.current.lastTimeCalled = now;
-        refs.current.shouldForceUpdate = false;
+        refs.lastTimeCalled = now;
+        refs.shouldForceUpdate = false;
 
         /**
          * Should this call get debounced and rescheduled,
          * and return the previous value to reduce the amount of requests?
          *
          * We should debounce when all conditions are met:
-         * 1. This call is not forced.
-         * 2. Previous result is valid.
-         * 3. Less than 150ms lapsed since the last call.
-         * 4. The item is not in the cache.
+         * 1. Argument are provided.
+         * 2. This call is not forced.
+         * 3. Previous result is valid.
+         * 4. Less than 150ms lapsed since the last call.
+         * 5. The item is not in the cache.
          */
         const shouldDebounce =
-            !shouldForceUpdate && prevResult && now - lastTimeCalled < DEFAULT_DEBOUNCE_MS && !resource.has(args);
+            args !== null &&
+            !shouldForceUpdate &&
+            !!prevResult &&
+            now - lastTimeCalled < DEFAULT_DEBOUNCE_MS &&
+            !resource.has(args);
 
         React.useEffect(() => {
             let handler: number | undefined;
@@ -96,7 +101,7 @@ export function createResource<DataType, Args extends MemoizedKey>(
 
         const ret = resource.get(args, shouldForceUpdate);
 
-        if ((!ret || ret.status === STATUS.PENDING) && prevResult) {
+        if ((!ret || ret.status === STATUS.PENDING) && !!prevResult) {
             return prevResult;
         }
 
@@ -107,7 +112,7 @@ export function createResource<DataType, Args extends MemoizedKey>(
             rejected: false,
             reason: undefined,
             refresh() {
-                refs.current.shouldForceUpdate = true;
+                refs.shouldForceUpdate = true;
                 forceUpdate();
             },
         };
@@ -123,7 +128,7 @@ export function createResource<DataType, Args extends MemoizedKey>(
         }
 
         const result: Result<DataType> = [data, meta];
-        refs.current.prevResult = result;
+        refs.prevResult = result;
 
         return result;
     };
