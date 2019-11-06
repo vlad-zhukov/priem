@@ -11,7 +11,7 @@ const useRedditContainer = createResource<Post[], {reddit: string}>(
     {
         maxSize: 2,
         maxAge: 10000,
-    }
+    },
 );
 
 export default () => {

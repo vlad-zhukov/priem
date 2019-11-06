@@ -10,7 +10,7 @@ const useSuggestions = createResource(
             .then(res => {
                 console.log(res);
             }),
-    {maxSize: 10}
+    {maxSize: 10},
 );
 
 const getSuggestionValue = suggestion => (suggestion ? suggestion.value : null);

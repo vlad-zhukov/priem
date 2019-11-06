@@ -181,7 +181,7 @@ it('should have a `refresh` method', async () => {
         },
         {
             maxSize: 10,
-        }
+        },
     );
 
     const useResourceSpy = jest.fn(useResource);
@@ -282,7 +282,7 @@ HTMLCollection [
 it('should render a nested component', async () => {
     const useResource1 = createResource<string, {value: string}>(({value}) => delay(100, {value}));
     const useResource2 = createResource<string, {res1Value: string; value: string}>(({res1Value, value}) =>
-        delay(100, {value: res1Value + value})
+        delay(100, {value: res1Value + value}),
     );
 
     function Comp() {

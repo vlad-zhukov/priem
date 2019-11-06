@@ -27,7 +27,7 @@ interface Refs<Args, DataType> extends Subscriber<Args> {
 
 export function createResource<DataType, Args extends MemoizedKey>(
     fn: (args: Args) => Promise<DataType>,
-    options: CreateResourceOptions = {}
+    options: CreateResourceOptions = {},
 ) {
     const resource = new Resource<DataType, Args>(fn, options);
 
@@ -119,7 +119,7 @@ export function createResource<DataType, Args extends MemoizedKey>(
 
         if (ret) {
             if (ret.data) {
-                data = ret.data as DataType;
+                data = ret.data;
             }
             meta.pending = ret.status === STATUS.PENDING;
             meta.fulfilled = ret.status === STATUS.FULFILLED;

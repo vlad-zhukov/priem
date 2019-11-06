@@ -14,7 +14,7 @@
   "scripts": {
     "build": "node build.js",
     "test": "jest",
-    "lint": "eslint --ignore-path .gitignore \"src/**/*.{ts,tsx,js}\" && tslint -p tsconfig.json -t codeFrame \"src/**/*.{ts,tsx}\"",
+    "lint": "eslint --ignore-path .gitignore \"src/**/*.{ts,tsx,js}\"",
     "prettier": "prettier --ignore-path .gitignore \"**/*.{ts,tsx,js,md}\" --write",
     "prepublishOnly": "yarn lint && prettier --ignore-path .gitignore \"**/*.{ts,tsx,js,md}\" --check && yarn build && yarn prettier && yarn test"
   },
@@ -45,9 +45,6 @@
     "rollup": "^1.26.3",
     "rollup-plugin-typescript2": "^0.25.2",
     "ts-jest": "^24.1.0",
-    "tslint": "^5.20.1",
-    "tslint-config-prettier": "^1.18.0",
-    "tslint-react": "^4.1.0",
     "typescript": "^3.7.2"
   },
   "peerDependencies": {
@@ -68,88 +65,5 @@
     "priem.d.ts",
     "server.js",
     "server.d.ts"
-  ],
-  "jest": {
-    "testRunner": "jest-circus/runner",
-    "globals": {
-      "ts-jest": {
-        "tsConfig": "tsconfig.test.json"
-      }
-    },
-    "transform": {
-      ".tsx?$": "ts-jest",
-      ".js$": "babel-jest"
-    },
-    "setupFilesAfterEnv": [
-      "raf/polyfill"
-    ],
-    "roots": [
-      "<rootDir>/src"
-    ],
-    "collectCoverage": true,
-    "collectCoverageFrom": [
-      "src/**/*"
-    ],
-    "coverageThreshold": {
-      "global": {
-        "branches": 100,
-        "functions": 100,
-        "lines": 100,
-        "statements": 100
-      }
-    }
-  },
-  "eslintConfig": {
-    "parser": "@typescript-eslint/parser",
-    "parserOptions": {
-      "project": "./tsconfig.json"
-    },
-    "extends": [
-      "eslint:recommended",
-      "plugin:@typescript-eslint/recommended",
-      "plugin:react/recommended",
-      "plugin:jest/recommended",
-      "prettier",
-      "prettier/@typescript-eslint"
-    ],
-    "plugins": [
-      "react-hooks"
-    ],
-    "env": {
-      "browser": true,
-      "es6": true,
-      "node": false
-    },
-    "globals": {
-      "process": true
-    },
-    "settings": {
-      "react": {
-        "version": "detect"
-      }
-    },
-    "rules": {
-      "no-console": "error",
-      "no-plusplus": [
-        "error",
-        {
-          "allowForLoopAfterthoughts": true
-        }
-      ],
-      "@typescript-eslint/explicit-function-return-type": "off",
-      "react/prop-types": "off",
-      "react-hooks/rules-of-hooks": "error",
-      "react-hooks/exhaustive-deps": "error"
-    }
-  },
-  "prettier": {
-    "printWidth": 120,
-    "tabWidth": 4,
-    "trailingComma": "es5",
-    "singleQuote": true,
-    "quoteProps": "consistent",
-    "bracketSpacing": false,
-    "jsxBracketSameLine": false,
-    "proseWrap": "always"
-  }
+  ]
 }

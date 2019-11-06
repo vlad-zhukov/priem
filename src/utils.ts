@@ -21,7 +21,7 @@ export function assertType(variable: unknown, types: readonly TypeName[], variab
 
     if (!isValid) {
         throw new TypeError(
-            `Priem: ${variableName} must be one of the following: '${typesAsString}', but got: '${typeOfVariable}'.`
+            `Priem: ${variableName} must be one of the following: '${typesAsString}', but got: '${typeOfVariable}'.`,
         );
     }
 }
@@ -30,6 +30,7 @@ function sameValueZeroEqual(obj1: unknown, obj2: unknown): obj1 is typeof obj2 {
     return obj1 === obj2 || (obj1 !== obj1 && obj2 !== obj2);
 }
 
+// eslint-disable-next-line @typescript-eslint/unbound-method
 const hasOwnProperty = Object.prototype.hasOwnProperty;
 
 export function shallowEqual(a: unknown, b: unknown): boolean {

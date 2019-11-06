@@ -67,7 +67,7 @@ function isReduced<ValueType>(value: any): value is ReducedType<ValueType> {
 export function reduce<ReturnType, K, V>(
     cache: Cache<K, V>,
     accumulator: ReturnType,
-    iteratee: (result: ReturnType, item: CacheItem<K, V>) => ReturnType | ReducedType<ReturnType>
+    iteratee: (result: ReturnType, item: CacheItem<K, V>) => ReturnType | ReducedType<ReturnType>,
 ) {
     let item = cache.head;
     let result: ReturnType | ReducedType<ReturnType> = accumulator;
@@ -134,7 +134,7 @@ export class Cache<K, V> {
 
     findBy(predicate: (item: CacheItem<K, V>) => boolean): CacheItem<K, V> | undefined {
         return reduce<CacheItem<K, V> | undefined, K, V>(this, undefined, (acc, item) =>
-            predicate(item) ? reduced(item) : acc
+            predicate(item) ? reduced(item) : acc,
         );
     }
 }

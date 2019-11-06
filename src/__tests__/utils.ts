@@ -4,13 +4,13 @@ import {assertType, shallowEqual} from '../utils';
 describe('assertType', () => {
     it('should throw if type is wrong', () => {
         expect(() => assertType(null, [TypeName.Object])).toThrowErrorMatchingInlineSnapshot(
-            `"Priem: The value must be one of the following: 'Object', but got: 'null'."`
+            `"Priem: The value must be one of the following: 'Object', but got: 'null'."`,
         );
         expect(() => assertType('foo', [TypeName.number, TypeName.Function])).toThrowErrorMatchingInlineSnapshot(
-            `"Priem: The value must be one of the following: 'number, Function', but got: 'string'."`
+            `"Priem: The value must be one of the following: 'number, Function', but got: 'string'."`,
         );
         expect(() => assertType({}, [TypeName.number], "'myProps'")).toThrowErrorMatchingInlineSnapshot(
-            `"Priem: 'myProps' must be one of the following: 'number', but got: 'Object'."`
+            `"Priem: 'myProps' must be one of the following: 'number', but got: 'Object'."`,
         );
     });
 

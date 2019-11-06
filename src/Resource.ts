@@ -26,7 +26,7 @@ export type MemoizedSerializableCacheItem<
 
 export function toSerializableArray(
     cache: Cache<MemoizedKey, MemoizedValue<unknown>>,
-    filterFulfilled = false
+    filterFulfilled = false,
 ): MemoizedSerializableCacheItem[] {
     return reduce<MemoizedSerializableCacheItem[], MemoizedKey, MemoizedValue<unknown>>(cache, [], (acc, item) => {
         const {status, data, reason} = item.value;
@@ -76,7 +76,7 @@ export function flushStore(): [string, MemoizedSerializableCacheItem[]][] {
 
     if (duplicateSsrKey) {
         throw new Error(
-            `usePriem: A resource with '${duplicateSsrKey}' \`ssrKey\` already exists. Please make sure \`ssrKey\`s are unique.`
+            `usePriem: A resource with '${duplicateSsrKey}' \`ssrKey\` already exists. Please make sure \`ssrKey\`s are unique.`,
         );
     }
 
@@ -149,8 +149,6 @@ export class Resource<DataType, Args extends Record<string, unknown>> {
         this.maxSize = is.number(maxSize) && maxSize > 0 && is.safeInteger(maxSize) ? maxSize : 1;
         this.maxAge = is.number(maxAge) && isFinite(maxAge) ? maxAge : undefined;
         this.ssrKey = ssrKey;
-
-        this.onCacheChange = this.onCacheChange.bind(this);
     }
 
     has(args: Args | null): boolean {

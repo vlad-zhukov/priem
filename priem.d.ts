@@ -1,6 +1,6 @@
 export declare function createResource<DataType, Args extends MemoizedKey>(
     fn: (args: Args) => Promise<DataType>,
-    options?: CreateResourceOptions
+    options?: CreateResourceOptions,
 ): (args: Args | null) => Result<DataType>;
 
 export declare interface CreateResourceOptions extends ResourceOptions {

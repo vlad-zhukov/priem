@@ -35,7 +35,7 @@ const useReddit = createResource(
             .then(res => res.data.children),
     {
         ssrKey: 'reddit-resource',
-    }
+    },
 );
 
 export default () => {

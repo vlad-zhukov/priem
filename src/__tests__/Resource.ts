@@ -117,7 +117,7 @@ it('should default `maxSize` to 1', async () => {
             delay(200, {
                 value: `Hello ${name1}${name2 ? ` and ${name2}` : ''}!`,
             }),
-        {}
+        {},
     );
 
     resource.get({name1: 'SpongeBob'});
@@ -156,7 +156,7 @@ it('should default `maxSize` to 1', async () => {
     `);
 });
 
-it('should properly match equal keys', async () => {
+it('should properly match equal keys', () => {
     const resource = new Resource(() => delay(200), {});
 
     resource.get({a: NaN, b: NaN});

@@ -67,7 +67,7 @@ it('should hydrate store', () => {
     expect(flushStore()).toEqual([]);
 });
 
-it('should always clear caches when flushing', async () => {
+it('should always clear caches when flushing', () => {
     const res = new Resource<string, {value: string}>(({value}) => delay(100, {value}), {
         ssrKey: 'unique-key',
     });
@@ -97,7 +97,7 @@ it('should throw when there is a store entry with such `ssrKey` already exists',
     expect(res2.has({value: 'bar'})).toBe(true);
 
     expect(flushStore).toThrowErrorMatchingInlineSnapshot(
-        `"usePriem: A resource with 'unique-key' \`ssrKey\` already exists. Please make sure \`ssrKey\`s are unique."`
+        `"usePriem: A resource with 'unique-key' \`ssrKey\` already exists. Please make sure \`ssrKey\`s are unique."`,
     );
 
     expect(res1.has({value: 'foo'})).toBe(false);
@@ -128,7 +128,7 @@ it('should fetch data from a nested component', async () => {
         ({res1Value, value}) => delay(100, {value: res1Value + value}),
         {
             ssrKey: 'unique-key-2',
-        }
+        },
     );
 
     function Comp() {
@@ -181,7 +181,7 @@ it('should not fetch data from resources without `ssrKey`', async () => {
         ssrKey: 'unique-key-1',
     });
     const useResource2 = createResource<string, {res1Value: string; value: string}>(({res1Value, value}) =>
-        delay(100, {value: res1Value + value})
+        delay(100, {value: res1Value + value}),
     );
 
     function Comp() {
@@ -259,7 +259,7 @@ it('should rehydrate data from initial store', async () => {
             ({res1Value, value}) => delay(100, {value: res1Value + value}),
             {
                 ssrKey: 'unique-key-2',
-            }
+            },
         );
 
         return function Comp() {
