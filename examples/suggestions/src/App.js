@@ -21,7 +21,7 @@ const noop = () => {};
 
 export default function App() {
     const [value, setValue] = React.useState('');
-    const [suggestions] = useSuggestions(value === '' ? null : {value});
+    const [suggestions] = useSuggestions(value === '' ? undefined : {value});
 
     return (
         <>

@@ -13,7 +13,7 @@ afterEach(() => {
     cleanup();
 });
 
-it('should not run if `args` is `null`', async () => {
+it('should not run if `args` is `undefined`', async () => {
     const useResource = createResource(() => delay(200, {value: 'foo'}));
 
     const useResourceSpy = jest.fn(args => {
@@ -23,7 +23,7 @@ it('should not run if `args` is `null`', async () => {
     });
 
     function Comp() {
-        useResourceSpy(null);
+        useResourceSpy(undefined);
         return null;
     }
 
@@ -287,7 +287,7 @@ it('should render a nested component', async () => {
 
     function Comp() {
         const [data1] = useResource1({value: 'foo'});
-        const [data2] = useResource2(!data1 ? null : {res1Value: data1, value: 'bar'});
+        const [data2] = useResource2(!data1 ? undefined : {res1Value: data1, value: 'bar'});
         return <div>{data2}</div>;
     }
 

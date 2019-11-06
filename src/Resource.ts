@@ -151,15 +151,15 @@ export class Resource<DataType, Args extends Record<string, unknown>> {
         this.ssrKey = ssrKey;
     }
 
-    has(args: Args | null): boolean {
-        if (args === null) {
+    has(args: Args | undefined): boolean {
+        if (args === undefined) {
             return false;
         }
         return !!this.cache.findBy(cacheItem => shallowEqual(cacheItem.key, args));
     }
 
-    get(args: Args | null, forceRefresh = false): MemoizedValue<DataType> | undefined {
-        if (args === null) {
+    get(args: Args | undefined, forceRefresh = false): MemoizedValue<DataType> | undefined {
+        if (args === undefined) {
             return;
         }
 

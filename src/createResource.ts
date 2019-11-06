@@ -31,8 +31,8 @@ export function createResource<DataType, Args extends MemoizedKey>(
 ) {
     const resource = new Resource<DataType, Args>(fn, options);
 
-    return function useResource(args: Args | null): Result<DataType> {
-        assertType(args, [TypeName.Object, TypeName.null], '`args`');
+    return function useResource(args: Args | undefined): Result<DataType> {
+        assertType(args, [TypeName.Object, TypeName.undefined], '`args`');
 
         const forceUpdate = useForceUpdate();
 
@@ -81,7 +81,7 @@ export function createResource<DataType, Args extends MemoizedKey>(
          * 5. The item is not in the cache.
          */
         const shouldDebounce =
-            args !== null &&
+            args !== undefined &&
             !shouldForceUpdate &&
             !!prevResult &&
             now - lastTimeCalled < DEFAULT_DEBOUNCE_MS &&

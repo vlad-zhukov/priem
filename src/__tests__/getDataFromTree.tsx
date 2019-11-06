@@ -133,7 +133,7 @@ it('should fetch data from a nested component', async () => {
 
     function Comp() {
         const [data1] = useResource1({value: 'foo'});
-        const [data2] = useResource2(!data1 ? null : {res1Value: data1, value: 'bar'});
+        const [data2] = useResource2(!data1 ? undefined : {res1Value: data1, value: 'bar'});
         return <div>{data2}</div>;
     }
 
@@ -186,7 +186,7 @@ it('should not fetch data from resources without `ssrKey`', async () => {
 
     function Comp() {
         const [data1] = useResource1({value: 'foo'});
-        const [data2] = useResource2(!data1 ? null : {res1Value: data1, value: 'bar'});
+        const [data2] = useResource2(!data1 ? undefined : {res1Value: data1, value: 'bar'});
         return <div>{data2}</div>;
     }
 
@@ -264,7 +264,7 @@ it('should rehydrate data from initial store', async () => {
 
         return function Comp() {
             const [data1] = useResource1({value: 'foo'});
-            const [data2] = useResource2(!data1 ? null : {res1Value: data1, value: 'bar'});
+            const [data2] = useResource2(!data1 ? undefined : {res1Value: data1, value: 'bar'});
             return <div>{data2}</div>;
         };
     }
