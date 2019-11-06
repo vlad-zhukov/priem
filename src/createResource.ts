@@ -99,7 +99,7 @@ export function createResource<DataType, Args extends MemoizedKey>(
             return prevResult as Result<DataType>;
         }
 
-        const ret = resource.get(args, shouldForceUpdate);
+        const ret = resource.read(args, shouldForceUpdate);
 
         if ((!ret || ret.status === STATUS.PENDING) && !!prevResult) {
             return prevResult;

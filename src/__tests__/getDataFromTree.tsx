@@ -38,7 +38,7 @@ it('should hydrate store', () => {
         ssrKey: 'unique-key',
     });
 
-    expect(res.get({value: 'foo'})).toMatchInlineSnapshot(`
+    expect(res.read({value: 'foo'})).toMatchInlineSnapshot(`
         Object {
           "data": "bar",
           "reason": undefined,
@@ -72,7 +72,7 @@ it('should always clear caches when flushing', () => {
         ssrKey: 'unique-key',
     });
 
-    res.get({value: 'foo'});
+    res.read({value: 'foo'});
 
     expect(res.has({value: 'foo'})).toBe(true);
 
@@ -89,11 +89,11 @@ it('should throw when there is a store entry with such `ssrKey` already exists',
         ssrKey: 'unique-key',
     });
 
-    res1.get({value: 'foo'});
+    res1.read({value: 'foo'});
     expect(res1.has({value: 'foo'})).toBe(true);
     await delay(150);
 
-    res2.get({value: 'bar'});
+    res2.read({value: 'bar'});
     expect(res2.has({value: 'bar'})).toBe(true);
 
     expect(flushStore).toThrowErrorMatchingInlineSnapshot(

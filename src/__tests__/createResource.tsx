@@ -4,7 +4,7 @@ import {render, cleanup, act, fireEvent} from '@testing-library/react';
 import {createResource} from '../index';
 import {Resource} from '../Resource';
 
-const getSpy = jest.spyOn(Resource.prototype, 'get');
+const getSpy = jest.spyOn(Resource.prototype, 'read');
 const onCacheChangeSpy = jest.spyOn(Resource.prototype, 'onCacheChange');
 
 afterEach(() => {
@@ -51,7 +51,7 @@ it('should rerun promises when cache expires if `maxAge` is set', async () => {
      * ASYNC UPDATE FLOW.
      * Numbers mean the order of function calls.
      *
-     *                   | usePriem | Resource#onCacheChange | Resource#get
+     *                   | usePriem | Resource#onCacheChange | Resource#read
      * ------------------|----------|------------------------|---------------
      *  mount (pending)  | 1        |                        | 2
      *  fulfilled        | 4        | 3                      | 5

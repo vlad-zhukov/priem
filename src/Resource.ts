@@ -158,7 +158,7 @@ export class Resource<DataType, Args extends Record<string, unknown>> {
         return !!this.cache.findBy(cacheItem => shallowEqual(cacheItem.key, args));
     }
 
-    get(args: Args | undefined, forceRefresh = false): MemoizedValue<DataType> | undefined {
+    read(args: Args | undefined, forceRefresh = false): MemoizedValue<DataType> | undefined {
         if (args === undefined) {
             return;
         }
