@@ -6,8 +6,6 @@ import {Resource, toSerializableArray} from '../Resource';
 it('should memoize promises', async () => {
     const resource = new Resource(({name}) => delay(200, {value: `Hello ${name}!`}), {maxSize: 2});
 
-    expect(resource.has(undefined)).toBe(false);
-
     expect(resource.read({name: 'world'}, {forceRefresh: false})).toMatchInlineSnapshot(`
                 Object {
                   "data": undefined,

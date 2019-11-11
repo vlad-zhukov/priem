@@ -153,18 +153,11 @@ export class Resource<DataType, Args extends Record<string, unknown>> {
         this.ssrKey = ssrKey;
     }
 
-    has(args: Args | undefined): boolean {
-        if (args === undefined) {
-            return false;
-        }
+    has(args: Args): boolean {
         return !!this.cache.findBy(cacheItem => shallowEqual(cacheItem.key, args));
     }
 
-    read(args: Args | undefined, options: ReadOptions): MemoizedValue<DataType> | undefined {
-        if (args === undefined) {
-            return;
-        }
-
+    read(args: Args, options: ReadOptions): MemoizedValue<DataType> | undefined {
         if (!isBrowser) {
             // Do not run on server when no ssrKey
             if (!this.ssrKey) {

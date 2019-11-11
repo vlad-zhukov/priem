@@ -22,17 +22,32 @@ it('should not run if `args` is `undefined`', async () => {
         return ret;
     });
 
-    function Comp() {
-        useResourceSpy(undefined);
+    function Comp(props: {args: {} | undefined}) {
+        useResourceSpy(props.args);
         return null;
     }
 
-    render(<Comp />);
+    const {rerender} = render(<Comp args={{}} />);
     await act(() => delay(300));
 
-    expect(useResourceSpy).toHaveBeenCalledTimes(1);
-    expect(onCacheChangeSpy).toHaveBeenCalledTimes(0);
-    expect(getSpy).toHaveBeenCalledTimes(1);
+    expect(useResourceSpy).toHaveBeenCalledTimes(2);
+    expect(onCacheChangeSpy).toHaveBeenCalledTimes(1);
+    expect(getSpy).toHaveBeenCalledTimes(2);
+    expect(useResourceSpy).toHaveLastReturnedWith([
+        'foo',
+        {
+            fulfilled: true,
+            pending: false,
+            rejected: false,
+        },
+    ]);
+
+    rerender(<Comp args={undefined} />);
+    await act(() => delay(300));
+
+    expect(useResourceSpy).toHaveBeenCalledTimes(3);
+    expect(onCacheChangeSpy).toHaveBeenCalledTimes(1);
+    expect(getSpy).toHaveBeenCalledTimes(2);
     expect(useResourceSpy).toHaveLastReturnedWith([
         undefined,
         {

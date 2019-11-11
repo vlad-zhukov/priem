@@ -100,13 +100,6 @@ export function createResource<DataType, Args extends MemoizedKey>(
             return prevResult as Result<DataType>;
         }
 
-        const ret = resource.read(args, {forceRefresh: shouldForceUpdate, maxAge: options.maxAge});
-
-        if ((!ret || ret.status === STATUS.PENDING) && !!prevResult) {
-            return prevResult;
-        }
-
-        let data = prevResult ? prevResult[0] : undefined;
         const meta: ResultMeta = {
             pending: false,
             fulfilled: false,
@@ -117,6 +110,18 @@ export function createResource<DataType, Args extends MemoizedKey>(
                 forceUpdate();
             },
         };
+
+        if (args === undefined) {
+            return [undefined, meta];
+        }
+
+        const ret = resource.read(args, {forceRefresh: shouldForceUpdate, maxAge: options.maxAge});
+
+        if ((!ret || ret.status === STATUS.PENDING) && !!prevResult) {
+            return prevResult;
+        }
+
+        let data = prevResult ? prevResult[0] : undefined;
 
         if (ret) {
             if (ret.data) {
