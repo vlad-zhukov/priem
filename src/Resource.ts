@@ -135,7 +135,7 @@ export class Resource<DataType, Args extends Record<string, unknown>> {
 
         assertType(ssrKey, [TypeName.string, TypeName.undefined], "'ssrKey'");
 
-        let initialCache: (MemoizedSerializableCacheItem<Args, DataType>)[] = [];
+        let initialCache: MemoizedSerializableCacheItem<Args, DataType>[] = [];
         if (ssrKey) {
             // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
             // @ts-ignore
