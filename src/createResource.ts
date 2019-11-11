@@ -5,7 +5,8 @@ import {assertType, shallowEqual, useForceUpdate, useLazyRef} from './utils';
 
 const DEFAULT_DEBOUNCE_MS = 150;
 
-export interface CreateResourceOptions extends ResourceOptions {
+export interface Options {
+    maxAge?: number;
     refreshOnMount?: boolean;
 }
 
@@ -27,11 +28,11 @@ interface Refs<Args, DataType> extends Subscriber<Args> {
 
 export function createResource<DataType, Args extends MemoizedKey>(
     fn: (args: Args) => Promise<DataType>,
-    options: CreateResourceOptions = {},
+    resourceOptions: ResourceOptions = {},
 ) {
-    const resource = new Resource<DataType, Args>(fn, options);
+    const resource = new Resource<DataType, Args>(fn, resourceOptions);
 
-    return function useResource(args: Args | undefined): Result<DataType> {
+    return function useResource(args: Args | undefined, options: Options = {}): Result<DataType> {
         assertType(args, [TypeName.Object, TypeName.undefined], '`args`');
 
         const forceUpdate = useForceUpdate();
@@ -99,7 +100,7 @@ export function createResource<DataType, Args extends MemoizedKey>(
             return prevResult as Result<DataType>;
         }
 
-        const ret = resource.read(args, shouldForceUpdate);
+        const ret = resource.read(args, {forceRefresh: shouldForceUpdate, maxAge: options.maxAge});
 
         if ((!ret || ret.status === STATUS.PENDING) && !!prevResult) {
             return prevResult;

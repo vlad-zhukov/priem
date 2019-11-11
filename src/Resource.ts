@@ -115,8 +115,12 @@ export interface Subscriber<Args> {
 
 export interface ResourceOptions {
     maxSize?: number;
-    maxAge?: number;
     ssrKey?: string;
+}
+
+export interface ReadOptions {
+    forceRefresh: boolean;
+    maxAge?: number;
 }
 
 export class Resource<DataType, Args extends Record<string, unknown>> {
@@ -124,14 +128,13 @@ export class Resource<DataType, Args extends Record<string, unknown>> {
     /** @private */ readonly cache: Cache<Args, MemoizedValue<DataType>>;
     private readonly fn: (args: Readonly<Args>) => Promise<DataType>;
     private readonly maxSize: number;
-    private readonly maxAge?: number;
     /** @private */ readonly ssrKey?: string;
 
     constructor(fn: (args: Readonly<Args>) => Promise<DataType>, options: ResourceOptions) {
         assertType(fn, [TypeName.Function], "'fn'");
         assertType(options, [TypeName.Object], "Resource argument 'options'");
 
-        const {maxSize, maxAge, ssrKey} = options;
+        const {maxSize, ssrKey} = options;
 
         assertType(ssrKey, [TypeName.string, TypeName.undefined], "'ssrKey'");
 
@@ -147,7 +150,6 @@ export class Resource<DataType, Args extends Record<string, unknown>> {
         this.cache = new Cache<Args, MemoizedValue<DataType>>(initialCache);
         this.fn = fn;
         this.maxSize = is.number(maxSize) && maxSize > 0 && is.safeInteger(maxSize) ? maxSize : 1;
-        this.maxAge = is.number(maxAge) && isFinite(maxAge) ? maxAge : undefined;
         this.ssrKey = ssrKey;
     }
 
@@ -158,7 +160,7 @@ export class Resource<DataType, Args extends Record<string, unknown>> {
         return !!this.cache.findBy(cacheItem => shallowEqual(cacheItem.key, args));
     }
 
-    read(args: Args | undefined, forceRefresh = false): MemoizedValue<DataType> | undefined {
+    read(args: Args | undefined, options: ReadOptions): MemoizedValue<DataType> | undefined {
         if (args === undefined) {
             return;
         }
@@ -193,7 +195,7 @@ export class Resource<DataType, Args extends Record<string, unknown>> {
                 this.cache.prepend(item);
             }
 
-            if (forceRefresh) {
+            if (options.forceRefresh) {
                 shouldRefresh = true;
             }
         }
@@ -202,15 +204,18 @@ export class Resource<DataType, Args extends Record<string, unknown>> {
             // Throttle refreshes
             const now = Date.now();
             const lastRefreshAt = item.lastRefreshAt || 0;
+
             if (now - lastRefreshAt > DEFAULT_THROTTLE_MS) {
                 item.lastRefreshAt = now;
 
-                if (isBrowser && this.maxAge) {
+                const maxAge = is.number(options.maxAge) && isFinite(options.maxAge) ? options.maxAge : undefined;
+
+                if (isBrowser && maxAge) {
                     window.clearTimeout(item.expireId);
                     const itemKey = item.key;
                     item.expireId = window.setTimeout(() => {
                         this.onCacheChange(itemKey, true);
-                    }, this.maxAge);
+                    }, maxAge);
                 }
 
                 const itemValue = Object.assign(item.value, {status: STATUS.PENDING, reason: undefined});

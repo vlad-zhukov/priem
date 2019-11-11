@@ -1,7 +1,7 @@
 import * as React from 'react';
 import delay from 'delay';
 import {render, cleanup, act, fireEvent} from '@testing-library/react';
-import {createResource} from '../index';
+import {createResource, Options} from '../index';
 import {Resource} from '../Resource';
 
 const getSpy = jest.spyOn(Resource.prototype, 'read');
@@ -28,10 +28,7 @@ it('should not run if `args` is `undefined`', async () => {
     }
 
     render(<Comp />);
-
-    await act(async () => {
-        await delay(300);
-    });
+    await act(() => delay(300));
 
     expect(useResourceSpy).toHaveBeenCalledTimes(1);
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(0);
@@ -61,14 +58,12 @@ it('should rerun promises when cache expires if `maxAge` is set', async () => {
      *  fulfilled        | 15       | 14                     | 16
      */
 
-    const useResource = createResource<string, {value: string}>(({value}) => delay(200, {value}), {
-        maxAge: 1000,
-    });
+    const useResource = createResource<string, {value: string}>(({value}) => delay(200, {value}));
 
     const useResourceSpy = jest.fn(useResource);
 
     const Comp: React.FC<{count: string}> = ({count}) => {
-        const [data] = useResourceSpy({value: `foo${count}`});
+        const [data] = useResourceSpy({value: `foo${count}`}, {maxAge: 1000});
         return <div>{data}</div>;
     };
 
@@ -85,9 +80,7 @@ HTMLCollection [
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(0);
     expect(getSpy).toHaveBeenCalledTimes(1);
 
-    await act(async () => {
-        await delay(300);
-    });
+    await act(() => delay(300));
 
     // fulfilled
 
@@ -117,9 +110,7 @@ HTMLCollection [
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(1);
     expect(getSpy).toHaveBeenCalledTimes(2);
 
-    await act(async () => {
-        await delay(400);
-    });
+    await act(() => delay(400));
 
     // fulfilled
 
@@ -134,9 +125,7 @@ HTMLCollection [
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(2);
     expect(getSpy).toHaveBeenCalledTimes(4);
 
-    await act(async () => {
-        await delay(400);
-    });
+    await act(() => delay(400));
 
     // expire (pending)
 
@@ -151,9 +140,7 @@ HTMLCollection [
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(2);
     expect(getSpy).toHaveBeenCalledTimes(4);
 
-    await act(async () => {
-        await delay(200);
-    });
+    await act(() => delay(200));
 
     // fulfilled
 
@@ -211,9 +198,7 @@ HTMLCollection [
     expect(useResourceSpy).toHaveBeenCalledTimes(1);
     expect(getSpy).toHaveBeenCalledTimes(1);
 
-    await act(async () => {
-        await delay(200);
-    });
+    await act(() => delay(200));
 
     expect(container.children).toMatchInlineSnapshot(`
 HTMLCollection [
@@ -240,9 +225,7 @@ HTMLCollection [
     expect(useResourceSpy).toHaveBeenCalledTimes(3);
     expect(getSpy).toHaveBeenCalledTimes(3);
 
-    await act(async () => {
-        await delay(100);
-    });
+    await act(() => delay(100));
 
     expect(container.children).toMatchInlineSnapshot(`
 HTMLCollection [
@@ -259,9 +242,7 @@ HTMLCollection [
     expect(useResourceSpy).toHaveBeenCalledTimes(4);
     expect(getSpy).toHaveBeenCalledTimes(4);
 
-    await act(async () => {
-        await delay(500);
-    });
+    await act(() => delay(500));
 
     expect(container.children).toMatchInlineSnapshot(`
 HTMLCollection [
@@ -293,9 +274,7 @@ it('should render a nested component', async () => {
 
     const {container} = render(<Comp />);
 
-    await act(async () => {
-        await delay(400);
-    });
+    await act(() => delay(400));
 
     expect(container.children).toMatchInlineSnapshot(`
 HTMLCollection [
@@ -323,10 +302,7 @@ it('should render `usePriem` hooks that are subscribed to the same resource but 
     }
 
     const {container} = render(<Comp />);
-
-    await act(async () => {
-        await delay(300);
-    });
+    await act(() => delay(300));
 
     expect(container.children).toMatchInlineSnapshot(`
 HTMLCollection [
@@ -372,9 +348,7 @@ it('should debounce calls', async () => {
     ]);
     expect(getSpy).toHaveBeenCalledTimes(1);
 
-    await act(async () => {
-        await delay(200);
-    });
+    await act(() => delay(200));
 
     expect(useResourceSpy).toHaveLastReturnedWith([
         undefined,
@@ -386,9 +360,7 @@ it('should debounce calls', async () => {
     ]);
     expect(getSpy).toHaveBeenCalledTimes(2);
 
-    await act(async () => {
-        await delay(200);
-    });
+    await act(() => delay(200));
 
     expect(useResourceSpy).toHaveLastReturnedWith([
         'baz',
@@ -401,9 +373,7 @@ it('should debounce calls', async () => {
     ]);
     expect(getSpy).toHaveBeenCalledTimes(3);
 
-    await act(async () => {
-        await delay(300);
-    });
+    await act(() => delay(300));
 
     expect(useResourceSpy).toHaveLastReturnedWith([
         'baz',
@@ -417,26 +387,23 @@ it('should debounce calls', async () => {
     expect(getSpy).toHaveBeenCalledTimes(3);
 });
 
-it('should rerender on mount', async () => {
+it('should refresh on mount when `refreshOnMount` set to true', async () => {
     let counter = 0;
-    const useResource = createResource<number, {}>(() => delay(200, {value: counter += 1}), {refreshOnMount: true});
+    const useResource = createResource<number, {}>(() => delay(200, {value: counter += 1}));
 
-    const useResourceSpy = jest.fn((args: Record<string, unknown>) => {
-        const ret = useResource(args);
+    const useResourceSpy = jest.fn((args: Record<string, unknown>, opts?: Options) => {
+        const ret = useResource(args, opts);
         delete ret[1].refresh;
         return ret;
     });
 
     function Comp() {
-        useResourceSpy({});
+        useResourceSpy({}, {refreshOnMount: true});
         return null;
     }
 
     const {unmount, rerender} = render(<Comp />);
-
-    await act(async () => {
-        await delay(300);
-    });
+    await act(() => delay(300));
 
     expect(useResourceSpy).toHaveBeenCalledTimes(2);
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(1);
@@ -452,10 +419,7 @@ it('should rerender on mount', async () => {
 
     unmount();
     rerender(<Comp />);
-
-    await act(async () => {
-        await delay(300);
-    });
+    await act(() => delay(300));
 
     expect(useResourceSpy).toHaveBeenCalledTimes(4);
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(2);
