@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {TypeName} from '@sindresorhus/is';
-import {Resource, ResourceOptions, Subscriber, STATUS, MemoizedKey} from './Resource';
+import {Resource, ResourceOptions, Subscriber, Status, MemoizedKey} from './Resource';
 import {assertType, shallowEqual, useForceUpdate, useLazyRef} from './utils';
 
 const DEFAULT_DEBOUNCE_MS = 150;
@@ -15,13 +15,13 @@ export interface ResultMeta {
     fulfilled: boolean;
     rejected: boolean;
     reason: Error | undefined;
-    refresh: () => void;
+    invalidate: () => void;
 }
 
 export type Result<DataType> = [DataType | undefined, ResultMeta];
 
 interface Refs<Args, DataType> extends Subscriber<Args> {
-    shouldForceUpdate: boolean;
+    args?: Args;
     lastTimeCalled: number;
     prevResult?: Result<DataType>;
 }
@@ -40,54 +40,54 @@ export function createResource<DataType, Args extends MemoizedKey>(
         const {current: refs} = React.useRef<Refs<Args, DataType>>({
             /* istanbul ignore next */
             onChange() {
-                return;
+                // A callback for Resource#onCacheChange
+                return false;
             },
-            shouldForceUpdate: !!options.refreshOnMount,
             lastTimeCalled: 0,
         });
 
-        // A callback for Resource#onCacheChange
-        refs.onChange = (prevArgs, shouldForceUpd) => {
-            if (args && prevArgs && shallowEqual(args, prevArgs)) {
-                refs.shouldForceUpdate = shouldForceUpd;
-                forceUpdate();
+        refs.args = args;
+        refs.onChange = function onChange(prevArgs, shouldCommit) {
+            if (refs.args && prevArgs && shallowEqual(refs.args, prevArgs)) {
+                if (shouldCommit) {
+                    forceUpdate();
+                }
+                return true;
             }
+            return false;
         };
 
         useLazyRef(() => {
+            if (!!options.refreshOnMount && refs.args) {
+                resource.delete(refs.args);
+            }
             resource.subscribe(refs);
         });
 
         React.useEffect(() => {
             return () => {
-                // eslint-disable-next-line react-hooks/exhaustive-deps
                 resource.unsubscribe(refs);
             };
         }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-        const {lastTimeCalled, prevResult, shouldForceUpdate} = refs;
+        const {lastTimeCalled, prevResult} = refs;
         const now = Date.now();
         refs.lastTimeCalled = now;
-        refs.shouldForceUpdate = false;
 
         /**
          * Should this call get debounced and rescheduled,
          * and return the previous value to reduce the amount of requests?
          *
          * We should debounce when all conditions are met:
-         * 1. Argument are provided.
-         * 2. This call is not forced.
-         * 3. Previous result is valid.
-         * 4. Less than 150ms lapsed since the last call.
-         * 5. The item is not in the cache.
+         * 1. Arguments are provided.
+         * 2. Previous result is valid.
+         * 3. Less than 150ms lapsed since the last call.
+         * 4. The item is not in the cache.
          */
         const shouldDebounce =
-            args !== undefined &&
-            !shouldForceUpdate &&
-            !!prevResult &&
-            now - lastTimeCalled < DEFAULT_DEBOUNCE_MS &&
-            !resource.has(args);
+            args !== undefined && !!prevResult && now - lastTimeCalled < DEFAULT_DEBOUNCE_MS && !resource.has(args);
 
+        // TODO: rework debounce
         React.useEffect(() => {
             let handler: number | undefined;
             if (shouldDebounce) {
@@ -105,9 +105,11 @@ export function createResource<DataType, Args extends MemoizedKey>(
             fulfilled: false,
             rejected: false,
             reason: undefined,
-            refresh() {
-                refs.shouldForceUpdate = true;
-                forceUpdate();
+            invalidate() {
+                if (refs.args) {
+                    resource.invalidate(refs.args, false);
+                    resource.read(refs.args, {maxAge: options.maxAge});
+                }
             },
         };
 
@@ -115,9 +117,9 @@ export function createResource<DataType, Args extends MemoizedKey>(
             return [undefined, meta];
         }
 
-        const ret = resource.read(args, {forceRefresh: shouldForceUpdate, maxAge: options.maxAge});
+        const ret = resource.read(args, {maxAge: options.maxAge});
 
-        if ((!ret || ret.status === STATUS.PENDING) && !!prevResult) {
+        if ((!ret || ret.status === Status.PENDING) && !!prevResult) {
             return prevResult;
         }
 
@@ -127,9 +129,9 @@ export function createResource<DataType, Args extends MemoizedKey>(
             if (ret.data) {
                 data = ret.data;
             }
-            meta.pending = ret.status === STATUS.PENDING;
-            meta.fulfilled = ret.status === STATUS.FULFILLED;
-            meta.rejected = ret.status === STATUS.REJECTED;
+            meta.pending = ret.status === Status.PENDING;
+            meta.fulfilled = ret.status === Status.FULFILLED;
+            meta.rejected = ret.status === Status.REJECTED;
             meta.reason = ret.reason;
         }
 

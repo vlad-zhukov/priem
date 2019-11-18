@@ -7,6 +7,6 @@ export {
     MemoizedKey,
     MemoizedValue,
     MemoizedSerializableCacheItem,
-    STATUS,
+    Status,
 } from './Resource';
 export {SerializableCacheItem} from './Cache';

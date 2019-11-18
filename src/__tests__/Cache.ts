@@ -23,30 +23,30 @@ function createCache(size = 5): Cache<string, number> {
 it('should construct with items', () => {
     const cache = createCache(2);
     expect(cache).toMatchInlineSnapshot(`
-                Cache {
-                  "head": CacheItem {
-                    "key": "foo",
-                    "value": 123,
-                  },
-                  "size": 2,
-                  "tail": CacheItem {
-                    "key": "bar",
-                    "value": 234,
-                  },
-                }
-        `);
+        Cache {
+          "head": CacheItem {
+            "key": "foo",
+            "value": 123,
+          },
+          "size": 2,
+          "tail": CacheItem {
+            "key": "bar",
+            "value": 234,
+          },
+        }
+    `);
     expect(toArray(cache)).toMatchInlineSnapshot(`
-                Array [
-                  CacheItem {
-                    "key": "foo",
-                    "value": 123,
-                  },
-                  CacheItem {
-                    "key": "bar",
-                    "value": 234,
-                  },
-                ]
-        `);
+        Array [
+          CacheItem {
+            "key": "foo",
+            "value": 123,
+          },
+          CacheItem {
+            "key": "bar",
+            "value": 234,
+          },
+        ]
+    `);
 });
 
 it('should prepend items', () => {
@@ -59,52 +59,52 @@ it('should prepend items', () => {
 
     cache.prepend(new CacheItem('foo', 123));
     expect(toArray(cache)).toMatchInlineSnapshot(`
-                Array [
-                  CacheItem {
-                    "key": "foo",
-                    "value": 123,
-                  },
-                ]
-        `);
+        Array [
+          CacheItem {
+            "key": "foo",
+            "value": 123,
+          },
+        ]
+    `);
 
     cache.prepend(new CacheItem('bar', 234));
     expect(toArray(cache)).toMatchInlineSnapshot(`
-                Array [
-                  CacheItem {
-                    "key": "bar",
-                    "value": 234,
-                  },
-                  CacheItem {
-                    "key": "foo",
-                    "value": 123,
-                  },
-                ]
-        `);
+        Array [
+          CacheItem {
+            "key": "bar",
+            "value": 234,
+          },
+          CacheItem {
+            "key": "foo",
+            "value": 123,
+          },
+        ]
+    `);
 });
 
 it('should find am item by predicate', () => {
     const cache = createCache(2);
     expect(toArray(cache)).toMatchInlineSnapshot(`
-                Array [
-                  CacheItem {
-                    "key": "foo",
-                    "value": 123,
-                  },
-                  CacheItem {
-                    "key": "bar",
-                    "value": 234,
-                  },
-                ]
-        `);
+        Array [
+          CacheItem {
+            "key": "foo",
+            "value": 123,
+          },
+          CacheItem {
+            "key": "bar",
+            "value": 234,
+          },
+        ]
+    `);
 
     const fn1 = jest.fn(item => item.key === 'foo');
     const res1 = cache.findBy(fn1);
     expect(res1).toMatchInlineSnapshot(`
-                CacheItem {
-                  "key": "foo",
-                  "value": 123,
-                }
-        `);
+        CacheItem {
+          "key": "foo",
+          "value": 123,
+        }
+    `);
     expect(fn1).toHaveBeenCalledTimes(1);
 
     const fn2 = jest.fn(item => item.key === 'baz');
@@ -113,75 +113,64 @@ it('should find am item by predicate', () => {
     expect(fn2).toHaveBeenCalledTimes(2);
 
     expect(toArray(cache)).toMatchInlineSnapshot(`
-                Array [
-                  CacheItem {
-                    "key": "foo",
-                    "value": 123,
-                  },
-                  CacheItem {
-                    "key": "bar",
-                    "value": 234,
-                  },
-                ]
-        `);
+        Array [
+          CacheItem {
+            "key": "foo",
+            "value": 123,
+          },
+          CacheItem {
+            "key": "bar",
+            "value": 234,
+          },
+        ]
+    `);
 });
 
 it('should remove an item by reference', () => {
     const cache = createCache(3);
 
     const res1 = cache.findBy(item => item.key === 'foo');
-    res1!.lastRefreshAt = Date.now();
+    res1!.lastUpdateAt = Date.now();
     expect(res1).toMatchInlineSnapshot(`
-                CacheItem {
-                  "key": "foo",
-                  "value": 123,
-                }
-        `);
+        CacheItem {
+          "key": "foo",
+          "value": 123,
+        }
+    `);
 
     const res2 = cache.findBy(item => item.key === 'baz');
-    res2!.lastRefreshAt = Date.now();
+    res2!.lastUpdateAt = Date.now();
     expect(res2).toMatchInlineSnapshot(`
-                CacheItem {
-                  "key": "baz",
-                  "value": 345,
-                }
-        `);
+        CacheItem {
+          "key": "baz",
+          "value": 345,
+        }
+    `);
 
     cache.remove(res1!);
     cache.remove(res2!);
 
     expect(toArray(cache)).toMatchInlineSnapshot(`
-                Array [
-                  CacheItem {
-                    "key": "bar",
-                    "value": 234,
-                  },
-                ]
-        `);
+        Array [
+          CacheItem {
+            "key": "bar",
+            "value": 234,
+          },
+        ]
+    `);
 });
 
-it('should not remove an item if `item.lastRefreshAt` is `undefined`', () => {
+it('should not remove an item if `item.key` is `undefined`', () => {
     const cache = createCache(3);
 
     const item = cache.head;
-    item!.lastRefreshAt = undefined;
+    item!.destroy();
 
     cache.remove(item!);
 
     expect(toArray(cache)).toMatchInlineSnapshot(`
-                Array [
-                  CacheItem {
-                    "key": "foo",
-                    "value": 123,
-                  },
-                  CacheItem {
-                    "key": "bar",
-                    "value": 234,
-                  },
-                  CacheItem {
-                    "key": "baz",
-                    "value": 345,
-                  },
-                ]
-        `);
+        Array [
+          CacheItem {},
+        ]
+    `);
 });

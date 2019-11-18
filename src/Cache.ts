@@ -6,8 +6,9 @@ export class CacheItem<K, V> {
     value: V;
     [NEXT]: CacheItem<K, V> | undefined;
     [PREV]: CacheItem<K, V> | undefined;
-    expireId: number | undefined;
-    lastRefreshAt: number | undefined;
+    isValid!: boolean;
+    expireTimerId: number | undefined;
+    lastUpdateAt: number | undefined;
 
     constructor(key: K, value: V) {
         this.key = key;
@@ -22,11 +23,15 @@ export class CacheItem<K, V> {
                 value: undefined,
                 writable: true,
             },
-            expireId: {
+            isValid: {
+                value: false,
+                writable: true,
+            },
+            expireTimerId: {
                 value: undefined,
                 writable: true,
             },
-            lastRefreshAt: {
+            lastUpdateAt: {
                 value: undefined,
                 writable: true,
             },
@@ -38,9 +43,10 @@ export class CacheItem<K, V> {
         delete this.value;
         this[NEXT] = undefined;
         this[PREV] = undefined;
-        clearTimeout(this.expireId);
-        this.expireId = undefined;
-        this.lastRefreshAt = undefined;
+        this.isValid = false;
+        clearTimeout(this.expireTimerId);
+        this.expireTimerId = undefined;
+        this.lastUpdateAt = undefined;
     }
 }
 
@@ -87,10 +93,14 @@ export class Cache<K, V> {
     size = 0;
 
     constructor(items: (CacheItem<K, V> | SerializableCacheItem<K, V>)[]) {
+        const now = Date.now();
+
         for (let i = items.length; i > 0; i--) {
             const item = items[i - 1];
             const cacheItem: CacheItem<K, V> =
                 item instanceof CacheItem ? item : new CacheItem<K, V>(item.key, item.value);
+            cacheItem.isValid = true;
+            cacheItem.lastUpdateAt = now;
             this.prepend(cacheItem);
         }
     }
@@ -108,7 +118,7 @@ export class Cache<K, V> {
     }
 
     remove(item: CacheItem<K, V>): boolean {
-        if (!item.lastRefreshAt) {
+        if (!item.key) {
             return false;
         }
 
