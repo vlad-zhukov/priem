@@ -1,7 +1,8 @@
 /* tslint:disable no-string-literal */
 
 import delay from 'delay';
-import {Resource, toSerializableArray} from '../Resource';
+import {hydrateStore, Resource, toSerializableArray} from '../Resource';
+import {shallowEqual} from '../utils';
 
 it('should memoize promises', async () => {
     const resource = new Resource(({name}) => delay(200, {value: `Hello ${name}!`}), {maxSize: 2});
@@ -315,22 +316,22 @@ it('should not fail to expire if the key does not exist', async () => {
         itemToRemove.destroy();
     }
     expect(resource['cache']).toMatchInlineSnapshot(`
-                        Cache {
-                          "head": undefined,
-                          "size": 0,
-                          "tail": undefined,
-                        }
-            `);
+        Cache {
+          "head": undefined,
+          "size": 0,
+          "tail": undefined,
+        }
+    `);
 
     await delay(300);
     expect(onCacheChange).toHaveBeenCalledTimes(1);
     expect(resource['cache']).toMatchInlineSnapshot(`
-                        Cache {
-                          "head": undefined,
-                          "size": 0,
-                          "tail": undefined,
-                        }
-            `);
+        Cache {
+          "head": undefined,
+          "size": 0,
+          "tail": undefined,
+        }
+    `);
 });
 
 it('should invalidate', async () => {
@@ -339,7 +340,9 @@ it('should invalidate', async () => {
 
     resource.read({name: 'SpongeBob'}, {});
     expect(onCacheChange).toHaveBeenCalledTimes(0);
+
     await delay(300);
+    expect(onCacheChange).toHaveBeenCalledTimes(1);
     expect(toSerializableArray(resource['cache'])).toMatchInlineSnapshot(`
         Array [
           Object {
@@ -356,6 +359,7 @@ it('should invalidate', async () => {
     `);
 
     resource.invalidate({name: 'SpongeBob'});
+    expect(onCacheChange).toHaveBeenCalledTimes(2);
 
     resource.read({name: 'SpongeBob'}, {});
     expect(toSerializableArray(resource['cache'])).toMatchInlineSnapshot(`
@@ -374,6 +378,7 @@ it('should invalidate', async () => {
     `);
 
     await delay(300);
+    expect(onCacheChange).toHaveBeenCalledTimes(3);
     expect(toSerializableArray(resource['cache'])).toMatchInlineSnapshot(`
         Array [
           Object {
@@ -388,4 +393,94 @@ it('should invalidate', async () => {
           },
         ]
     `);
+
+    resource.invalidate({name: 'does not exist'});
+    expect(onCacheChange).toHaveBeenCalledTimes(3);
+});
+
+it('should guard if promise resolves after item was removed', async () => {
+    let shouldReject = false;
+    const resource = new Resource(
+        ({value}) => {
+            if (!shouldReject) {
+                shouldReject = true;
+                return delay(200, {value});
+            }
+            return delay.reject(10, {value: new Error('error!')});
+        },
+        {
+            maxSize: 10,
+        },
+    );
+
+    const item1 = resource.read({foo: 'bar'}, {});
+    expect(item1).toMatchInlineSnapshot(`
+        Object {
+          "data": undefined,
+          "reason": undefined,
+          "status": 0,
+        }
+    `);
+    resource.delete({foo: 'bar'});
+    await delay(200);
+    expect(item1).toMatchInlineSnapshot(`
+        Object {
+          "data": undefined,
+          "reason": undefined,
+          "status": 0,
+        }
+    `);
+
+    const item2 = resource.read({foo: 'bar'}, {});
+    resource.delete({foo: 'bar'});
+    await delay(200);
+    expect(item2).toMatchInlineSnapshot(`
+        Object {
+          "data": undefined,
+          "reason": undefined,
+          "status": 0,
+        }
+    `);
+});
+
+it('should properly set expiration timeout after hydration', async () => {
+    hydrateStore([
+        [
+            'unique-key',
+            [
+                {
+                    key: {
+                        value: 'foo',
+                    },
+                    value: {
+                        data: 'foo',
+                        reason: undefined,
+                        status: 1,
+                    },
+                },
+            ],
+        ],
+    ]);
+
+    const resource = new Resource<string, {value: string}>(({value}) => delay(100, {value}), {
+        ssrKey: 'unique-key',
+    });
+
+    const args = {value: 'foo'};
+    const value = resource.read(args, {maxAge: 200});
+    expect(value).toMatchInlineSnapshot(`
+        Object {
+          "data": "foo",
+          "reason": undefined,
+          "status": 1,
+        }
+    `);
+
+    const item = resource.cache.findBy(cacheItem => shallowEqual(cacheItem.key, args))!;
+    expect(typeof item.expireTimerId).toBe('number');
+
+    delete item.key;
+    await delay(200);
+
+    // Hooray, it didn't throw!
 });

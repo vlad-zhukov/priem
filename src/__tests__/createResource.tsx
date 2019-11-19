@@ -156,7 +156,7 @@ it('should rerun promises when cache expires if `maxAge` is set', async () => {
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(6);
 });
 
-it('should have a `invalidate` method', async () => {
+it('should have `invalidate` method', async () => {
     let shouldReject = false;
     const useResource = createResource<string, {value: string}>(
         ({value}) => {
@@ -173,8 +173,8 @@ it('should have a `invalidate` method', async () => {
 
     const useResourceSpy = jest.fn(useResource);
 
-    function Comp() {
-        const [data, {reason, invalidate}] = useResourceSpy({value: 'foo'});
+    function Comp({noValue = false}: {noValue?: boolean}) {
+        const [data, {reason, invalidate}] = useResourceSpy(noValue ? undefined : {value: 'foo'});
         expect(typeof invalidate).toBe('function');
         return (
             <>
@@ -186,7 +186,7 @@ it('should have a `invalidate` method', async () => {
         );
     }
 
-    const {container} = render(<Comp />);
+    const {container, rerender} = render(<Comp />);
 
     expect(container.children).toMatchInlineSnapshot(`
         HTMLCollection [
@@ -257,6 +257,16 @@ it('should have a `invalidate` method', async () => {
         ]
     `);
     expect(useResourceSpy).toHaveBeenCalledTimes(3);
+    expect(readSpy).toHaveBeenCalledTimes(4);
+
+    rerender(<Comp noValue={true} />);
+
+    expect(useResourceSpy).toHaveBeenCalledTimes(4);
+    expect(readSpy).toHaveBeenCalledTimes(4);
+
+    fireEvent.click(container.querySelector('button') as HTMLButtonElement);
+
+    expect(useResourceSpy).toHaveBeenCalledTimes(4);
     expect(readSpy).toHaveBeenCalledTimes(4);
 });
 
