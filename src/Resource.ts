@@ -2,6 +2,8 @@ import is, {TypeName} from '@sindresorhus/is';
 import {assertType, isBrowser, shallowEqual} from './utils';
 import {Cache, CacheItem, SerializableCacheItem, reduce} from './Cache';
 
+const DEFAULT_MAX_SIZE = 50;
+
 export enum Status {
     PENDING,
     FULFILLED,
@@ -109,7 +111,6 @@ export interface Subscriber<Args> {
 }
 
 export interface ResourceOptions {
-    maxSize?: number;
     ssrKey?: string;
 }
 
@@ -121,14 +122,13 @@ export class Resource<DataType, Args extends Record<string, unknown>> {
     private readonly listeners: Subscriber<Args>[] = [];
     /** @private */ readonly cache: Cache<Args, MemoizedValue<DataType>>;
     private readonly fn: (args: Readonly<Args>) => Promise<DataType>;
-    private readonly maxSize: number;
     /** @private */ readonly ssrKey?: string;
 
-    constructor(fn: (args: Readonly<Args>) => Promise<DataType>, options: ResourceOptions) {
+    constructor(fn: (args: Readonly<Args>) => Promise<DataType>, options: ResourceOptions = {}) {
         assertType(fn, [TypeName.Function], "'fn'");
         assertType(options, [TypeName.Object], "Resource argument 'options'");
 
-        const {maxSize, ssrKey} = options;
+        const {ssrKey} = options;
 
         assertType(ssrKey, [TypeName.string, TypeName.undefined], "'ssrKey'");
 
@@ -143,7 +143,6 @@ export class Resource<DataType, Args extends Record<string, unknown>> {
         this.listeners = [];
         this.cache = new Cache<Args, MemoizedValue<DataType>>(initialCache);
         this.fn = fn;
-        this.maxSize = is.number(maxSize) && maxSize > 0 && is.safeInteger(maxSize) ? maxSize : 1;
         this.ssrKey = ssrKey;
 
         if (!isBrowser) {
@@ -170,8 +169,8 @@ export class Resource<DataType, Args extends Record<string, unknown>> {
                 this.cache.prepend(item);
             }
         } else {
-            // Remove the oldest item if cache size is bigger than maxSize
-            if (this.cache.size >= this.maxSize && this.cache.tail) {
+            // Remove the oldest item if cache size is bigger than default max size
+            if (this.cache.size >= DEFAULT_MAX_SIZE && this.cache.tail) {
                 this.invalidate(this.cache.tail.key, false);
             }
 

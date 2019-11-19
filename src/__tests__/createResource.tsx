@@ -85,7 +85,7 @@ it('should rerun promises when cache expires if `maxAge` is set', async () => {
      *  fulfilled        | 13          |                 |
      */
 
-    const useResource = createResource<string, {value: string}>(({value}) => delay(200, {value}), {maxSize: 10});
+    const useResource = createResource<string, {value: string}>(({value}) => delay(200, {value}));
 
     const useResourceSpy = jest.fn(useResource);
     function getLastReturn(): string | undefined {
@@ -158,18 +158,13 @@ it('should rerun promises when cache expires if `maxAge` is set', async () => {
 
 it('should have `invalidate` method', async () => {
     let shouldReject = false;
-    const useResource = createResource<string, {value: string}>(
-        ({value}) => {
-            if (!shouldReject) {
-                shouldReject = true;
-                return delay(100, {value});
-            }
-            return delay.reject(10, {value: new Error('error!')});
-        },
-        {
-            maxSize: 10,
-        },
-    );
+    const useResource = createResource<string, {value: string}>(({value}) => {
+        if (!shouldReject) {
+            shouldReject = true;
+            return delay(100, {value});
+        }
+        return delay.reject(10, {value: new Error('error!')});
+    });
 
     const useResourceSpy = jest.fn(useResource);
 
@@ -271,9 +266,7 @@ it('should have `invalidate` method', async () => {
 });
 
 it('should throttle invalidations', async () => {
-    const useResource = createResource<{data: string}, {data: string}>(({data}) => delay(100, {value: {data}}), {
-        maxSize: 10,
-    });
+    const useResource = createResource<{data: string}, {data: string}>(({data}) => delay(100, {value: {data}}));
 
     const useResourceSpy = jest.fn(useResource);
     function getLastReturn(): {data: string} | undefined {
@@ -352,9 +345,7 @@ it('should render a nested component', async () => {
 });
 
 it('should render `useResource` hooks that are subscribed to the same resource but need different data', async () => {
-    const useResource = createResource<string, {value: string}>(({value}) => delay(100, {value}), {
-        maxSize: 2,
-    });
+    const useResource = createResource<string, {value: string}>(({value}) => delay(100, {value}), {});
 
     function Comp() {
         const [data1] = useResource({value: 'foo'});
@@ -385,9 +376,7 @@ it('should render `useResource` hooks that are subscribed to the same resource b
 });
 
 it('should debounce calls', async () => {
-    const useResource = createResource<string, {value: string}>(({value}) => delay(200, {value}), {
-        maxSize: 10,
-    });
+    const useResource = createResource<string, {value: string}>(({value}) => delay(200, {value}));
 
     const useResourceSpy = jest.fn((args: {value: string}) => {
         const ret = useResource(args);

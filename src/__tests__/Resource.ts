@@ -5,7 +5,7 @@ import {hydrateStore, Resource, toSerializableArray} from '../Resource';
 import {shallowEqual} from '../utils';
 
 it('should memoize promises', async () => {
-    const resource = new Resource(({name}) => delay(200, {value: `Hello ${name}!`}), {maxSize: 2});
+    const resource = new Resource(({name}) => delay(200, {value: `Hello ${name}!`}));
 
     expect(resource.read({name: 'world'}, {})).toMatchInlineSnapshot(`
         Object {
@@ -56,7 +56,7 @@ it('should memoize promises', async () => {
 });
 
 it('should not throw on rejected promises', async () => {
-    const resource = new Resource(({name}) => delay.reject(200, {value: new Error(`Hello ${name}!`)}), {maxSize: 2});
+    const resource = new Resource(({name}) => delay.reject(200, {value: new Error(`Hello ${name}!`)}));
 
     expect(resource.read({name: 'world'}, {})).toMatchInlineSnapshot(`
         Object {
@@ -99,53 +99,8 @@ it('should not throw on rejected promises', async () => {
     `);
 });
 
-it('should default `maxSize` to 1', async () => {
-    const resource = new Resource<string, {name1: string; name2?: string}>(
-        ({name1, name2}) =>
-            delay(200, {
-                value: `Hello ${name1}${name2 ? ` and ${name2}` : ''}!`,
-            }),
-        {},
-    );
-
-    resource.read({name1: 'SpongeBob'}, {});
-    await delay(300);
-    expect(toSerializableArray(resource['cache'])).toMatchInlineSnapshot(`
-        Array [
-          Object {
-            "key": Object {
-              "name1": "SpongeBob",
-            },
-            "value": Object {
-              "data": "Hello SpongeBob!",
-              "reason": undefined,
-              "status": 1,
-            },
-          },
-        ]
-    `);
-
-    resource.read({name1: 'SpongeBob', name2: 'Patrick'}, {});
-    await delay(300);
-    expect(toSerializableArray(resource['cache'])).toMatchInlineSnapshot(`
-        Array [
-          Object {
-            "key": Object {
-              "name1": "SpongeBob",
-              "name2": "Patrick",
-            },
-            "value": Object {
-              "data": "Hello SpongeBob and Patrick!",
-              "reason": undefined,
-              "status": 1,
-            },
-          },
-        ]
-    `);
-});
-
 it('should properly match equal keys', () => {
-    const resource = new Resource(() => delay(200), {});
+    const resource = new Resource(() => delay(200));
 
     resource.read({a: NaN, b: NaN}, {});
     resource.read({a: NaN, b: NaN}, {});
@@ -167,128 +122,8 @@ it('should properly match equal keys', () => {
     `);
 });
 
-it('should have a `maxAge` option', async () => {
-    const resource = new Resource(() => delay(200), {maxSize: 2});
-    const onCacheChange = jest.spyOn(resource, 'onCacheChange');
-
-    resource.read({name: 'SpongeBob'}, {maxAge: 500});
-    expect(toSerializableArray(resource['cache'])).toMatchInlineSnapshot(`
-        Array [
-          Object {
-            "key": Object {
-              "name": "SpongeBob",
-            },
-            "value": Object {
-              "data": undefined,
-              "reason": undefined,
-              "status": 0,
-            },
-          },
-        ]
-    `);
-    expect(onCacheChange).toHaveBeenCalledTimes(0);
-
-    await delay(300);
-    expect(toSerializableArray(resource['cache'])).toMatchInlineSnapshot(`
-        Array [
-          Object {
-            "key": Object {
-              "name": "SpongeBob",
-            },
-            "value": Object {
-              "data": undefined,
-              "reason": undefined,
-              "status": 1,
-            },
-          },
-        ]
-    `);
-    expect(onCacheChange).toHaveBeenCalledTimes(1);
-
-    resource.read({name: 'Patrick'}, {maxAge: 500});
-    expect(toSerializableArray(resource['cache'])).toMatchInlineSnapshot(`
-        Array [
-          Object {
-            "key": Object {
-              "name": "Patrick",
-            },
-            "value": Object {
-              "data": undefined,
-              "reason": undefined,
-              "status": 0,
-            },
-          },
-          Object {
-            "key": Object {
-              "name": "SpongeBob",
-            },
-            "value": Object {
-              "data": undefined,
-              "reason": undefined,
-              "status": 1,
-            },
-          },
-        ]
-    `);
-    expect(onCacheChange).toHaveBeenCalledTimes(1);
-
-    await delay(300);
-    expect(toSerializableArray(resource['cache'])).toMatchInlineSnapshot(`
-        Array [
-          Object {
-            "key": Object {
-              "name": "Patrick",
-            },
-            "value": Object {
-              "data": undefined,
-              "reason": undefined,
-              "status": 1,
-            },
-          },
-          Object {
-            "key": Object {
-              "name": "SpongeBob",
-            },
-            "value": Object {
-              "data": undefined,
-              "reason": undefined,
-              "status": 1,
-            },
-          },
-        ]
-    `);
-    expect(onCacheChange).toHaveBeenCalledTimes(2);
-
-    await delay(300);
-    expect(toSerializableArray(resource['cache'])).toMatchInlineSnapshot(`
-        Array [
-          Object {
-            "key": Object {
-              "name": "Patrick",
-            },
-            "value": Object {
-              "data": undefined,
-              "reason": undefined,
-              "status": 1,
-            },
-          },
-          Object {
-            "key": Object {
-              "name": "SpongeBob",
-            },
-            "value": Object {
-              "data": undefined,
-              "reason": undefined,
-              "status": 1,
-            },
-          },
-        ]
-    `);
-    expect(onCacheChange).toHaveBeenCalledTimes(2);
-});
-
 it('should not fail to expire if the key does not exist', async () => {
-    const resource = new Resource(() => delay(200), {});
+    const resource = new Resource(() => delay(200));
     const onCacheChange = jest.spyOn(resource, 'onCacheChange');
 
     resource.read({name: 'SpongeBob'}, {maxAge: 500});
@@ -335,7 +170,7 @@ it('should not fail to expire if the key does not exist', async () => {
 });
 
 it('should invalidate', async () => {
-    const resource = new Resource<string, {name: string}>(() => delay(200, {value: 'SquarePants'}), {});
+    const resource = new Resource<string, {name: string}>(() => delay(200, {value: 'SquarePants'}));
     const onCacheChange = jest.spyOn(resource, 'onCacheChange');
 
     resource.read({name: 'SpongeBob'}, {});
@@ -398,20 +233,64 @@ it('should invalidate', async () => {
     expect(onCacheChange).toHaveBeenCalledTimes(3);
 });
 
+it('should not exceed the default max size of 50', async () => {
+    const resource = new Resource<number, {value: number}>(({value}) => delay(200, {value}));
+
+    for (let i = 0; i < 50; i++) {
+        resource.read({value: i}, {});
+    }
+
+    expect(resource['cache'].size).toBe(50);
+
+    const head = resource['cache'].head!;
+    const tail = resource['cache'].tail!;
+
+    expect(head).toMatchInlineSnapshot(`
+        CacheItem {
+          "key": Object {
+            "value": 49,
+          },
+          "value": Object {
+            "data": undefined,
+            "reason": undefined,
+            "status": 0,
+          },
+        }
+    `);
+    expect(tail).toMatchInlineSnapshot(`
+        CacheItem {
+          "key": Object {
+            "value": 0,
+          },
+          "value": Object {
+            "data": undefined,
+            "reason": undefined,
+            "status": 0,
+          },
+        }
+    `);
+
+    resource.read({value: 50}, {});
+
+    // `head` variable now holds second cache item, `tail` should be deleted
+
+    expect(head['@@prev']).toBe(resource['cache'].head);
+    expect(tail).not.toBe(resource['cache'].tail);
+    expect(tail).toMatchInlineSnapshot(`CacheItem {}`);
+
+    // `tail` was removed from the cache
+    expect(resource['cache'].findBy(item => shallowEqual(item ,{value: 0}))).toBe(undefined);
+});
+
 it('should guard if promise resolves after item was removed', async () => {
     let shouldReject = false;
-    const resource = new Resource(
-        ({value}) => {
-            if (!shouldReject) {
-                shouldReject = true;
-                return delay(200, {value});
-            }
-            return delay.reject(10, {value: new Error('error!')});
-        },
-        {
-            maxSize: 10,
-        },
-    );
+    const resource = new Resource(({value}) => {
+        if (!shouldReject) {
+            shouldReject = true;
+            return delay(200, {value});
+        }
+        return delay.reject(10, {value: new Error('error!')});
+    });
 
     const item1 = resource.read({foo: 'bar'}, {});
     expect(item1).toMatchInlineSnapshot(`
