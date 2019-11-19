@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {TypeName} from '@sindresorhus/is';
 import {Resource, ResourceOptions, Subscriber, Status, MemoizedKey} from './Resource';
-import {assertType, shallowEqual, useForceUpdate, useLazyRef} from './utils';
+import {assertType, isBrowser, shallowEqual, useForceUpdate, useLazyRef} from './utils';
 
 const DEFAULT_DEBOUNCE_MS = 150;
 
@@ -85,7 +85,11 @@ export function createResource<DataType, Args extends MemoizedKey>(
          * 4. The item is not in the cache.
          */
         const shouldDebounce =
-            args !== undefined && !!prevResult && now - lastTimeCalled < DEFAULT_DEBOUNCE_MS && !resource.has(args);
+            isBrowser &&
+            args !== undefined &&
+            !!prevResult &&
+            now - lastTimeCalled < DEFAULT_DEBOUNCE_MS &&
+            !resource.has(args);
 
         // TODO: rework debounce
         React.useEffect(() => {

@@ -233,7 +233,7 @@ it('should invalidate', async () => {
     expect(onCacheChange).toHaveBeenCalledTimes(3);
 });
 
-it('should not exceed the default max size of 50', async () => {
+it('should not exceed the default max size of 50', () => {
     const resource = new Resource<number, {value: number}>(({value}) => delay(200, {value}));
 
     for (let i = 0; i < 50; i++) {
@@ -279,7 +279,7 @@ it('should not exceed the default max size of 50', async () => {
     expect(tail).toMatchInlineSnapshot(`CacheItem {}`);
 
     // `tail` was removed from the cache
-    expect(resource['cache'].findBy(item => shallowEqual(item ,{value: 0}))).toBe(undefined);
+    expect(resource['cache'].findBy(item => shallowEqual(item, {value: 0}))).toBe(undefined);
 });
 
 it('should guard if promise resolves after item was removed', async () => {

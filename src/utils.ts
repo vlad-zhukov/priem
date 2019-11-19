@@ -3,6 +3,65 @@ import * as React from 'react';
 
 export const isBrowser: boolean = typeof window === 'object' && typeof document === 'object' && document.nodeType === 9;
 
+type BrowserActivityStateSubscriber = () => void;
+
+class BrowserActivityState {
+    private isOnline: boolean;
+    private isVisible: boolean;
+    private initialized = false;
+    private readonly listeners: BrowserActivityStateSubscriber[] = [];
+
+    constructor() {
+        if (isBrowser) {
+            this.isOnline = navigator.onLine;
+            this.isVisible = !document.hidden;
+        } else {
+            this.isOnline = false;
+            this.isVisible = false;
+        }
+    }
+
+    isActive(): boolean {
+        return this.isOnline && this.isVisible;
+    }
+
+    subscribe(fn: BrowserActivityStateSubscriber) {
+        this.lazyInitialize();
+        this.listeners.push(fn);
+    }
+
+    private updateOnlineStatus = () => {
+        /* istanbul ignore else */
+        if (this.isOnline !== navigator.onLine) {
+            this.isOnline = navigator.onLine;
+            this.listeners.forEach(listener => listener());
+        }
+    };
+
+    private updateVisibilityStatus = () => {
+        /* istanbul ignore else */
+        if (this.isVisible !== !document.hidden) {
+            this.isVisible = !document.hidden;
+            this.listeners.forEach(listener => listener());
+        }
+    };
+
+    private lazyInitialize() {
+        if (!isBrowser || this.initialized) {
+            return;
+        }
+
+        this.initialized = true;
+
+        window.addEventListener('online', this.updateOnlineStatus, false);
+        window.addEventListener('offline', this.updateOnlineStatus, false);
+        window.addEventListener('visibilitychange', this.updateVisibilityStatus, false);
+        window.addEventListener('focus', this.updateVisibilityStatus, false);
+    }
+}
+
+export const browserActivityState = new BrowserActivityState();
+
 export function assertType(variable: unknown, types: readonly TypeName[], variableName = 'The value'): void | never {
     const typeOfVariable = is(variable);
 

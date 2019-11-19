@@ -8,17 +8,55 @@ const readSpy = jest.spyOn(Resource.prototype, 'read');
 const updateSpy = jest.spyOn(Resource.prototype, 'update');
 const onCacheChangeSpy = jest.spyOn(Resource.prototype, 'onCacheChange');
 
-let timers: number[] = [];
+let navigatorOnline = window.navigator.onLine;
+Object.defineProperty(window.navigator, 'onLine', {
+    get() {
+        return navigatorOnline;
+    },
+});
+
+function goOffline() {
+    navigatorOnline = false;
+    window.dispatchEvent(new window.Event('offline'));
+}
+
+function goOnline() {
+    navigatorOnline = true;
+    window.dispatchEvent(new window.Event('online'));
+}
+
+let documentHidden = window.document.hidden;
+Object.defineProperty(window.document, 'hidden', {
+    get() {
+        return documentHidden;
+    },
+});
+
+function hideWindow() {
+    documentHidden = true;
+    window.dispatchEvent(new window.Event('visibilitychange'));
+}
+
+function showWindow() {
+    documentHidden = false;
+    window.dispatchEvent(new window.Event('visibilitychange'));
+}
+
+let timerIds: number[] = [];
 const originalSetTimeout = window.setTimeout;
 // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
 // @ts-ignore
 window.setTimeout = (handler, timeout, ...args) => {
-    timers.push(originalSetTimeout(handler, timeout, ...args));
+    const timerId = originalSetTimeout(handler, timeout, ...args);
+    timerIds.push(timerId);
+    return timerId;
 };
 
 afterEach(() => {
-    timers.filter(window.clearTimeout);
-    timers = [];
+    timerIds.filter(window.clearTimeout);
+    timerIds = [];
+    navigatorOnline = true;
+    documentHidden = false;
     readSpy.mockClear();
     updateSpy.mockClear();
     onCacheChangeSpy.mockClear();
@@ -142,18 +180,18 @@ it('should rerun promises when cache expires if `maxAge` is set', async () => {
     // expire (pending)
 
     expect(getLastReturn()).toBe('foo2');
-    expect(useResourceSpy).toHaveBeenCalledTimes(6);
+    expect(useResourceSpy).toHaveBeenCalledTimes(5);
     expect(updateSpy).toHaveBeenCalledTimes(3);
-    expect(onCacheChangeSpy).toHaveBeenCalledTimes(5);
+    expect(onCacheChangeSpy).toHaveBeenCalledTimes(4);
 
     await act(() => delay(200));
 
     // fulfilled
 
     expect(getLastReturn()).toBe('foo2');
-    expect(useResourceSpy).toHaveBeenCalledTimes(7);
+    expect(useResourceSpy).toHaveBeenCalledTimes(6);
     expect(updateSpy).toHaveBeenCalledTimes(3);
-    expect(onCacheChangeSpy).toHaveBeenCalledTimes(6);
+    expect(onCacheChangeSpy).toHaveBeenCalledTimes(5);
 });
 
 it('should have `invalidate` method', async () => {
@@ -384,10 +422,10 @@ it('should debounce calls', async () => {
         return ret;
     });
 
-    const Comp: React.FC<{arg: string}> = props => {
+    function Comp(props: {arg: string}) {
         useResourceSpy({value: props.arg});
         return null;
-    };
+    }
 
     const {rerender} = render(<Comp arg="foo" />);
     rerender(<Comp arg="bar" />);
@@ -413,7 +451,7 @@ it('should debounce calls', async () => {
             rejected: false,
         },
     ]);
-    expect(readSpy).toHaveBeenCalledTimes(3);
+    expect(readSpy).toHaveBeenCalledTimes(2);
 
     await act(() => delay(200));
 
@@ -426,7 +464,7 @@ it('should debounce calls', async () => {
             rejected: false,
         },
     ]);
-    expect(readSpy).toHaveBeenCalledTimes(4);
+    expect(readSpy).toHaveBeenCalledTimes(3);
 
     await act(() => delay(300));
 
@@ -439,7 +477,7 @@ it('should debounce calls', async () => {
             rejected: false,
         },
     ]);
-    expect(readSpy).toHaveBeenCalledTimes(4);
+    expect(readSpy).toHaveBeenCalledTimes(3);
 });
 
 it('should invalidate on mount when `refreshOnMount` is set', async () => {
@@ -487,6 +525,54 @@ it('should invalidate on mount when `refreshOnMount` is set', async () => {
             rejected: false,
         },
     ]);
+});
+
+it('should schedule updates when browser is offline', async () => {
+    const useResource = createResource<string, {}>(() => delay(100, {value: 'foo'}));
+    const useResourceSpy = jest.fn(useResource);
+
+    function Comp() {
+        useResourceSpy({}, {maxAge: 500});
+        return null;
+    }
+
+    render(<Comp />);
+    expect(useResourceSpy).toHaveBeenCalledTimes(1);
+    await act(() => delay(100));
+    expect(useResourceSpy).toHaveBeenCalledTimes(2);
+
+    act(() => goOffline());
+    await act(() => delay(700));
+    expect(useResourceSpy).toHaveBeenCalledTimes(2);
+
+    act(() => goOnline());
+    expect(useResourceSpy).toHaveBeenCalledTimes(3);
+    await act(() => delay(100));
+    expect(useResourceSpy).toHaveBeenCalledTimes(4);
+});
+
+it('should schedule updates when browser tab is not active', async () => {
+    const useResource = createResource<string, {}>(() => delay(100, {value: 'foo'}));
+    const useResourceSpy = jest.fn(useResource);
+
+    function Comp() {
+        useResourceSpy({}, {maxAge: 500});
+        return null;
+    }
+
+    render(<Comp />);
+    expect(useResourceSpy).toHaveBeenCalledTimes(1);
+    await act(() => delay(100));
+    expect(useResourceSpy).toHaveBeenCalledTimes(2);
+
+    act(() => hideWindow());
+    await act(() => delay(700));
+    expect(useResourceSpy).toHaveBeenCalledTimes(2);
+
+    act(() => showWindow());
+    expect(useResourceSpy).toHaveBeenCalledTimes(3);
+    await act(() => delay(100));
+    expect(useResourceSpy).toHaveBeenCalledTimes(4);
 });
 
 it('should hydrate data', async () => {

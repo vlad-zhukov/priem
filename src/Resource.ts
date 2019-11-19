@@ -1,5 +1,5 @@
 import is, {TypeName} from '@sindresorhus/is';
-import {assertType, isBrowser, shallowEqual} from './utils';
+import {assertType, browserActivityState, isBrowser, shallowEqual} from './utils';
 import {Cache, CacheItem, SerializableCacheItem, reduce} from './Cache';
 
 const DEFAULT_MAX_SIZE = 50;
@@ -38,6 +38,43 @@ export function toSerializableArray(
         }
         return acc;
     });
+}
+
+const scheduledTimers = new Map<number, () => void>();
+
+browserActivityState.subscribe(() => {
+    if (browserActivityState.isActive()) {
+        scheduledTimers.forEach(handler => handler());
+        scheduledTimers.clear();
+    }
+});
+
+function setCacheItemTimeout(item: CacheItem<unknown, unknown>, handler: () => void, timeout: number): void {
+    /* istanbul ignore else */
+    if (isBrowser) {
+        /* istanbul ignore if */
+        if (item.expireTimerId) {
+            window.clearTimeout(item.expireTimerId);
+            scheduledTimers.delete(item.expireTimerId);
+        }
+        const timerId = window.setTimeout(() => {
+            if (!browserActivityState.isActive() && timerId) {
+                scheduledTimers.set(timerId, handler);
+            } else {
+                handler();
+            }
+            item.expireTimerId = undefined;
+        }, timeout);
+        item.expireTimerId = timerId;
+    }
+}
+
+function clearCacheItemTimeout(item: CacheItem<unknown, unknown>): void {
+    if (isBrowser && item.expireTimerId) {
+        window.clearTimeout(item.expireTimerId);
+        scheduledTimers.delete(item.expireTimerId);
+        item.expireTimerId = undefined;
+    }
 }
 
 // Only used during SSR for resources with `ssrKey`
@@ -192,12 +229,16 @@ export class Resource<DataType, Args extends Record<string, unknown>> {
 
         if (shouldUpdate) {
             this.update(item, maxAge);
-        } else if (!item.expireTimerId && isBrowser && maxAge) {
-            item.expireTimerId = window.setTimeout(() => {
-                if (item && item.key) {
-                    this.invalidate(item.key);
-                }
-            }, maxAge);
+        } else if (!item.expireTimerId && maxAge) {
+            setCacheItemTimeout(
+                item,
+                () => {
+                    if (item && item.key) {
+                        this.invalidate(item.key);
+                    }
+                },
+                maxAge,
+            );
         }
 
         return item.value;
@@ -217,7 +258,7 @@ export class Resource<DataType, Args extends Record<string, unknown>> {
             const timesUsed = this.onCacheChange(args, shouldCommit);
 
             if (timesUsed > 0) {
-                window.clearTimeout(item.expireTimerId);
+                clearCacheItemTimeout(item);
                 item.isValid = false; // This will trigger an update
             } else {
                 this.cache.remove(item);
@@ -228,6 +269,7 @@ export class Resource<DataType, Args extends Record<string, unknown>> {
 
     /** @private */
     update(item: CacheItem<Args, MemoizedValue<DataType>>, maxAge?: number): void {
+        clearCacheItemTimeout(item);
         Object.assign(item.value, {status: Status.PENDING, data: undefined, reason: undefined});
 
         const promise = this.fn(item.key)
@@ -242,13 +284,17 @@ export class Resource<DataType, Args extends Record<string, unknown>> {
 
                 const timesUsed = this.onCacheChange(item.key);
 
-                if (timesUsed > 0 && isBrowser && maxAge) {
-                    window.clearTimeout(item.expireTimerId);
-                    item.expireTimerId = window.setTimeout(() => {
-                        if (item.key) {
-                            this.invalidate(item.key);
-                        }
-                    }, maxAge);
+                if (timesUsed > 0 && maxAge) {
+                    setCacheItemTimeout(
+                        item,
+                        () => {
+                            /* istanbul ignore else */
+                            if (item.key) {
+                                this.invalidate(item.key);
+                            }
+                        },
+                        maxAge,
+                    );
                 }
             })
             .catch(error => {

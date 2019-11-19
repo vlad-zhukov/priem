@@ -29,7 +29,6 @@ export declare interface Options {
 }
 
 export declare interface ResourceOptions {
-    maxSize?: number;
     ssrKey?: string;
 }
 
