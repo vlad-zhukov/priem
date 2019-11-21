@@ -24,6 +24,7 @@ interface Refs<Args, DataType> extends Subscriber<Args> {
     args?: Args;
     lastTimeCalled: number;
     prevResult?: Result<DataType>;
+    debounceTimerId?: number;
 }
 
 export function createResource<DataType, Args extends MemoizedKey>(
@@ -70,40 +71,6 @@ export function createResource<DataType, Args extends MemoizedKey>(
             };
         }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-        const {lastTimeCalled, prevResult} = refs;
-        const now = Date.now();
-        refs.lastTimeCalled = now;
-
-        /**
-         * Should this call get debounced and rescheduled,
-         * and return the previous value to reduce the amount of requests?
-         *
-         * We should debounce when all conditions are met:
-         * 1. Arguments are provided.
-         * 2. Previous result is valid.
-         * 3. Less than 150ms lapsed since the last call.
-         * 4. The item is not in the cache.
-         */
-        const shouldDebounce =
-            isBrowser &&
-            args !== undefined &&
-            !!prevResult &&
-            now - lastTimeCalled < DEFAULT_DEBOUNCE_MS &&
-            !resource.has(args);
-
-        // TODO: rework debounce
-        React.useEffect(() => {
-            let handler: number | undefined;
-            if (shouldDebounce) {
-                handler = window.setTimeout(forceUpdate, DEFAULT_DEBOUNCE_MS);
-            }
-            return () => window.clearTimeout(handler);
-        });
-
-        if (shouldDebounce) {
-            return prevResult as Result<DataType>;
-        }
-
         const meta: ResultMeta = {
             pending: false,
             fulfilled: false,
@@ -119,6 +86,30 @@ export function createResource<DataType, Args extends MemoizedKey>(
 
         if (args === undefined) {
             return [undefined, meta];
+        }
+
+        const {lastTimeCalled, prevResult} = refs;
+        const now = Date.now();
+        refs.lastTimeCalled = now;
+
+        /**
+         * Should this call get debounced and rescheduled,
+         * and return the previous value to reduce the amount of requests?
+         *
+         * We should debounce when all conditions are met:
+         * 1. We are running in browser.
+         * 2. Previous result is valid.
+         * 3. Less than 150ms lapsed since the last call.
+         * 4. The item is not in the cache.
+         */
+        const shouldDebounce =
+            isBrowser && !!prevResult && now - lastTimeCalled < DEFAULT_DEBOUNCE_MS && !resource.has(args);
+
+        clearTimeout(refs.debounceTimerId);
+
+        if (shouldDebounce) {
+            refs.debounceTimerId = window.setTimeout(forceUpdate, DEFAULT_DEBOUNCE_MS);
+            return prevResult as Result<DataType>;
         }
 
         const ret = resource.read(args, {maxAge: options.maxAge});
