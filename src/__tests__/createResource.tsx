@@ -108,7 +108,7 @@ it('should not run if `args` is `undefined`', async () => {
     ]);
 });
 
-it('should rerun promises when cache expires if `maxAge` is set', async () => {
+it('should rerun promises when cache expires if `refreshInterval` is set', async () => {
     /**
      * ASYNC UPDATE FLOW.
      * Numbers mean the order of function calls.
@@ -133,7 +133,7 @@ it('should rerun promises when cache expires if `maxAge` is set', async () => {
     }
 
     function Comp({count}: {count: string}) {
-        useResourceSpy({value: `foo${count}`}, {maxAge: 1000});
+        useResourceSpy({value: `foo${count}`}, {refreshInterval: 1000});
         return null;
     }
 
@@ -513,7 +513,7 @@ it('should schedule updates when browser is offline', async () => {
     const useResourceSpy = jest.fn(useResource);
 
     function Comp() {
-        useResourceSpy({}, {maxAge: 500});
+        useResourceSpy({}, {refreshInterval: 500});
         return null;
     }
 
@@ -537,7 +537,7 @@ it('should schedule updates when browser tab is not active', async () => {
     const useResourceSpy = jest.fn(useResource);
 
     function Comp() {
-        useResourceSpy({}, {maxAge: 500});
+        useResourceSpy({}, {refreshInterval: 500});
         return null;
     }
 
@@ -603,7 +603,7 @@ it('should hydrate data', async () => {
     );
 
     function Comp() {
-        const [data1] = useResource1({value: 'foo'}, {maxAge: 1000});
+        const [data1] = useResource1({value: 'foo'}, {refreshInterval: 1000});
         const [data2] = useResource2(!data1 ? undefined : {res1Value: data1, value: 'bar'});
         return <div>{data2}</div>;
     }

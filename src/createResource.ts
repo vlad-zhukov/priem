@@ -6,7 +6,7 @@ import {assertType, isBrowser, shallowEqual, useForceUpdate, useLazyRef} from '.
 const DEFAULT_DEBOUNCE_MS = 150;
 
 export interface Options {
-    maxAge?: number;
+    refreshInterval?: number;
     refreshOnMount?: boolean;
 }
 
@@ -111,7 +111,7 @@ export function createResource<DataType, Args extends MemoizedKey>(
             invalidate() {
                 if (refs.args) {
                     resource.invalidate(refs.args, false);
-                    resource.read(refs.args, {maxAge: options.maxAge});
+                    resource.read(refs.args, {maxAge: options.refreshInterval});
                 }
             },
         };
@@ -144,7 +144,7 @@ export function createResource<DataType, Args extends MemoizedKey>(
             return prevResult as Result<DataType>;
         }
 
-        const ret = resource.read(args, {maxAge: options.maxAge});
+        const ret = resource.read(args, {maxAge: options.refreshInterval});
 
         if ((!ret || ret.status === Status.PENDING) && !!prevResult) {
             return prevResult;
@@ -234,7 +234,7 @@ export function createResource<DataType, Args extends MemoizedKey>(
             invalidate() {
                 refs.args.forEach(args => {
                     resource.invalidate(args, false);
-                    resource.read(args, {maxAge: options.maxAge});
+                    resource.read(args, {maxAge: options.refreshInterval});
                 });
             },
             loadMore() {
@@ -277,7 +277,7 @@ export function createResource<DataType, Args extends MemoizedKey>(
         let data: DataType[] | undefined = [];
 
         for (const args of refs.args) {
-            const ret = resource.read(args, {maxAge: options.maxAge});
+            const ret = resource.read(args, {maxAge: options.refreshInterval});
 
             if (meta.rejected || meta.pending) {
                 continue;

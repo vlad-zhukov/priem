@@ -221,7 +221,7 @@ export class Resource<DataType, Args extends Record<string, unknown>> {
         }
 
         const maxAge = is.safeInteger(options.maxAge) ? options.maxAge : undefined;
-        const isOutdated = !maxAge ? false : Date.now() - (item.lastUpdateAt || 0) > maxAge;
+        const isOutdated = maxAge ? Date.now() - (item.lastUpdateAt || 0) > maxAge : false;
         const shouldUpdate =
             isNewItem ||
             (!item.isValid && item.value.status !== Status.PENDING) ||
