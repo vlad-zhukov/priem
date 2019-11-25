@@ -1,9 +1,14 @@
 export declare function createResource<DataType, Args extends MemoizedKey>(
     fn: (args: Args) => Promise<DataType>,
     resourceOptions?: ResourceOptions,
-): (args: Args | undefined, options?: Options) => Result<DataType>;
+): {
+    (args: Args | undefined, options?: Options): Result<DataType>;
+    pages(getArgs: GetArgs<Args> | undefined, options?: Options): ResultPages<DataType>;
+};
 
 export declare function flushStore(): [string, MemoizedSerializableCacheItem[]][];
+
+export declare type GetArgs<Args> = (prevArgs?: Args) => Args;
 
 /* Excluded from this release type: getRunningPromises */
 
@@ -24,7 +29,7 @@ export declare interface MemoizedValue<DataType> {
 }
 
 export declare interface Options {
-    maxAge?: number;
+    refreshInterval?: number;
     refreshOnMount?: boolean;
 }
 
@@ -40,6 +45,12 @@ export declare interface ResultMeta {
     rejected: boolean;
     reason: Error | undefined;
     invalidate: () => void;
+}
+
+export declare type ResultPages<DataType> = [DataType[] | undefined, ResultPagesMeta];
+
+export declare interface ResultPagesMeta extends ResultMeta {
+    loadMore: () => void;
 }
 
 export declare interface SerializableCacheItem<K, V> {

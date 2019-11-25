@@ -26,9 +26,9 @@ export interface ResultPagesMeta extends ResultMeta {
 
 export type ResultPages<DataType> = [DataType[] | undefined, ResultPagesMeta];
 
-type GetArgsFn<Args> = (prevArgs?: Args) => Args;
+export type GetArgs<Args> = (prevArgs?: Args) => Args;
 
-function getAllArgs<Args>(getArgs: GetArgsFn<Args> | undefined, count: number): Args[] {
+function getAllArgs<Args>(getArgs: GetArgs<Args> | undefined, count: number): Args[] {
     if (!getArgs) {
         return [];
     }
@@ -169,7 +169,7 @@ export function createResource<DataType, Args extends MemoizedKey>(
     }
 
     useResource.pages = function useResourcePages(
-        getArgs: GetArgsFn<Args> | undefined,
+        getArgs: GetArgs<Args> | undefined,
         options: Options = {},
     ): ResultPages<DataType> {
         assertType(getArgs, [TypeName.Function, TypeName.undefined], '`getArgs`');

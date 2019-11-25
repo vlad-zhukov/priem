@@ -1,4 +1,4 @@
-export {createResource, Options, Result, ResultMeta, ResultPages, ResultPagesMeta} from './createResource';
+export {createResource, GetArgs, Options, Result, ResultMeta, ResultPages, ResultPagesMeta} from './createResource';
 export {
     hydrateStore,
     flushStore,
