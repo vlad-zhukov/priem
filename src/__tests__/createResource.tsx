@@ -1,7 +1,7 @@
 import * as React from 'react';
 import delay from 'delay';
 import {render, cleanup, act, fireEvent} from '@testing-library/react';
-import {createResource, hydrateStore, Options} from '../index';
+import {createResource, hydrateStore, Options, ResultPages} from '../index';
 import {Resource} from '../Resource';
 
 const readSpy = jest.spyOn(Resource.prototype, 'read');
@@ -221,73 +221,73 @@ it('should have `invalidate` method', async () => {
 
     const {container, rerender} = render(<Comp />);
 
-    expect(container.children).toMatchInlineSnapshot(`
-        HTMLCollection [
+    expect(container).toMatchInlineSnapshot(`
+        <div>
           <button
             type="button"
-          />,
-        ]
+          />
+        </div>
     `);
     expect(useResourceSpy).toHaveBeenCalledTimes(1);
     expect(readSpy).toHaveBeenCalledTimes(1);
 
     await act(() => delay(200));
 
-    expect(container.children).toMatchInlineSnapshot(`
-        HTMLCollection [
+    expect(container).toMatchInlineSnapshot(`
+        <div>
           <button
             type="button"
           >
             foo
-          </button>,
-        ]
+          </button>
+        </div>
     `);
     expect(useResourceSpy).toHaveBeenCalledTimes(2);
     expect(readSpy).toHaveBeenCalledTimes(2);
 
     fireEvent.click(container.querySelector('button') as HTMLButtonElement);
-    expect(container.children).toMatchInlineSnapshot(`
-        HTMLCollection [
+    expect(container).toMatchInlineSnapshot(`
+        <div>
           <button
             type="button"
           >
             foo
-          </button>,
-        ]
+          </button>
+        </div>
     `);
     expect(useResourceSpy).toHaveBeenCalledTimes(2);
     expect(readSpy).toHaveBeenCalledTimes(3);
 
     await act(() => delay(100));
 
-    expect(container.children).toMatchInlineSnapshot(`
-        HTMLCollection [
+    expect(container).toMatchInlineSnapshot(`
+        <div>
           <button
             type="button"
           >
             foo
-          </button>,
+          </button>
           <p>
             error!
-          </p>,
-        ]
+          </p>
+        </div>
     `);
     expect(useResourceSpy).toHaveBeenCalledTimes(3);
     expect(readSpy).toHaveBeenCalledTimes(4);
 
     await act(() => delay(500));
 
-    expect(container.children).toMatchInlineSnapshot(`
-        HTMLCollection [
+    expect(container).toMatchInlineSnapshot(`
+        <div>
           <button
             type="button"
           >
             foo
-          </button>,
+          </button>
           <p>
             error!
-          </p>,
-        ]
+          </p>
+        </div>
     `);
     expect(useResourceSpy).toHaveBeenCalledTimes(3);
     expect(readSpy).toHaveBeenCalledTimes(4);
@@ -357,31 +357,6 @@ it('should throttle invalidations', async () => {
     expect(onCacheChangeSpy).toHaveBeenCalledTimes(5);
 });
 
-it('should render a nested component', async () => {
-    const useResource1 = createResource<string, {value: string}>(({value}) => delay(100, {value}));
-    const useResource2 = createResource<string, {res1Value: string; value: string}>(({res1Value, value}) =>
-        delay(100, {value: res1Value + value}),
-    );
-
-    function Comp() {
-        const [data1] = useResource1({value: 'foo'});
-        const [data2] = useResource2(!data1 ? undefined : {res1Value: data1, value: 'bar'});
-        return <div>{data2}</div>;
-    }
-
-    const {container} = render(<Comp />);
-
-    await act(() => delay(400));
-
-    expect(container.children).toMatchInlineSnapshot(`
-        HTMLCollection [
-          <div>
-            foobar
-          </div>,
-        ]
-    `);
-});
-
 it('should render `useResource` hooks that are subscribed to the same resource but need different data', async () => {
     const useResource = createResource<string, {value: string}>(({value}) => delay(100, {value}), {});
 
@@ -390,26 +365,22 @@ it('should render `useResource` hooks that are subscribed to the same resource b
         const [data2] = useResource({value: 'bar'});
         return (
             <div>
-                <div>{data1}</div>
-                <div>{data2}</div>
+                {data1}
+                {data2}
             </div>
         );
     }
 
     const {container} = render(<Comp />);
-    await act(() => delay(300));
+    await act(() => delay(200));
 
-    expect(container.children).toMatchInlineSnapshot(`
-        HTMLCollection [
+    expect(container).toMatchInlineSnapshot(`
+        <div>
           <div>
-            <div>
-              foo
-            </div>
-            <div>
-              bar
-            </div>
-          </div>,
-        ]
+            foo
+            bar
+          </div>
+        </div>
     `);
 });
 
@@ -512,6 +483,16 @@ it('should invalidate on mount when `refreshOnMount` is set', async () => {
 
     unmount();
     rerender(<Comp />);
+
+    expect(useResourceSpy).toHaveLastReturnedWith([
+        undefined,
+        {
+            fulfilled: false,
+            pending: true,
+            rejected: false,
+        },
+    ]);
+
     await act(() => delay(300));
 
     expect(useResourceSpy).toHaveBeenCalledTimes(4);
@@ -645,5 +626,414 @@ it('should hydrate data', async () => {
             foobar
           </div>
         </div>
+    `);
+});
+
+it('should have paged hook variant', async () => {
+    const variants = ['foo', 'bar', 'baz', 'qux', 'quux'];
+    let currentVariant = 0;
+
+    function buildRandomValueList(length: number, offset: number): string[] {
+        const valueList = [];
+
+        for (let i = offset; i < offset + length; i++) {
+            valueList.push(variants[currentVariant] + '-' + i);
+            if (currentVariant < 4) {
+                currentVariant += 1;
+            } else {
+                currentVariant = 0;
+            }
+        }
+
+        return valueList;
+    }
+
+    const useResource = createResource<string[], {shouldReject: boolean; length: number; offset: number}>(args => {
+        if (args.shouldReject) {
+            return delay.reject(100);
+        }
+        return delay(100, {value: buildRandomValueList(args.length, args.offset)});
+    });
+
+    const useResourcePagesSpy = jest.fn(useResource.pages);
+    function getLastReturn(): ResultPages<string[]> {
+        const res = useResourcePagesSpy.mock.results.slice(-1).pop();
+        expect(Array.isArray(res!.value)).toBeTruthy();
+        return res!.value;
+    }
+
+    function Comp() {
+        const [counter, setCounter] = React.useState(0);
+        const [shouldReject, setShouldReject] = React.useState(false);
+
+        const [, meta] = useResourcePagesSpy(
+            counter === 0
+                ? undefined
+                : prevArgs => ({
+                      counter,
+                      shouldReject,
+                      length: 2,
+                      offset: prevArgs ? prevArgs.offset + 2 : 0,
+                  }),
+        );
+
+        return (
+            <>
+                <button onClick={() => setCounter(c => c + 1)} data-inccounter={true}>
+                    Increase counter
+                </button>
+                <button onClick={meta.loadMore} data-loadmore={true}>
+                    Load more
+                </button>
+                <button onClick={meta.invalidate} data-invalidate={true}>
+                    Invalidate
+                </button>
+                <button onClick={() => setShouldReject(r => !r)} data-togglerejecting={true}>
+                    Toggle rejecting
+                </button>
+            </>
+        );
+    }
+
+    const {container} = render(<Comp />);
+    const incCounterButton = container.querySelector('button[data-inccounter=true]') as HTMLButtonElement;
+    const loadMoreButton = container.querySelector('button[data-loadmore=true]') as HTMLButtonElement;
+    const invalidateButton = container.querySelector('button[data-invalidate=true]') as HTMLButtonElement;
+    const toggleRejectingButton = container.querySelector('button[data-togglerejecting=true]') as HTMLButtonElement;
+
+    await act(() => delay(100));
+
+    expect(getLastReturn()).toMatchInlineSnapshot(`
+        Array [
+          undefined,
+          Object {
+            "fulfilled": false,
+            "invalidate": [Function],
+            "loadMore": [Function],
+            "pending": false,
+            "reason": undefined,
+            "rejected": false,
+          },
+        ]
+    `);
+
+    fireEvent.click(incCounterButton);
+    await act(() => delay(100));
+
+    expect(getLastReturn()).toMatchInlineSnapshot(`
+        Array [
+          Array [
+            Array [
+              "foo-0",
+              "bar-1",
+            ],
+          ],
+          Object {
+            "fulfilled": true,
+            "invalidate": [Function],
+            "loadMore": [Function],
+            "pending": false,
+            "reason": undefined,
+            "rejected": false,
+          },
+        ]
+    `);
+
+    fireEvent.click(loadMoreButton);
+    fireEvent.click(loadMoreButton);
+
+    expect(getLastReturn()).toMatchInlineSnapshot(`
+        Array [
+          Array [
+            Array [
+              "foo-0",
+              "bar-1",
+            ],
+          ],
+          Object {
+            "fulfilled": true,
+            "invalidate": [Function],
+            "loadMore": [Function],
+            "pending": false,
+            "reason": undefined,
+            "rejected": false,
+          },
+        ]
+    `);
+
+    // debounced
+    await act(() => delay(150));
+    expect(getLastReturn()).toMatchInlineSnapshot(`
+        Array [
+          Array [
+            Array [
+              "foo-0",
+              "bar-1",
+            ],
+          ],
+          Object {
+            "fulfilled": false,
+            "invalidate": [Function],
+            "loadMore": [Function],
+            "pending": true,
+            "reason": undefined,
+            "rejected": false,
+          },
+        ]
+    `);
+
+    await act(() => delay(100));
+    expect(getLastReturn()).toMatchInlineSnapshot(`
+        Array [
+          Array [
+            Array [
+              "foo-0",
+              "bar-1",
+            ],
+            Array [
+              "baz-2",
+              "qux-3",
+            ],
+            Array [
+              "quux-4",
+              "foo-5",
+            ],
+          ],
+          Object {
+            "fulfilled": true,
+            "invalidate": [Function],
+            "loadMore": [Function],
+            "pending": false,
+            "reason": undefined,
+            "rejected": false,
+          },
+        ]
+    `);
+
+    fireEvent.click(invalidateButton);
+
+    await act(() => delay(100));
+    expect(getLastReturn()).toMatchInlineSnapshot(`
+        Array [
+          Array [
+            Array [
+              "bar-0",
+              "baz-1",
+            ],
+            Array [
+              "qux-2",
+              "quux-3",
+            ],
+            Array [
+              "foo-4",
+              "bar-5",
+            ],
+          ],
+          Object {
+            "fulfilled": true,
+            "invalidate": [Function],
+            "loadMore": [Function],
+            "pending": false,
+            "reason": undefined,
+            "rejected": false,
+          },
+        ]
+    `);
+
+    fireEvent.click(incCounterButton);
+
+    // debounced
+    await act(() => delay(150));
+    expect(getLastReturn()).toMatchInlineSnapshot(`
+        Array [
+          Array [
+            Array [
+              "bar-0",
+              "baz-1",
+            ],
+            Array [
+              "qux-2",
+              "quux-3",
+            ],
+            Array [
+              "foo-4",
+              "bar-5",
+            ],
+          ],
+          Object {
+            "fulfilled": false,
+            "invalidate": [Function],
+            "loadMore": [Function],
+            "pending": true,
+            "reason": undefined,
+            "rejected": false,
+          },
+        ]
+    `);
+
+    await act(() => delay(100));
+    expect(getLastReturn()).toMatchInlineSnapshot(`
+        Array [
+          Array [
+            Array [
+              "baz-0",
+              "qux-1",
+            ],
+          ],
+          Object {
+            "fulfilled": true,
+            "invalidate": [Function],
+            "loadMore": [Function],
+            "pending": false,
+            "reason": undefined,
+            "rejected": false,
+          },
+        ]
+    `);
+
+    fireEvent.click(toggleRejectingButton);
+    await act(() => delay(300)); // debounced (150) + promise resolution (100)
+    expect(getLastReturn()).toMatchInlineSnapshot(`
+        Array [
+          Array [
+            Array [
+              "baz-0",
+              "qux-1",
+            ],
+          ],
+          Object {
+            "fulfilled": false,
+            "invalidate": [Function],
+            "loadMore": [Function],
+            "pending": false,
+            "reason": undefined,
+            "rejected": true,
+          },
+        ]
+    `);
+});
+
+it('should invalidate all pages on mount when `refreshOnMount` is set', async () => {
+    const variants = ['foo', 'bar', 'baz', 'qux', 'quux'];
+    let currentVariant = 0;
+
+    function buildRandomValueList(length: number, offset: number): string[] {
+        const valueList = [];
+
+        for (let i = offset; i < offset + length; i++) {
+            valueList.push(variants[currentVariant] + '-' + i);
+            if (currentVariant < 4) {
+                currentVariant += 1;
+            } else {
+                currentVariant = 0;
+            }
+        }
+
+        return valueList;
+    }
+
+    const useResource = createResource<string[], {length: number; offset: number}>(args =>
+        delay(100, {value: buildRandomValueList(args.length, args.offset)}),
+    );
+
+    const useResourcePagesSpy = jest.fn(useResource.pages);
+    function getLastReturn(): ResultPages<string[]> {
+        const res = useResourcePagesSpy.mock.results.slice(-1).pop();
+        expect(Array.isArray(res!.value)).toBeTruthy();
+        return res!.value;
+    }
+
+    function Comp() {
+        const [, meta] = useResourcePagesSpy(
+            prevArgs => ({
+                length: 2,
+                offset: prevArgs ? prevArgs.offset + 2 : 0,
+            }),
+            {refreshOnMount: true},
+        );
+
+        return (
+            <button onClick={meta.loadMore} data-loadmore={true}>
+                Load more
+            </button>
+        );
+    }
+
+    const {container, unmount, rerender} = render(<Comp />);
+    let loadMoreButton = container.querySelector('button[data-loadmore=true]') as HTMLButtonElement;
+
+    fireEvent.click(loadMoreButton);
+    fireEvent.click(loadMoreButton);
+    fireEvent.click(loadMoreButton);
+
+    await act(() => delay(400));
+
+    expect(updateSpy).toHaveBeenCalledTimes(4);
+    expect(getLastReturn()).toMatchInlineSnapshot(`
+        Array [
+          Array [
+            Array [
+              "foo-0",
+              "bar-1",
+            ],
+            Array [
+              "baz-2",
+              "qux-3",
+            ],
+            Array [
+              "quux-4",
+              "foo-5",
+            ],
+            Array [
+              "bar-6",
+              "baz-7",
+            ],
+          ],
+          Object {
+            "fulfilled": true,
+            "invalidate": [Function],
+            "loadMore": [Function],
+            "pending": false,
+            "reason": undefined,
+            "rejected": false,
+          },
+        ]
+    `);
+
+    unmount();
+    rerender(<Comp />);
+    loadMoreButton = container.querySelector('button[data-loadmore=true]') as HTMLButtonElement;
+
+    fireEvent.click(loadMoreButton);
+    fireEvent.click(loadMoreButton);
+
+    await act(() => delay(400));
+
+    expect(updateSpy).toHaveBeenCalledTimes(5);
+    expect(getLastReturn()).toMatchInlineSnapshot(`
+        Array [
+          Array [
+            Array [
+              "qux-0",
+              "quux-1",
+            ],
+            Array [
+              "baz-2",
+              "qux-3",
+            ],
+            Array [
+              "quux-4",
+              "foo-5",
+            ],
+          ],
+          Object {
+            "fulfilled": true,
+            "invalidate": [Function],
+            "loadMore": [Function],
+            "pending": false,
+            "reason": undefined,
+            "rejected": false,
+          },
+        ]
     `);
 });
