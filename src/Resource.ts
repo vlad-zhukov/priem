@@ -1,10 +1,10 @@
 import is, {TypeName} from '@sindresorhus/is';
-import {assertType, isBrowser, shallowEqual} from './utils';
+import {assertType, browserActivityState, isBrowser, shallowEqual} from './utils';
 import {Cache, CacheItem, SerializableCacheItem, reduce} from './Cache';
 
-const DEFAULT_THROTTLE_MS = 150;
+const DEFAULT_MAX_SIZE = 50;
 
-export enum STATUS {
+export enum Status {
     PENDING,
     FULFILLED,
     REJECTED,
@@ -13,7 +13,7 @@ export enum STATUS {
 export type MemoizedKey = Readonly<Record<string, unknown>>;
 
 export interface MemoizedValue<DataType> {
-    status: STATUS;
+    status: Status;
     data: DataType | undefined;
     reason?: Error;
     promise?: Promise<void>;
@@ -30,7 +30,7 @@ export function toSerializableArray(
 ): MemoizedSerializableCacheItem[] {
     return reduce<MemoizedSerializableCacheItem[], MemoizedKey, MemoizedValue<unknown>>(cache, [], (acc, item) => {
         const {status, data, reason} = item.value;
-        if (!filterFulfilled || status === STATUS.FULFILLED) {
+        if (!filterFulfilled || status === Status.FULFILLED) {
             acc.push({
                 key: item.key,
                 value: {status, data, reason},
@@ -38,6 +38,43 @@ export function toSerializableArray(
         }
         return acc;
     });
+}
+
+const scheduledTimers = new Map<number, () => void>();
+
+browserActivityState.subscribe(() => {
+    if (browserActivityState.isActive()) {
+        scheduledTimers.forEach(handler => handler());
+        scheduledTimers.clear();
+    }
+});
+
+function setCacheItemTimeout(item: CacheItem<unknown, unknown>, handler: () => void, timeout: number): void {
+    /* istanbul ignore else */
+    if (isBrowser) {
+        /* istanbul ignore if */
+        if (item.expireTimerId) {
+            window.clearTimeout(item.expireTimerId);
+            scheduledTimers.delete(item.expireTimerId);
+        }
+        const timerId = window.setTimeout(() => {
+            if (!browserActivityState.isActive() && timerId) {
+                scheduledTimers.set(timerId, handler);
+            } else {
+                handler();
+            }
+            item.expireTimerId = undefined;
+        }, timeout);
+        item.expireTimerId = timerId;
+    }
+}
+
+function clearCacheItemTimeout(item: CacheItem<unknown, unknown>): void {
+    if (isBrowser && item.expireTimerId) {
+        window.clearTimeout(item.expireTimerId);
+        scheduledTimers.delete(item.expireTimerId);
+        item.expireTimerId = undefined;
+    }
 }
 
 // Only used during SSR for resources with `ssrKey`
@@ -76,7 +113,7 @@ export function flushStore(): [string, MemoizedSerializableCacheItem[]][] {
 
     if (duplicateSsrKey) {
         throw new Error(
-            `usePriem: A resource with '${duplicateSsrKey}' \`ssrKey\` already exists. Please make sure \`ssrKey\`s are unique.`,
+            `useResource: A resource with '${duplicateSsrKey}' \`ssrKey\` already exists. Please make sure \`ssrKey\`s are unique.`,
         );
     }
 
@@ -89,15 +126,12 @@ export function getRunningPromises() {
 
     for (const resource of resourceList) {
         // all resources in resourceList have ssrKeys
-        /* istanbul ignore next */
-        if (resource.ssrKey) {
-            reduce<void, MemoizedKey, MemoizedValue<unknown>>(resource.cache, undefined, (_, cacheItem) => {
-                const {status, promise} = cacheItem.value;
-                if (status === STATUS.PENDING && promise) {
-                    promises.push(promise);
-                }
-            });
-        }
+        reduce<void, MemoizedKey, MemoizedValue<unknown>>(resource.cache, undefined, (_, cacheItem) => {
+            const {status, promise} = cacheItem.value;
+            if (status === Status.PENDING && promise) {
+                promises.push(promise);
+            }
+        });
     }
 
     return promises;
@@ -110,32 +144,32 @@ export function hydrateStore(initialStore: [string, MemoizedSerializableCacheIte
 }
 
 export interface Subscriber<Args> {
-    onChange: (prevArgs: Args, forceRefresh: boolean) => void;
+    onChange: (prevArgs: Args, shouldCommit: boolean) => boolean;
 }
 
 export interface ResourceOptions {
-    maxSize?: number;
-    maxAge?: number;
     ssrKey?: string;
+}
+
+export interface ReadOptions {
+    maxAge?: number;
 }
 
 export class Resource<DataType, Args extends Record<string, unknown>> {
     private readonly listeners: Subscriber<Args>[] = [];
     /** @private */ readonly cache: Cache<Args, MemoizedValue<DataType>>;
     private readonly fn: (args: Readonly<Args>) => Promise<DataType>;
-    private readonly maxSize: number;
-    private readonly maxAge?: number;
     /** @private */ readonly ssrKey?: string;
 
-    constructor(fn: (args: Readonly<Args>) => Promise<DataType>, options: ResourceOptions) {
+    constructor(fn: (args: Readonly<Args>) => Promise<DataType>, options: ResourceOptions = {}) {
         assertType(fn, [TypeName.Function], "'fn'");
         assertType(options, [TypeName.Object], "Resource argument 'options'");
 
-        const {maxSize, maxAge, ssrKey} = options;
+        const {ssrKey} = options;
 
         assertType(ssrKey, [TypeName.string, TypeName.undefined], "'ssrKey'");
 
-        let initialCache: (MemoizedSerializableCacheItem<Args, DataType>)[] = [];
+        let initialCache: MemoizedSerializableCacheItem<Args, DataType>[] = [];
         if (ssrKey) {
             // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
             // @ts-ignore
@@ -146,94 +180,149 @@ export class Resource<DataType, Args extends Record<string, unknown>> {
         this.listeners = [];
         this.cache = new Cache<Args, MemoizedValue<DataType>>(initialCache);
         this.fn = fn;
-        this.maxSize = is.number(maxSize) && maxSize > 0 && is.safeInteger(maxSize) ? maxSize : 1;
-        this.maxAge = is.number(maxAge) && isFinite(maxAge) ? maxAge : undefined;
         this.ssrKey = ssrKey;
+
+        if (!isBrowser) {
+            resourceList.add(this);
+        }
     }
 
-    has(args: Args | null): boolean {
-        if (args === null) {
-            return false;
-        }
+    has(args: Args): boolean {
         return !!this.cache.findBy(cacheItem => shallowEqual(cacheItem.key, args));
     }
 
-    get(args: Args | null, forceRefresh = false): MemoizedValue<DataType> | undefined {
-        if (args === null) {
+    read(args: Args, options: ReadOptions): MemoizedValue<DataType> | undefined {
+        // Do not run on server when no ssrKey
+        if (!isBrowser && !this.ssrKey) {
             return;
         }
 
-        if (!isBrowser) {
-            // Do not run on server when no ssrKey
-            if (!this.ssrKey) {
-                return;
-            }
-            resourceList.add(this);
-        }
-
         let item = this.cache.findBy(cacheItem => shallowEqual(cacheItem.key, args));
-        let shouldRefresh = false;
+        let isNewItem = false;
 
-        if (!item) {
-            if (this.cache.size >= this.maxSize) {
-                const itemToRemove = this.cache.tail;
-                this.cache.remove(itemToRemove!); // eslint-disable-line @typescript-eslint/no-non-null-assertion
-                itemToRemove!.destroy(); // eslint-disable-line @typescript-eslint/no-non-null-assertion
+        if (item) {
+            // Move item to head
+            if (item !== this.cache.head && this.cache.remove(item)) {
+                this.cache.prepend(item);
+            }
+        } else {
+            // Remove the oldest item if cache size is bigger than default max size
+            if (this.cache.size >= DEFAULT_MAX_SIZE && this.cache.tail) {
+                this.invalidate(this.cache.tail.key, false);
             }
 
             item = new CacheItem<Args, MemoizedValue<DataType>>(args, {
-                status: STATUS.PENDING,
+                status: Status.PENDING,
                 data: undefined,
                 reason: undefined,
             });
             this.cache.prepend(item);
-            shouldRefresh = true;
-        } else {
-            if (item !== this.cache.head && this.cache.remove(item)) {
-                this.cache.prepend(item);
-            }
-
-            if (forceRefresh) {
-                shouldRefresh = true;
-            }
+            isNewItem = true;
         }
 
-        if (shouldRefresh) {
-            // Throttle refreshes
-            const now = Date.now();
-            const lastRefreshAt = item.lastRefreshAt || 0;
-            if (now - lastRefreshAt > DEFAULT_THROTTLE_MS) {
-                item.lastRefreshAt = now;
+        const maxAge = is.safeInteger(options.maxAge) ? options.maxAge : undefined;
+        const isOutdated = maxAge ? Date.now() - (item.lastUpdateAt || 0) > maxAge : false;
+        const shouldUpdate =
+            isNewItem ||
+            (!item.isValid && item.value.status !== Status.PENDING) ||
+            (isOutdated && item.value.status === Status.FULFILLED);
 
-                if (isBrowser && this.maxAge) {
-                    window.clearTimeout(item.expireId);
-                    const itemKey = item.key;
-                    item.expireId = window.setTimeout(() => {
-                        this.onCacheChange(itemKey, true);
-                    }, this.maxAge);
-                }
-
-                const itemValue = Object.assign(item.value, {status: STATUS.PENDING, reason: undefined});
-                itemValue.promise = this.fn(args)
-                    .then(data => {
-                        Object.assign(itemValue, {status: STATUS.FULFILLED, data, reason: undefined});
-                        this.onCacheChange(args, false);
-                    })
-                    .catch(error => {
-                        Object.assign(itemValue, {status: STATUS.REJECTED, data: undefined, reason: error});
-                        this.onCacheChange(args, false);
-                    });
-            }
+        if (shouldUpdate) {
+            this.update(item, maxAge);
+        } else if (!item.expireTimerId && maxAge) {
+            setCacheItemTimeout(
+                item,
+                () => {
+                    if (item && item.key) {
+                        this.invalidate(item.key);
+                    }
+                },
+                maxAge,
+            );
         }
 
         return item.value;
     }
 
+    delete(args: Args): void {
+        const item = this.cache.findBy(cacheItem => shallowEqual(cacheItem.key, args));
+        if (item) {
+            this.cache.remove(item);
+            item.destroy();
+        }
+    }
+
+    invalidate(args: Args, shouldCommit = true): void {
+        const item = this.cache.findBy(cacheItem => shallowEqual(cacheItem.key, args));
+        if (item) {
+            const timesUsed = this.onCacheChange(args, shouldCommit);
+
+            if (timesUsed > 0) {
+                clearCacheItemTimeout(item);
+                item.isValid = false; // This will trigger an update
+            } else {
+                this.cache.remove(item);
+                item.destroy();
+            }
+        }
+    }
+
     /** @private */
-    onCacheChange(args: Args, forceRefresh: boolean): void {
+    update(item: CacheItem<Args, MemoizedValue<DataType>>, maxAge?: number): void {
+        clearCacheItemTimeout(item);
+        Object.assign(item.value, {status: Status.PENDING, data: undefined, reason: undefined});
+
+        const promise = this.fn(item.key)
+            .then(data => {
+                if (!item.key) {
+                    return;
+                }
+
+                Object.assign(item.value, {status: Status.FULFILLED, data, reason: undefined});
+                item.isValid = true;
+                item.lastUpdateAt = Date.now();
+
+                const timesUsed = this.onCacheChange(item.key);
+
+                if (timesUsed > 0 && maxAge) {
+                    setCacheItemTimeout(
+                        item,
+                        () => {
+                            /* istanbul ignore else */
+                            if (item.key) {
+                                this.invalidate(item.key);
+                            }
+                        },
+                        maxAge,
+                    );
+                }
+            })
+            .catch(error => {
+                if (!item.key) {
+                    return;
+                }
+
+                Object.assign(item.value, {status: Status.REJECTED, data: undefined, reason: error});
+                item.isValid = true;
+                item.lastUpdateAt = Date.now();
+
+                this.onCacheChange(item.key);
+            });
+
+        if (!isBrowser && this.ssrKey) {
+            item.value.promise = promise;
+        }
+    }
+
+    /** @private */
+    onCacheChange(args: Args, shouldCommit = true): number {
+        let timesUsed = 0;
         this.listeners.forEach(comp => {
-            comp.onChange(args, forceRefresh);
+            if (comp.onChange(args, shouldCommit)) {
+                timesUsed += 1;
+            }
         });
+        return timesUsed;
     }
 
     subscribe(component: Subscriber<Args>): void {
@@ -242,7 +331,7 @@ export class Resource<DataType, Args extends Record<string, unknown>> {
     }
 
     unsubscribe(component: Subscriber<Args>): void {
-        const index = this.listeners.findIndex(copm => copm === component);
+        const index = this.listeners.findIndex(comp => comp === component);
         this.listeners.splice(index, 1);
     }
 }

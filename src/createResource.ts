@@ -1,11 +1,12 @@
 import * as React from 'react';
 import {TypeName} from '@sindresorhus/is';
-import {Resource, ResourceOptions, Subscriber, STATUS, MemoizedKey} from './Resource';
-import {assertType, shallowEqual, useForceUpdate, useLazyRef} from './utils';
+import {Resource, ResourceOptions, Subscriber, Status, MemoizedKey} from './Resource';
+import {assertType, isBrowser, shallowEqual, useForceUpdate, useLazyRef} from './utils';
 
 const DEFAULT_DEBOUNCE_MS = 150;
 
-export interface CreateResourceOptions extends ResourceOptions {
+export interface Options {
+    refreshInterval?: number;
     refreshOnMount?: boolean;
 }
 
@@ -14,116 +15,150 @@ export interface ResultMeta {
     fulfilled: boolean;
     rejected: boolean;
     reason: Error | undefined;
-    refresh: () => void;
+    invalidate: () => void;
 }
 
 export type Result<DataType> = [DataType | undefined, ResultMeta];
 
+export interface ResultPagesMeta extends ResultMeta {
+    loadMore: () => void;
+}
+
+export type ResultPages<DataType> = [DataType[] | undefined, ResultPagesMeta];
+
+export type GetArgs<Args> = (prevArgs?: Args) => Args;
+
+function getAllArgs<Args>(getArgs: GetArgs<Args> | undefined, count: number): Args[] {
+    if (!getArgs) {
+        return [];
+    }
+
+    const result: Args[] = [];
+    let prevArgs: Args | undefined;
+
+    for (let i = 0; i < count; i++) {
+        prevArgs = getArgs(prevArgs);
+        result.push(prevArgs);
+    }
+
+    return result;
+}
+
 interface Refs<Args, DataType> extends Subscriber<Args> {
-    shouldForceUpdate: boolean;
-    lastTimeCalled: number;
+    args?: Args;
     prevResult?: Result<DataType>;
+    lastTimeCalled: number;
+    debounceTimerId?: number;
+}
+
+interface RefsPages<Args, DataType> extends Subscriber<Args> {
+    args: Args[];
+    pageCount: number;
+    prevResult?: ResultPages<DataType>;
+    lastTimeCalled: number;
+    debounceTimerId?: number;
 }
 
 export function createResource<DataType, Args extends MemoizedKey>(
     fn: (args: Args) => Promise<DataType>,
-    options: CreateResourceOptions = {},
+    resourceOptions: ResourceOptions = {},
 ) {
-    const resource = new Resource<DataType, Args>(fn, options);
+    const resource = new Resource<DataType, Args>(fn, resourceOptions);
 
-    return function useResource(args: Args | null): Result<DataType> {
-        assertType(args, [TypeName.Object, TypeName.null], '`args`');
+    function useResource(args: Args | undefined, options: Options = {}): Result<DataType> {
+        assertType(args, [TypeName.Object, TypeName.undefined], '`args`');
 
         const forceUpdate = useForceUpdate();
 
         const {current: refs} = React.useRef<Refs<Args, DataType>>({
             /* istanbul ignore next */
             onChange() {
-                return;
+                // A callback for Resource#onCacheChange
+                return false;
             },
-            shouldForceUpdate: !!options.refreshOnMount,
             lastTimeCalled: 0,
         });
 
-        // A callback for Resource#onCacheChange
-        refs.onChange = (prevArgs, shouldForceUpd) => {
-            if (args && prevArgs && shallowEqual(args, prevArgs)) {
-                refs.shouldForceUpdate = shouldForceUpd;
-                forceUpdate();
+        refs.args = args;
+        refs.onChange = function onChange(prevArgs, shouldCommit) {
+            if (refs.args && prevArgs && shallowEqual(refs.args, prevArgs)) {
+                if (shouldCommit) {
+                    forceUpdate();
+                }
+                return true;
             }
+            return false;
         };
 
         useLazyRef(() => {
+            if (!!options.refreshOnMount && refs.args) {
+                resource.delete(refs.args);
+            }
             resource.subscribe(refs);
         });
 
         React.useEffect(() => {
             return () => {
-                // eslint-disable-next-line react-hooks/exhaustive-deps
                 resource.unsubscribe(refs);
             };
         }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-        const {lastTimeCalled, prevResult, shouldForceUpdate} = refs;
+        const meta: ResultMeta = {
+            pending: false,
+            fulfilled: false,
+            rejected: false,
+            reason: undefined,
+            invalidate() {
+                if (refs.args) {
+                    resource.invalidate(refs.args, false);
+                    resource.read(refs.args, {maxAge: options.refreshInterval});
+                }
+            },
+        };
+
+        if (args === undefined) {
+            return [undefined, meta];
+        }
+
+        const {lastTimeCalled, prevResult} = refs;
         const now = Date.now();
         refs.lastTimeCalled = now;
-        refs.shouldForceUpdate = false;
 
         /**
          * Should this call get debounced and rescheduled,
          * and return the previous value to reduce the amount of requests?
          *
          * We should debounce when all conditions are met:
-         * 1. Argument are provided.
-         * 2. This call is not forced.
-         * 3. Previous result is valid.
-         * 4. Less than 150ms lapsed since the last call.
-         * 5. The item is not in the cache.
+         * 1. We are running in browser.
+         * 2. Previous result is valid.
+         * 3. Less than 150ms lapsed since the last call.
+         * 4. The item is not in the cache.
          */
         const shouldDebounce =
-            args !== null &&
-            !shouldForceUpdate &&
-            !!prevResult &&
-            now - lastTimeCalled < DEFAULT_DEBOUNCE_MS &&
-            !resource.has(args);
+            isBrowser && !!prevResult && now - lastTimeCalled < DEFAULT_DEBOUNCE_MS && !resource.has(args);
 
-        React.useEffect(() => {
-            let handler: number | undefined;
-            if (shouldDebounce) {
-                handler = window.setTimeout(forceUpdate, DEFAULT_DEBOUNCE_MS);
-            }
-            return () => window.clearTimeout(handler);
-        });
+        clearTimeout(refs.debounceTimerId);
 
         if (shouldDebounce) {
+            refs.debounceTimerId = window.setTimeout(forceUpdate, DEFAULT_DEBOUNCE_MS);
             return prevResult as Result<DataType>;
         }
 
-        const ret = resource.get(args, shouldForceUpdate);
+        const ret = resource.read(args, {maxAge: options.refreshInterval});
 
-        if ((!ret || ret.status === STATUS.PENDING) && !!prevResult) {
+        if ((!ret || ret.status === Status.PENDING) && !!prevResult) {
             return prevResult;
         }
 
         let data = prevResult ? prevResult[0] : undefined;
-        const meta: ResultMeta = {
-            pending: false,
-            fulfilled: false,
-            rejected: false,
-            reason: undefined,
-            refresh() {
-                refs.shouldForceUpdate = true;
-                forceUpdate();
-            },
-        };
 
         if (ret) {
             if (ret.data) {
                 data = ret.data;
             }
-            meta.pending = ret.status === STATUS.PENDING;
-            meta.fulfilled = ret.status === STATUS.FULFILLED;
-            meta.rejected = ret.status === STATUS.REJECTED;
+            meta.pending = ret.status === Status.PENDING;
+            meta.fulfilled = ret.status === Status.FULFILLED;
+            meta.rejected = ret.status === Status.REJECTED;
             meta.reason = ret.reason;
         }
 
@@ -131,5 +166,148 @@ export function createResource<DataType, Args extends MemoizedKey>(
         refs.prevResult = result;
 
         return result;
+    }
+
+    useResource.pages = function useResourcePages(
+        getArgs: GetArgs<Args> | undefined,
+        options: Options = {},
+    ): ResultPages<DataType> {
+        assertType(getArgs, [TypeName.Function, TypeName.undefined], '`getArgs`');
+
+        const forceUpdate = useForceUpdate();
+
+        const {current: refs} = React.useRef<RefsPages<Args, DataType>>({
+            /* istanbul ignore next */
+            onChange() {
+                return false;
+            },
+            args: [],
+            lastTimeCalled: 0,
+            pageCount: 1,
+        });
+
+        const nextArgs = getAllArgs(getArgs, refs.pageCount);
+
+        if (refs.pageCount !== 1 && refs.args[0] && nextArgs[0] && !shallowEqual(nextArgs[0], refs.args[0])) {
+            refs.pageCount = 1;
+            refs.args = nextArgs.slice(0, 1);
+        } else {
+            refs.args = nextArgs;
+        }
+
+        refs.onChange = function onChange(prevArgs, shouldCommit) {
+            let matches = false;
+
+            refs.args.forEach(args => {
+                if (shallowEqual(args, prevArgs)) {
+                    matches = true;
+                }
+            });
+
+            if (matches && shouldCommit) {
+                forceUpdate();
+            }
+
+            return matches;
+        };
+
+        useLazyRef(() => {
+            if (options.refreshOnMount) {
+                refs.args.forEach(args => {
+                    resource.delete(args);
+                });
+            }
+            resource.subscribe(refs);
+        });
+
+        React.useEffect(() => {
+            return () => {
+                resource.unsubscribe(refs);
+            };
+        }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+        const meta: ResultPagesMeta = {
+            pending: false,
+            fulfilled: false,
+            rejected: false,
+            reason: undefined,
+            invalidate() {
+                refs.args.forEach(args => {
+                    resource.invalidate(args, false);
+                    resource.read(args, {maxAge: options.refreshInterval});
+                });
+            },
+            loadMore() {
+                refs.pageCount += 1;
+                forceUpdate();
+            },
+        };
+
+        if (refs.args[0] === undefined) {
+            return [undefined, meta];
+        }
+
+        const {lastTimeCalled, prevResult} = refs;
+        const now = Date.now();
+        refs.lastTimeCalled = now;
+
+        /**
+         * Should this call get debounced and rescheduled,
+         * and return the previous value to reduce the amount of requests?
+         *
+         * We should debounce when all conditions are met:
+         * 1. We are running in browser.
+         * 2. Previous result is valid.
+         * 3. Less than 150ms lapsed since the last call.
+         * 4. The item is not in the cache.
+         */
+        const shouldDebounce =
+            isBrowser &&
+            !!prevResult &&
+            now - lastTimeCalled < DEFAULT_DEBOUNCE_MS &&
+            refs.args.reduce((anyNotCached, args) => anyNotCached || !resource.has(args), false);
+
+        clearTimeout(refs.debounceTimerId);
+
+        if (shouldDebounce) {
+            refs.debounceTimerId = window.setTimeout(forceUpdate, DEFAULT_DEBOUNCE_MS);
+            return prevResult as ResultPages<DataType>;
+        }
+
+        let data: DataType[] | undefined = [];
+
+        for (const args of refs.args) {
+            const ret = resource.read(args, {maxAge: options.refreshInterval});
+
+            if (meta.rejected || meta.pending) {
+                continue;
+            }
+
+            if (!ret || ret.status === Status.PENDING) {
+                meta.pending = true;
+                continue;
+            }
+
+            if (ret.status === Status.REJECTED) {
+                meta.rejected = true;
+                meta.reason = ret.reason;
+                continue;
+            }
+
+            // fulfilled
+            data.push(ret.data!);
+        }
+
+        if (!meta.pending && !meta.rejected) {
+            meta.fulfilled = true;
+        } else {
+            data = prevResult ? prevResult[0] : undefined;
+        }
+
+        refs.prevResult = [data, meta];
+
+        return refs.prevResult;
     };
+
+    return useResource;
 }

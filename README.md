@@ -136,15 +136,15 @@ A React Hook for subscribing to resources.
 
 **Arguments**
 
-1.  `args` _(Record<string, unknown> | null)_: An array of arguments that will be passed to a function in
-    `createResource`. Can also be `null` which will prevent the update which can be utilized for waiting for other async
-    tasks or user interactions to finish. Defaults to `[]`.
+1.  `args` _(Record<string, unknown> | undefined)_: An array of arguments that will be passed to a function in
+    `createResource`. Can also be `undefined` which will prevent the update which can be utilized for waiting for other
+    async tasks or user interactions to finish. Defaults to `[]`.
 
 **Returns**
 
 The function returns a tuple with data and a meta object:
 
-1.  `data` _(any)_: The last successful data. Defaults to `null`.
+1.  `data` _(any)_: The last successful data. Defaults to `undefined`.
 2.  `meta` _(Object)_: Meta properties of **most recent** promise.
     -   `pending` _(boolean)_.
     -   `rejected` _(boolean)_.

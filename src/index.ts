@@ -1,4 +1,4 @@
-export {createResource, CreateResourceOptions, Result, ResultMeta} from './createResource';
+export {createResource, GetArgs, Options, Result, ResultMeta, ResultPages, ResultPagesMeta} from './createResource';
 export {
     hydrateStore,
     flushStore,
@@ -7,6 +7,6 @@ export {
     MemoizedKey,
     MemoizedValue,
     MemoizedSerializableCacheItem,
-    STATUS,
+    Status,
 } from './Resource';
 export {SerializableCacheItem} from './Cache';

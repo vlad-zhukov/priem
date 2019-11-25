@@ -34,11 +34,11 @@ it('should hydrate store', () => {
         ],
     ]);
 
-    const res = new Resource<string, {value: string}>(({value}) => delay(100, {value}), {
+    const resource = new Resource<string, {value: string}>(({value}) => delay(100, {value}), {
         ssrKey: 'unique-key',
     });
 
-    expect(res.get({value: 'foo'})).toMatchInlineSnapshot(`
+    expect(resource.read({value: 'foo'}, {})).toMatchInlineSnapshot(`
         Object {
           "data": "bar",
           "reason": undefined,
@@ -68,40 +68,40 @@ it('should hydrate store', () => {
 });
 
 it('should always clear caches when flushing', () => {
-    const res = new Resource<string, {value: string}>(({value}) => delay(100, {value}), {
+    const resource = new Resource<string, {value: string}>(({value}) => delay(100, {value}), {
         ssrKey: 'unique-key',
     });
 
-    res.get({value: 'foo'});
+    resource.read({value: 'foo'}, {});
 
-    expect(res.has({value: 'foo'})).toBe(true);
+    expect(resource.has({value: 'foo'})).toBe(true);
 
     flushStore();
 
-    expect(res.has({value: 'foo'})).toBe(false);
+    expect(resource.has({value: 'foo'})).toBe(false);
 });
 
 it('should throw when there is a store entry with such `ssrKey` already exists', async () => {
-    const res1 = new Resource<string, {value: string}>(({value}) => delay(100, {value}), {
+    const resource1 = new Resource<string, {value: string}>(({value}) => delay(100, {value}), {
         ssrKey: 'unique-key',
     });
-    const res2 = new Resource(value => delay(100, {value}), {
+    const resource2 = new Resource(value => delay(100, {value}), {
         ssrKey: 'unique-key',
     });
 
-    res1.get({value: 'foo'});
-    expect(res1.has({value: 'foo'})).toBe(true);
+    resource1.read({value: 'foo'}, {});
+    expect(resource1.has({value: 'foo'})).toBe(true);
     await delay(150);
 
-    res2.get({value: 'bar'});
-    expect(res2.has({value: 'bar'})).toBe(true);
+    resource2.read({value: 'bar'}, {});
+    expect(resource2.has({value: 'bar'})).toBe(true);
 
     expect(flushStore).toThrowErrorMatchingInlineSnapshot(
-        `"usePriem: A resource with 'unique-key' \`ssrKey\` already exists. Please make sure \`ssrKey\`s are unique."`,
+        `"useResource: A resource with 'unique-key' \`ssrKey\` already exists. Please make sure \`ssrKey\`s are unique."`,
     );
 
-    expect(res1.has({value: 'foo'})).toBe(false);
-    expect(res2.has({value: 'bar'})).toBe(false);
+    expect(resource1.has({value: 'foo'})).toBe(false);
+    expect(resource2.has({value: 'bar'})).toBe(false);
 });
 
 it('should fetch and render to string with data', async () => {
@@ -133,7 +133,7 @@ it('should fetch data from a nested component', async () => {
 
     function Comp() {
         const [data1] = useResource1({value: 'foo'});
-        const [data2] = useResource2(!data1 ? null : {res1Value: data1, value: 'bar'});
+        const [data2] = useResource2(!data1 ? undefined : {res1Value: data1, value: 'bar'});
         return <div>{data2}</div>;
     }
 
@@ -186,7 +186,7 @@ it('should not fetch data from resources without `ssrKey`', async () => {
 
     function Comp() {
         const [data1] = useResource1({value: 'foo'});
-        const [data2] = useResource2(!data1 ? null : {res1Value: data1, value: 'bar'});
+        const [data2] = useResource2(!data1 ? undefined : {res1Value: data1, value: 'bar'});
         return <div>{data2}</div>;
     }
 
@@ -244,36 +244,4 @@ it('should not add non-fulfilled cache items to store', async () => {
           ],
         ]
     `);
-});
-
-it('should rehydrate data from initial store', async () => {
-    function createComponent(initialStore?: any) {
-        if (initialStore) {
-            hydrateStore(initialStore);
-        }
-
-        const useResource1 = createResource<string, {value: string}>(({value}) => delay(100, {value}), {
-            ssrKey: 'unique-key-1',
-        });
-        const useResource2 = createResource<string, {res1Value: string; value: string}>(
-            ({res1Value, value}) => delay(100, {value: res1Value + value}),
-            {
-                ssrKey: 'unique-key-2',
-            },
-        );
-
-        return function Comp() {
-            const [data1] = useResource1({value: 'foo'});
-            const [data2] = useResource2(!data1 ? null : {res1Value: data1, value: 'bar'});
-            return <div>{data2}</div>;
-        };
-    }
-
-    const ServerComp = createComponent();
-    await getDataFromTree(<ServerComp />);
-
-    const ClientComp = createComponent(flushStore());
-    const content = ReactDOM.renderToStaticMarkup(<ClientComp />);
-
-    expect(content).toBe('<div>foobar</div>');
 });

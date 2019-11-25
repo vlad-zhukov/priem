@@ -1,13 +1,14 @@
 export declare function createResource<DataType, Args extends MemoizedKey>(
     fn: (args: Args) => Promise<DataType>,
-    options?: CreateResourceOptions,
-): (args: Args | null) => Result<DataType>;
-
-export declare interface CreateResourceOptions extends ResourceOptions {
-    refreshOnMount?: boolean;
-}
+    resourceOptions?: ResourceOptions,
+): {
+    (args: Args | undefined, options?: Options): Result<DataType>;
+    pages(getArgs: GetArgs<Args> | undefined, options?: Options): ResultPages<DataType>;
+};
 
 export declare function flushStore(): [string, MemoizedSerializableCacheItem[]][];
+
+export declare type GetArgs<Args> = (prevArgs?: Args) => Args;
 
 /* Excluded from this release type: getRunningPromises */
 
@@ -21,15 +22,18 @@ export declare type MemoizedSerializableCacheItem<
 > = SerializableCacheItem<Args, MemoizedValue<DataType>>;
 
 export declare interface MemoizedValue<DataType> {
-    status: STATUS;
+    status: Status;
     data: DataType | undefined;
     reason?: Error;
     promise?: Promise<void>;
 }
 
+export declare interface Options {
+    refreshInterval?: number;
+    refreshOnMount?: boolean;
+}
+
 export declare interface ResourceOptions {
-    maxSize?: number;
-    maxAge?: number;
     ssrKey?: string;
 }
 
@@ -40,7 +44,13 @@ export declare interface ResultMeta {
     fulfilled: boolean;
     rejected: boolean;
     reason: Error | undefined;
-    refresh: () => void;
+    invalidate: () => void;
+}
+
+export declare type ResultPages<DataType> = [DataType[] | undefined, ResultPagesMeta];
+
+export declare interface ResultPagesMeta extends ResultMeta {
+    loadMore: () => void;
 }
 
 export declare interface SerializableCacheItem<K, V> {
@@ -48,7 +58,7 @@ export declare interface SerializableCacheItem<K, V> {
     value: V;
 }
 
-export declare enum STATUS {
+export declare enum Status {
     PENDING = 0,
     FULFILLED = 1,
     REJECTED = 2,
