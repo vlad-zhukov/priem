@@ -22,15 +22,15 @@
     "@sindresorhus/is": "^1.2.0"
   },
   "devDependencies": {
-    "@microsoft/api-extractor": "^7.6.0",
+    "@microsoft/api-extractor": "^7.6.2",
     "@testing-library/react": "^9.3.2",
     "@types/jest": "^24.0.23",
-    "@types/react": "^16.9.11",
+    "@types/react": "^16.9.13",
     "@types/react-dom": "^16.9.4",
     "@typescript-eslint/eslint-plugin": "^2.8.0",
     "@typescript-eslint/parser": "^2.8.0",
     "delay": "^4.3.0",
-    "eslint": "^6.6.0",
+    "eslint": "^6.7.1",
     "eslint-config-prettier": "^6.7.0",
     "eslint-plugin-jest": "^23.0.4",
     "eslint-plugin-react": "^7.16.0",
@@ -42,9 +42,9 @@
     "raf": "^3.4.1",
     "react": "16.12.0",
     "react-dom": "16.12.0",
-    "rollup": "^1.27.2",
+    "rollup": "^1.27.5",
     "rollup-plugin-typescript2": "^0.25.2",
-    "ts-jest": "^24.1.0",
+    "ts-jest": "^24.2.0",
     "typescript": "^3.7.2"
   },
   "peerDependencies": {
